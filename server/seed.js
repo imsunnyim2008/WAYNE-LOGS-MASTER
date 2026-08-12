@@ -1,0 +1,21 @@
+require("dotenv").config();const mongoose=require("mongoose");const Product=require("./models/Product");
+const products=[
+{name:"Facebook Business Setup",platform:"Facebook",type:"social",price:25000,stock:12,icon:"f",color1:"#1877f2",color2:"#5aa5ff",description:"Professional Facebook business/page setup package for assets you own or are authorized to manage.",deliveryType:"manual"},
+{name:"Instagram Creator Pack",platform:"Instagram",type:"social",price:22000,stock:10,icon:"◎",color1:"#833ab4",color2:"#fd1d1d",description:"Instagram branding, profile optimization and creator setup package.",deliveryType:"manual"},
+{name:"TikTok Brand Pack",platform:"TikTok",type:"social",price:24000,stock:8,icon:"♪",color1:"#00f2ea",color2:"#ff0050",description:"TikTok creator branding and profile setup for authorized accounts.",deliveryType:"manual"},
+{name:"YouTube Channel Kit",platform:"YouTube",type:"social",price:30000,stock:6,icon:"▶",color1:"#ff0000",color2:"#ff6a6a",description:"YouTube channel branding and setup package.",deliveryType:"manual"},
+{name:"X Profile Branding",platform:"X / Twitter",type:"social",price:18000,stock:15,icon:"𝕏",color1:"#2d2d2d",color2:"#6c6c6c",description:"Professional X profile branding and launch setup.",deliveryType:"manual"},
+{name:"Snapchat Creator Pack",platform:"Snapchat",type:"social",price:18000,stock:11,icon:"👻",color1:"#fffc00",color2:"#f5c400",description:"Snapchat creator profile setup and branding.",deliveryType:"manual"},
+{name:"Telegram Channel Setup",platform:"Telegram",type:"social",price:20000,stock:20,icon:"➤",color1:"#229ed9",color2:"#7dd3fc",description:"Telegram channel/community setup with branding.",deliveryType:"manual"},
+{name:"WhatsApp Business Setup",platform:"WhatsApp",type:"social",price:20000,stock:14,icon:"☏",color1:"#25d366",color2:"#65e6a0",description:"WhatsApp Business profile and catalog setup.",deliveryType:"manual"},
+{name:"Discord Community Setup",platform:"Discord",type:"social",price:28000,stock:7,icon:"☯",color1:"#5865f2",color2:"#8790ff",description:"Discord community structure, roles and branding.",deliveryType:"manual"},
+{name:"Reddit Community Setup",platform:"Reddit",type:"social",price:18000,stock:9,icon:"●",color1:"#ff4500",color2:"#ff8b62",description:"Reddit community/subreddit setup and branding.",deliveryType:"manual"},
+{name:"LinkedIn Business Setup",platform:"LinkedIn",type:"social",price:26000,stock:9,icon:"in",color1:"#0a66c2",color2:"#5fa7e8",description:"LinkedIn business/profile setup package.",deliveryType:"manual"},
+{name:"Pinterest Brand Setup",platform:"Pinterest",type:"social",price:19000,stock:10,icon:"P",color1:"#e60023",color2:"#ff6377",description:"Pinterest profile and board branding setup.",deliveryType:"manual"},
+{name:"Threads Creator Setup",platform:"Threads",type:"social",price:17000,stock:16,icon:"@",color1:"#1c1c1c",color2:"#585858",description:"Threads creator profile launch package.",deliveryType:"manual"},
+{name:"Twitch Channel Kit",platform:"Twitch",type:"social",price:27000,stock:8,icon:"♜",color1:"#9146ff",color2:"#bc8cff",description:"Twitch channel presentation and branding.",deliveryType:"manual"},
+{name:"Secure VPN — 1 Month",platform:"VPN",type:"vpn",price:6500,stock:50,icon:"🛡",color1:"#00c6ff",color2:"#7c5cff",description:"One-month VPN subscription/license.",deliveryType:"instant",privateDelivery:"Replace this with your authorized VPN activation instructions."},
+{name:"Secure VPN — 6 Months",platform:"VPN",type:"vpn",price:28000,stock:35,icon:"🔐",color1:"#00d4aa",color2:"#4ecbff",description:"Six-month VPN subscription/license.",deliveryType:"instant",privateDelivery:"Replace this with your authorized VPN activation instructions."},
+{name:"Secure VPN — 12 Months",platform:"VPN",type:"vpn",price:48000,stock:25,icon:"🌐",color1:"#7c5cff",color2:"#ff5db1",description:"Twelve-month VPN subscription/license.",deliveryType:"instant",privateDelivery:"Replace this with your authorized VPN activation instructions."}
+];
+(async()=>{await mongoose.connect(process.env.MONGO_URI);for(const p of products)await Product.updateOne({name:p.name},{$set:p},{upsert:true});console.log("Seeded",products.length,"products");await mongoose.disconnect();})().catch(e=>{console.error(e);process.exit(1);});

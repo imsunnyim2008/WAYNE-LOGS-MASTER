@@ -1,0 +1,10 @@
+const r=require("express").Router();
+const c=require("../controllers/productController");
+const{protect,adminOnly}=require("../middleware/authMiddleware");
+r.get("/",c.publicList);
+r.get("/admin/all",protect,adminOnly,c.adminList);
+r.post("/",protect,adminOnly,c.create);
+r.put("/:id",protect,adminOnly,c.update);
+r.delete("/:id",protect,adminOnly,c.remove);
+r.get("/:id",c.publicOne);
+module.exports=r;

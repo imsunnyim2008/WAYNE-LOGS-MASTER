@@ -227,3 +227,13 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.6p
   .stats{grid-template-columns:1fr}
   .section-head{align-items:start;flex-direction:column}
 }
+
+/* Full-system additions */
+.auth-page{min-height:100vh;display:grid;place-items:center;padding:24px}
+.auth-card{width:min(500px,100%);padding:28px;border-radius:28px;border:1px solid var(--line);background:rgba(17,24,50,.82);box-shadow:var(--shadow);backdrop-filter:blur(18px)}
+.message{display:none;padding:14px;border-radius:13px;margin:14px 0;line-height:1.5}.message.error{background:rgba(255,102,127,.12);color:#ff9aad}.message.success{background:rgba(73,227,166,.12);color:#83efc3}
+.order-list{display:grid;gap:16px}.order-card{border:1px solid var(--line);border-radius:20px;padding:18px;background:rgba(255,255,255,.04)}.order-top{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}.order-name{font-size:19px;font-weight:900}.order-meta{font-size:13px;color:var(--muted);line-height:1.7}.order-price{font-size:21px;font-weight:950;color:var(--primary2)}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.badge{padding:6px 10px;border-radius:999px;font-size:11px;font-weight:900;background:rgba(255,209,102,.12);color:var(--yellow)}.badge.paid,.badge.completed{background:rgba(73,227,166,.12);color:var(--green)}.badge.processing{background:rgba(78,203,255,.12);color:var(--primary2)}.badge.cancelled,.badge.refunded,.badge.failed{background:rgba(255,102,127,.12);color:#ff9aad}
+.delivery{margin-top:15px;padding:16px;border-radius:16px;border:1px solid rgba(73,227,166,.22);background:rgba(73,227,166,.08)}.delivery h3{margin:0 0 9px;color:var(--green)}.delivery-content{white-space:pre-wrap;word-break:break-word}.locked{margin-top:15px;padding:16px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--muted)}
+.admin-menu a{text-align:left;border:0;background:transparent;color:var(--muted);padding:13px 14px;border-radius:14px;font-weight:800}.admin-menu a:hover{background:rgba(124,92,255,.14);color:white}
+@media(max-width:760px){.order-top{flex-direction:column}}
