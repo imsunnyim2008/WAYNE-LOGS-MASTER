@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WAYNE LOGS — Admin Panel</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-brand">
+      <a class="brand" href="index.html"><span class="brand-mark">W</span><span>WAYNE LOGS</span></a>
+      <p style="color:var(--muted);font-size:12px;margin:8px 0 0 54px">ADMIN PANEL</p>
+    </div>
+    <div class="admin-menu">
+      <button class="active" data-admin-section="overview">🏠 Overview</button>
+      <button data-admin-section="products">📦 Products</button>
+      <button data-admin-section="orders">🛒 Orders</button>
+      <button data-admin-section="platforms">🌐 Platforms</button>
+      <button data-admin-section="settings">⚙ Settings</button>
+      <a href="index.html" class="ghost-btn" style="margin-top:12px;text-align:center">← View Store</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <header class="admin-top">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="icon-btn menu-btn" id="adminMenuBtn">☰</button>
+        <div><small style="color:var(--muted)">WAYNE LOGS</small><h2 id="adminTitle" style="margin:2px 0 0">Overview</h2></div>
+      </div>
+      <a class="ghost-btn" href="index.html">Store ↗</a>
+    </header>
+
+    <div class="admin-content">
+      <section class="admin-section active" id="overview">
+        <div class="stats">
+          <div class="stat-card"><small>Products</small><strong id="statProducts">0</strong></div>
+          <div class="stat-card"><small>Orders</small><strong id="statOrders">0</strong></div>
+          <div class="stat-card"><small>Pending</small><strong id="statPending">0</strong></div>
+          <div class="stat-card"><small>Completed Revenue</small><strong id="statRevenue">₦0</strong></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3 style="margin:0">Recent orders</h3><p style="color:var(--muted);margin:5px 0 0">Orders created from this browser.</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentOrders"></tbody></table></div>
+        </div>
+      </section>
+
+      <section class="admin-section" id="products">
+        <div class="panel">
+          <div class="panel-head"><div><h3 id="productFormTitle" style="margin:0">Add Product</h3><p style="color:var(--muted);margin:5px 0 0">Create social or VPN products.</p></div></div>
+          <form id="productForm">
+            <div class="admin-grid">
+              <div class="field"><label>Name</label><input id="p_name" name="name" required></div>
+              <div class="field"><label>Platform</label><input id="p_platform" name="platform" placeholder="Instagram / VPN" required></div>
+              <div class="field"><label>Type</label><select id="p_type" name="type"><option value="social">Social</option><option value="vpn">VPN</option></select></div>
+              <div class="field"><label>Price (₦)</label><input id="p_price" type="number" min="0" name="price" required></div>
+              <div class="field"><label>Stock</label><input id="p_stock" type="number" min="0" name="stock" required></div>
+              <div class="field"><label>Icon / Emoji</label><input id="p_icon" name="icon" placeholder="◎"></div>
+              <div class="field"><label>Gradient color 1</label><input id="p_c1" name="c1" type="color" value="#7c5cff"></div>
+              <div class="field"><label>Gradient color 2</label><input id="p_c2" name="c2" type="color" value="#ff5db1"></div>
+            </div>
+            <div class="field"><label>Description</label><textarea id="p_description" name="description" required></textarea></div>
+            <button class="primary-btn" id="saveProduct">Add Product</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div><h3 style="margin:0">Products</h3><p style="color:var(--muted);margin:5px 0 0">Edit or remove store listings.</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Product</th><th>Type</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody id="adminProductTable"></tbody></table></div>
+        </div>
+      </section>
+
+      <section class="admin-section" id="orders">
+        <div class="panel">
+          <div class="panel-head"><div><h3 style="margin:0">Orders</h3><p style="color:var(--muted);margin:5px 0 0">Manage customer order status.</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Date</th><th>Status</th></tr></thead><tbody id="adminOrderTable"></tbody></table></div>
+        </div>
+      </section>
+
+      <section class="admin-section" id="platforms">
+        <div class="panel">
+          <div class="panel-head"><div><h3 style="margin:0">Supported platforms</h3><p style="color:var(--muted);margin:5px 0 0">Major social networks plus VPN.</p></div></div>
+          <div class="platform-palette">
+            <div class="palette-item">Facebook</div><div class="palette-item">Instagram</div><div class="palette-item">TikTok</div><div class="palette-item">YouTube</div>
+            <div class="palette-item">X / Twitter</div><div class="palette-item">Snapchat</div><div class="palette-item">Telegram</div><div class="palette-item">WhatsApp</div>
+            <div class="palette-item">Discord</div><div class="palette-item">Reddit</div><div class="palette-item">LinkedIn</div><div class="palette-item">Pinterest</div>
+            <div class="palette-item">Threads</div><div class="palette-item">Twitch</div><div class="palette-item">VPN</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-section" id="settings">
+        <div class="panel">
+          <h3 style="margin-top:0">Settings</h3>
+          <p style="color:var(--muted);line-height:1.7">This fresh build is intentionally plain HTML, CSS and JavaScript. Product and order data is stored in localStorage in the browser. A real secure multi-device admin login, database and payment system require a backend.</p>
+          <button class="danger-btn" id="resetStore">Reset browser data</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+// Initialize fresh default catalog if needed
+const DEFAULT_PRODUCTS = [
+  {id:"fb1",name:"Facebook Business Setup",platform:"Facebook",type:"social",price:25000,stock:12,icon:"f",c1:"#1877f2",c2:"#5aa5ff",description:"Professional Facebook business/page setup package for assets you own or are authorized to manage."},
+  {id:"ig1",name:"Instagram Creator Pack",platform:"Instagram",type:"social",price:22000,stock:10,icon:"◎",c1:"#833ab4",c2:"#fd1d1d",description:"Instagram branding, profile optimization and creator setup package."},
+  {id:"tt1",name:"TikTok Brand Pack",platform:"TikTok",type:"social",price:24000,stock:8,icon:"♪",c1:"#00f2ea",c2:"#ff0050",description:"TikTok profile branding and creator-ready setup for authorized accounts."},
+  {id:"yt1",name:"YouTube Channel Kit",platform:"YouTube",type:"social",price:30000,stock:6,icon:"▶",c1:"#ff0000",c2:"#ff6a6a",description:"YouTube channel branding, banner direction and channel setup package."},
+  {id:"x1",name:"X Profile Branding",platform:"X / Twitter",type:"social",price:18000,stock:15,icon:"𝕏",c1:"#2d2d2d",c2:"#6c6c6c",description:"Professional X profile setup, branding and launch checklist."},
+  {id:"sc1",name:"Snapchat Creator Pack",platform:"Snapchat",type:"social",price:18000,stock:11,icon:"👻",c1:"#fffc00",c2:"#f5c400",description:"Snapchat creator profile setup and branding package."},
+  {id:"tg1",name:"Telegram Channel Setup",platform:"Telegram",type:"social",price:20000,stock:20,icon:"➤",c1:"#229ed9",c2:"#7dd3fc",description:"Telegram channel/community setup with branding and structure."},
+  {id:"wa1",name:"WhatsApp Business Setup",platform:"WhatsApp",type:"social",price:20000,stock:14,icon:"☏",c1:"#25d366",c2:"#65e6a0",description:"WhatsApp Business profile and catalog-ready setup package."},
+  {id:"dc1",name:"Discord Community Setup",platform:"Discord",type:"social",price:28000,stock:7,icon:"☯",c1:"#5865f2",c2:"#8790ff",description:"Discord community setup, roles, channels and branding structure."},
+  {id:"rd1",name:"Reddit Community Setup",platform:"Reddit",type:"social",price:18000,stock:9,icon:"●",c1:"#ff4500",c2:"#ff8b62",description:"Reddit community/subreddit setup and branding package."},
+  {id:"li1",name:"LinkedIn Business Setup",platform:"LinkedIn",type:"social",price:26000,stock:9,icon:"in",c1:"#0a66c2",c2:"#5fa7e8",description:"LinkedIn company/profile presentation and business setup package."},
+  {id:"pt1",name:"Pinterest Brand Setup",platform:"Pinterest",type:"social",price:19000,stock:10,icon:"P",c1:"#e60023",c2:"#ff6377",description:"Pinterest profile, board structure and visual branding setup."},
+  {id:"th1",name:"Threads Creator Setup",platform:"Threads",type:"social",price:17000,stock:16,icon:"@",c1:"#1c1c1c",c2:"#585858",description:"Threads creator profile setup and launch package."},
+  {id:"tw1",name:"Twitch Channel Kit",platform:"Twitch",type:"social",price:27000,stock:8,icon:"♜",c1:"#9146ff",c2:"#bc8cff",description:"Twitch channel presentation, panels and creator branding setup."},
+  {id:"vpn1",name:"Secure VPN — 1 Month",platform:"VPN",type:"vpn",price:6500,stock:50,icon:"🛡",c1:"#00c6ff",c2:"#7c5cff",description:"One-month VPN subscription/license for privacy and secure browsing."},
+  {id:"vpn6",name:"Secure VPN — 6 Months",platform:"VPN",type:"vpn",price:28000,stock:35,icon:"🔐",c1:"#00d4aa",c2:"#4ecbff",description:"Six-month VPN subscription/license with multi-device support."},
+  {id:"vpn12",name:"Secure VPN — 12 Months",platform:"VPN",type:"vpn",price:48000,stock:25,icon:"🌐",c1:"#7c5cff",c2:"#ff5db1",description:"Twelve-month VPN subscription/license for long-term secure browsing."}
+];
+if(!localStorage.getItem("wayneFreshProducts")) localStorage.setItem("wayneFreshProducts",JSON.stringify(DEFAULT_PRODUCTS));
+</script>
+<script src="admin.js"></script>
+</body>
+</html>
