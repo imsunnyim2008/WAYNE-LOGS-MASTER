@@ -1,11 +1,188 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WAYNE LOGS — Social & VPN Marketplace</title><link rel="stylesheet" href="styles.css"></head><body>
-<nav class="nav"><div class="container nav-inner"><a class="brand" href="index.html"><span class="brand-mark">W</span><span>WAYNE LOGS</span></a><div class="nav-links"><a href="#store">Store</a><a href="#platforms">Platforms</a><a href="#vpn">VPN</a><a href="orders.html">My Orders</a></div><div class="nav-actions"><a class="ghost-btn" id="accountLink" href="login.html">Login</a><a class="ghost-btn" id="adminLink" href="admin.html" style="display:none">Admin</a><button class="icon-btn" id="cartButton">Cart <span class="badge-count" data-cart-count>0</span></button></div></div></nav>
-<header class="hero"><div class="container hero-grid"><div><span class="eyebrow">⚡ SOCIAL + VPN ONLY</span><h1>Digital essentials, <span class="gradient-text">built for your online life.</span></h1><p>A focused marketplace for legitimate social-media digital services and VPN subscriptions. Fast browsing, secure accounts, real orders and server-verified payments.</p><div class="hero-cta"><a href="#store" class="primary-btn">Browse Store</a><a href="#vpn" class="ghost-btn">Explore VPN</a></div></div><div class="hero-card glass"><div class="hero-orb one"></div><div class="hero-orb two"></div><div class="preview-stack"><div class="preview-row"><div class="platform-dot">◎</div><div><strong>Instagram</strong><span>Creator & branding services</span></div></div><div class="preview-row"><div class="platform-dot">♪</div><div><strong>TikTok</strong><span>Creator-ready packages</span></div></div><div class="preview-row"><div class="platform-dot">▶</div><div><strong>YouTube</strong><span>Channel setup & branding</span></div></div><div class="preview-row"><div class="platform-dot">🛡</div><div><strong>VPN</strong><span>1, 6 and 12 month plans</span></div></div></div></div></div></header>
-<section class="section" id="platforms"><div class="container"><div class="section-head"><div><h2>Major platforms</h2><p>Facebook, Instagram, TikTok, YouTube, X, Snapchat, Telegram, WhatsApp, Discord, Reddit, LinkedIn, Pinterest, Threads, Twitch and VPN.</p></div></div><div class="category-grid"><div class="category-card"><div class="category-icon">f</div><strong>Facebook</strong></div><div class="category-card"><div class="category-icon">◎</div><strong>Instagram</strong></div><div class="category-card"><div class="category-icon">♪</div><strong>TikTok</strong></div><div class="category-card"><div class="category-icon">▶</div><strong>YouTube</strong></div><div class="category-card"><div class="category-icon">𝕏</div><strong>X</strong></div><div class="category-card"><div class="category-icon">🛡</div><strong>VPN</strong></div></div></div></section>
-<section class="section" id="store"><div class="container"><div class="section-head"><div><h2>Store</h2><p>Social digital services and VPN plans — nothing else.</p></div></div><div class="storebar"><div class="search"><span>⌕</span><input id="searchInput" placeholder="Search Facebook, TikTok, VPN..."></div><select class="filter-select" id="filterSelect"><option value="all">All products</option><option value="social">Social</option><option value="vpn">VPN</option></select></div><div class="products" id="productGrid"><div class="empty" style="grid-column:1/-1">Loading products...</div></div></div></section>
-<section class="section" id="vpn"><div class="container"><div class="vpn-band"><div class="vpn-grid"><div><span class="eyebrow">🛡 VPN PLANS</span><h2 style="font-size:36px;margin:14px 0 10px">Private. Secure. Simple.</h2><p style="color:var(--muted);line-height:1.7">Offer VPN subscription/license plans alongside social digital services without unrelated categories.</p><div class="vpn-points"><div class="vpn-point">✓ Multiple plan lengths</div><div class="vpn-point">✓ Mobile friendly</div><div class="vpn-point">✓ Clear pricing</div><div class="vpn-point">✓ Admin managed</div></div></div><div class="hero-card" style="min-height:280px"><div class="preview-stack" style="margin-top:5px"><div class="preview-row"><div class="platform-dot">🔐</div><div><strong>1 Month</strong><span>Flexible access</span></div></div><div class="preview-row"><div class="platform-dot">🌍</div><div><strong>6 Months</strong><span>Mid-term value</span></div></div><div class="preview-row"><div class="platform-dot">🛡</div><div><strong>12 Months</strong><span>Long-term plan</span></div></div></div></div></div></div></div></section>
-<footer class="footer"><div class="container footer-grid"><div><div class="brand"><span class="brand-mark">W</span><span>WAYNE LOGS</span></div><p>Social digital services and VPN subscriptions in one focused marketplace.</p></div><div><strong style="color:white">Store</strong><p><a href="#store">Products</a></p><p><a href="#vpn">VPN</a></p></div><div><strong style="color:white">Account</strong><p><a href="orders.html">My Orders</a></p><p><a href="login.html">Login</a></p></div></div></footer>
-<div class="overlay" id="overlay"></div><aside class="drawer" id="cartDrawer"><div class="drawer-head"><h2>Your cart</h2><button class="icon-btn" onclick="closeCart()">✕</button></div><div id="cartItems"></div><div class="cart-total"><span>Total</span><span id="cartTotal">₦0</span></div><button class="primary-btn" style="width:100%" id="checkoutBtn">Checkout</button></aside>
-<div class="modal" id="productModal"><div class="modal-card"><div class="modal-head"><div><small id="modalPlatform" style="color:var(--muted)"></small><h2 id="modalTitle"></h2></div><button class="icon-btn" onclick="closeProduct()">✕</button></div><div class="modal-art" id="modalArt"></div><p id="modalDesc" style="color:var(--muted);line-height:1.65"></p><div class="product-bottom"><div class="price" id="modalPrice"></div><button class="primary-btn" id="modalAdd">Add to cart</button></div></div></div>
-<div class="modal" id="checkoutModal"><div class="modal-card"><div class="modal-head"><div><small style="color:var(--muted)">CHECKOUT</small><h2>Confirm order</h2></div><button class="icon-btn" onclick="closeCheckout()">✕</button></div><p id="checkoutSummary" style="color:var(--muted)"></p><div id="checkoutMessage" class="message"></div><button class="primary-btn" style="width:100%" id="payButton">Create Order & Pay</button><p class="notice">Payment is initialized by the backend. Fulfillment only unlocks after verified payment.</p></div></div>
-<script src="config.js"></script><script src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WAYNE LOGS — Shop Social Services & VPN</title>
+  <meta name="description" content="Shop legitimate social-media digital services and VPN subscriptions.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="store-simple.css">
+</head>
+<body class="simple-store">
+  <header class="simple-header">
+    <div class="simple-wrap simple-nav">
+      <a class="simple-brand" href="index.html">
+        <span class="simple-logo">W</span>
+        <span>WAYNE LOGS</span>
+      </a>
+
+      <nav class="simple-links">
+        <a href="#shop">Shop</a>
+        <a href="orders.html">My Orders</a>
+      </nav>
+
+      <div class="simple-actions" id="accountActions">
+        <a class="simple-btn secondary" id="accountLink" href="login.html">Login</a>
+        <a class="simple-btn secondary" id="registerLink" href="register.html">Create Account</a>
+        <a class="simple-btn secondary" id="adminLink" href="admin.html" hidden>Admin</a>
+        <button class="simple-btn cart-button" id="cartButton" type="button">
+          Cart <span class="simple-count" data-cart-count>0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="simple-hero">
+      <div class="simple-wrap simple-hero-grid">
+        <div>
+          <span class="simple-kicker">SOCIAL SERVICES + VPN</span>
+          <h1>Choose it. See exactly what you get. Pay securely.</h1>
+          <p>
+            No confusing menus. Pick a product, read what is included, see the price,
+            then buy when you are ready.
+          </p>
+          <div class="simple-hero-actions">
+            <a class="simple-btn primary large" href="#shop">Shop Now</a>
+            <a class="simple-btn secondary large" href="orders.html">Track My Orders</a>
+          </div>
+        </div>
+
+        <aside class="simple-how">
+          <h2>How it works</h2>
+          <div class="simple-step"><span>1</span><div><strong>Choose</strong><small>Open a product and read the details.</small></div></div>
+          <div class="simple-step"><span>2</span><div><strong>Pay</strong><small>Continue to secure Paystack checkout.</small></div></div>
+          <div class="simple-step"><span>3</span><div><strong>Track</strong><small>See payment, delivery and order status in My Orders.</small></div></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="simple-shop" id="shop">
+      <div class="simple-wrap">
+        <div class="simple-section-title">
+          <div>
+            <span class="simple-kicker">STORE</span>
+            <h2>What do you want to buy?</h2>
+            <p>Tap a platform to filter the store, or search by name.</p>
+          </div>
+        </div>
+
+        <div class="platform-filters" id="platformFilters">
+          <button class="platform-pill active" type="button" data-platform="all">All</button>
+          <button class="platform-pill" type="button" data-platform="social">Social</button>
+          <button class="platform-pill" type="button" data-platform="vpn">VPN</button>
+        </div>
+
+        <div class="simple-toolbar">
+          <label class="simple-search">
+            <span>⌕</span>
+            <input id="searchInput" type="search" placeholder="Search Instagram, VPN, YouTube...">
+          </label>
+          <select id="filterSelect" class="simple-select" aria-label="Filter product type">
+            <option value="all">All products</option>
+            <option value="social">Social services</option>
+            <option value="vpn">VPN</option>
+          </select>
+        </div>
+
+        <div class="simple-products" id="productGrid">
+          <div class="simple-empty">Loading products...</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="simple-trust">
+      <div class="simple-wrap simple-trust-grid">
+        <article><span>✓</span><div><strong>Clear pricing</strong><small>Price is shown before checkout.</small></div></article>
+        <article><span>✓</span><div><strong>Account orders</strong><small>Every purchase is connected to your account.</small></div></article>
+        <article><span>✓</span><div><strong>Verified payment</strong><small>Delivery unlocks only after payment verification.</small></div></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="simple-footer">
+    <div class="simple-wrap">
+      <strong>WAYNE LOGS</strong>
+      <span>Social digital services and VPN subscriptions.</span>
+    </div>
+  </footer>
+
+  <div class="simple-backdrop" id="overlay"></div>
+
+  <aside class="simple-drawer" id="cartDrawer" aria-label="Shopping cart">
+    <div class="simple-panel-head">
+      <div>
+        <small>YOUR CART</small>
+        <h2>Ready to buy?</h2>
+      </div>
+      <button class="simple-close" id="closeCartBtn" type="button">×</button>
+    </div>
+
+    <div id="cartItems"></div>
+
+    <div class="simple-total">
+      <span>Total</span>
+      <strong id="cartTotal">₦0</strong>
+    </div>
+
+    <button class="simple-btn primary full" id="checkoutBtn" type="button">Continue to Checkout</button>
+    <p class="simple-note">Checkout handles one product at a time to keep the purchase simple.</p>
+  </aside>
+
+  <div class="simple-modal" id="productModal" aria-hidden="true">
+    <div class="simple-modal-card">
+      <button class="simple-close floating" id="closeProductBtn" type="button">×</button>
+      <div class="simple-product-icon large-icon" id="modalArt">★</div>
+      <span class="simple-kicker" id="modalPlatform"></span>
+      <h2 id="modalTitle">Product</h2>
+      <p class="simple-modal-desc" id="modalDesc"></p>
+
+      <div class="simple-details">
+        <div><span>Price</span><strong id="modalPrice">₦0</strong></div>
+        <div><span>Delivery</span><strong id="modalDelivery">After payment</strong></div>
+        <div><span>Availability</span><strong id="modalStock">Available</strong></div>
+      </div>
+
+      <div class="simple-what">
+        <strong>What you're buying</strong>
+        <p id="modalWhat"></p>
+      </div>
+
+      <div class="simple-modal-actions">
+        <button class="simple-btn secondary full" id="modalAdd" type="button">Add to Cart</button>
+        <button class="simple-btn primary full" id="modalBuy" type="button">Buy Now</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="simple-modal" id="checkoutModal" aria-hidden="true">
+    <div class="simple-modal-card checkout-card">
+      <button class="simple-close floating" id="closeCheckoutBtn" type="button">×</button>
+      <span class="simple-kicker">CHECKOUT</span>
+      <h2>Check your order</h2>
+      <p>Make sure this is what you want before going to payment.</p>
+
+      <div class="checkout-product" id="checkoutProduct"></div>
+
+      <div class="checkout-row">
+        <span>Account</span>
+        <strong id="checkoutEmail">—</strong>
+      </div>
+      <div class="checkout-row total">
+        <span>Total</span>
+        <strong id="checkoutTotal">₦0</strong>
+      </div>
+
+      <div id="checkoutMessage" class="simple-message"></div>
+
+      <button class="simple-btn primary full pay-button" id="payButton" type="button">
+        Pay Securely with Paystack
+      </button>
+      <p class="simple-note">You will be taken to Paystack to complete payment. Do not close the page until payment finishes.</p>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

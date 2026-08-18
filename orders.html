@@ -1,3 +1,74 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Orders | WAYNE LOGS</title><link rel="stylesheet" href="styles.css"></head><body><nav class="nav"><div class="container nav-inner"><a class="brand" href="index.html"><span class="brand-mark">W</span><span>WAYNE LOGS</span></a><div class="nav-actions"><a class="ghost-btn" href="index.html">Store</a><button class="ghost-btn" id="logout">Logout</button></div></div></nav><main class="section"><div class="container"><div class="section-head"><div><h2>My Orders</h2><p>Track payment, order status and completed fulfillment.</p></div></div><div id="message" class="message"></div><div id="ordersList" class="order-list"><div class="empty">Loading orders...</div></div></div></main><script src="config.js"></script><script>
-const API_URL=localStorage.getItem("wayneApiUrl")||window.WAYNE_API_URL||"http://localhost:5000",token=localStorage.getItem("wayneToken"),params=new URLSearchParams(location.search),logout=document.getElementById("logout"),message=document.getElementById("message"),ordersList=document.getElementById("ordersList");if(!token)location.replace("login.html");logout.onclick=()=>{localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.href="login.html"};function money(n){return"₦"+Number(n||0).toLocaleString("en-NG")}function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}async function verify(){if(params.get("payment")!=="callback"||!params.get("order")||!params.get("reference"))return;try{const r=await fetch(API_URL+`/api/orders/${params.get("order")}/paystack/verify`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({reference:params.get("reference")})});const d=await r.json();if(!r.ok)throw new Error(d.message||"Verification failed");message.textContent="Payment verified successfully.";message.className="message success";message.style.display="block";history.replaceState({},"","orders.html?order="+params.get("order"))}catch(e){message.textContent=e.message;message.className="message error";message.style.display="block"}}async function load(){try{const r=await fetch(API_URL+"/api/orders/my",{headers:{Authorization:"Bearer "+token}});const d=await r.json();if(!r.ok)throw new Error(d.message||"Could not load orders");ordersList.innerHTML=d.orders.length?d.orders.map(o=>`<div class="order-card"><div class="order-top"><div><div class="order-name">${esc(o.productName)}</div><div class="order-meta">${esc(o._id)}<br>${new Date(o.createdAt).toLocaleString()}</div></div><div class="order-price">${money(o.totalAmount)}</div></div><div class="badges"><span class="badge ${o.paymentStatus}">Payment: ${esc(o.paymentStatus)}</span><span class="badge ${o.status}">Order: ${esc(o.status)}</span></div>${o.deliveryContent?`<div class="delivery"><h3>🔓 Your Delivery</h3><div class="delivery-content">${esc(o.deliveryContent)}</div></div>`:`<div class="locked">🔒 Fulfillment unlocks after verified payment and completion.</div>`}</div>`).join(""):`<div class="empty">No orders yet.</div>`}catch(e){message.textContent=e.message;message.className="message error";message.style.display="block"}}(async()=>{await verify();await load()})();
-</script></body></html>
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Orders | WAYNE LOGS</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.order-actions button,.order-actions a{display:inline-flex;text-decoration:none}
+.order-help{padding:14px;border-radius:14px;background:rgba(124,92,255,.08);border:1px solid rgba(124,92,255,.18);color:var(--muted);margin-bottom:18px}
+.order-card{position:relative}.order-product-line{display:flex;gap:11px;align-items:center}.order-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--purple),var(--pink));font-size:21px}
+</style>
+</head><body>
+<nav class="nav"><div class="container nav-inner"><a class="brand" href="index.html"><span class="brand-mark">W</span><span>WAYNE LOGS</span></a><div class="nav-actions"><a class="ghost-btn" href="index.html">Shop</a><button class="ghost-btn" id="logout">Logout</button></div></div></nav>
+<main class="section"><div class="container">
+<div class="section-head"><div><h2>My Orders</h2><p>Payment and delivery status for everything you buy.</p></div></div>
+<div class="order-help">If a payment did not open or was interrupted, use <strong>Pay Now</strong> on the pending order. You do not need to create the order again.</div>
+<div id="message" class="message"></div>
+<div id="ordersList" class="order-list"><div class="empty">Loading orders...</div></div>
+</div></main>
+<script src="config.js"></script>
+<script>
+const API_URL=localStorage.getItem("wayneApiUrl")||window.WAYNE_API_URL||"http://localhost:5000";
+const token=localStorage.getItem("wayneToken"),params=new URLSearchParams(location.search);
+const logout=document.getElementById("logout"),message=document.getElementById("message"),ordersList=document.getElementById("ordersList");
+if(!token)location.replace("login.html");
+logout.onclick=()=>{localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.href="login.html"};
+function money(n){return"₦"+Number(n||0).toLocaleString("en-NG")}
+function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
+function show(t,type="error"){message.textContent=t;message.className="message "+type;message.style.display="block"}
+async function verify(){
+ const ref=params.get("reference"),order=params.get("order");
+ if(params.get("payment")!=="callback"||!order||!ref)return;
+ show("Checking your Paystack payment...","info");
+ try{
+  const r=await fetch(API_URL+`/api/orders/${encodeURIComponent(order)}/paystack/verify`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({reference:ref})});
+  const d=await r.json();if(!r.ok)throw new Error(d.message||"Verification failed");
+  show("Payment verified successfully. Your order has been updated.","success");
+  history.replaceState({},"","orders.html");
+ }catch(e){show(e.message)}
+}
+async function retryPayment(orderId,button){
+ button.disabled=true;button.textContent="Opening Paystack...";
+ try{
+  const r=await fetch(API_URL+`/api/orders/${encodeURIComponent(orderId)}/paystack/initialize`,{method:"POST",headers:{Authorization:"Bearer "+token}});
+  const d=await r.json();if(!r.ok)throw new Error(d.message||"Payment could not start");
+  if(!d.authorizationUrl)throw new Error("Paystack payment page was not returned.");
+  location.href=d.authorizationUrl;
+ }catch(e){show(e.message);button.disabled=false;button.textContent="Pay Now"}
+}
+async function load(){
+ try{
+  const r=await fetch(API_URL+"/api/orders/my",{headers:{Authorization:"Bearer "+token}});
+  const d=await r.json();if(!r.ok)throw new Error(d.message||"Could not load orders");
+  ordersList.innerHTML=d.orders.length?d.orders.map(o=>`
+   <div class="order-card">
+    <div class="order-top">
+     <div class="order-product-line">
+      <div class="order-icon">${esc(o.productIcon||"★")}</div>
+      <div><div class="order-name">${esc(o.productName)}</div><div class="order-meta">${esc(o.platform||"Digital")}<br>${new Date(o.createdAt).toLocaleString()}</div></div>
+     </div>
+     <div class="order-price">${money(o.totalAmount)}</div>
+    </div>
+    <div class="badges"><span class="badge ${esc(o.paymentStatus)}">Payment: ${esc(o.paymentStatus)}</span><span class="badge ${esc(o.status)}">Order: ${esc(o.status)}</span></div>
+    ${o.deliveryContent?`<div class="delivery"><h3>🔓 Your Delivery</h3><div class="delivery-content">${esc(o.deliveryContent)}</div></div>`:`<div class="locked">🔒 Delivery appears here after verified payment and completion.</div>`}
+    <div class="order-actions">
+      ${o.paymentStatus==="pending"?`<button class="primary-btn" type="button" data-pay="${esc(o._id)}">Pay Now</button>`:""}
+      <a class="ghost-btn" href="index.html#shop">Back to Shop</a>
+    </div>
+   </div>`).join(""):`<div class="empty">No orders yet. <a href="index.html#shop" style="color:var(--blue)">Go to the shop</a>.</div>`;
+  ordersList.querySelectorAll("[data-pay]").forEach(btn=>btn.addEventListener("click",()=>retryPayment(btn.dataset.pay,btn)));
+ }catch(e){show(e.message)}
+}
+(async()=>{await verify();await load()})();
+</script>
+</body></html>
