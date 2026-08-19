@@ -39,13 +39,12 @@ async function verify(){
  }catch(e){show(e.message)}
 }
 async function retryPayment(orderId,button){
- button.disabled=true;button.textContent="Opening Paystack...";
+ button.disabled=true;button.textContent="Paying from wallet...";
  try{
-  const r=await fetch(API_URL+`/api/orders/${encodeURIComponent(orderId)}/paystack/initialize`,{method:"POST",headers:{Authorization:"Bearer "+token}});
-  const d=await r.json();if(!r.ok)throw new Error(d.message||"Payment could not start");
-  if(!d.authorizationUrl)throw new Error("Paystack payment page was not returned.");
-  location.href=d.authorizationUrl;
- }catch(e){show(e.message);button.disabled=false;button.textContent="Pay Now"}
+  const r=await fetch(API_URL+`/api/orders/${encodeURIComponent(orderId)}/wallet/pay`,{method:"POST",headers:{Authorization:"Bearer "+token}});
+  const d=await r.json();if(!r.ok)throw new Error(d.message||"Wallet payment could not be completed");
+  show("Wallet payment completed successfully.","success");await load();
+ }catch(e){show(e.message);button.disabled=false;button.textContent="Pay from Wallet"}
 }
 async function load(){
  try{
@@ -63,7 +62,7 @@ async function load(){
     <div class="badges"><span class="badge ${esc(o.paymentStatus)}">Payment: ${esc(o.paymentStatus)}</span><span class="badge ${esc(o.status)}">Order: ${esc(o.status)}</span></div>
     ${o.deliveryContent?`<div class="delivery"><h3>🔓 Your Delivery</h3><div class="delivery-content">${esc(o.deliveryContent)}</div></div>`:`<div class="locked">🔒 Delivery appears here after verified payment and completion.</div>`}
     <div class="order-actions">
-      ${o.paymentStatus==="pending"?`<button class="primary-btn" type="button" data-pay="${esc(o._id)}">Pay Now</button>`:""}
+      ${o.paymentStatus==="pending"?`<button class="primary-btn" type="button" data-pay="${esc(o._id)}">Pay from Wallet</button>`:""}
       <a class="ghost-btn" href="index.html#shop">Back to Shop</a>
     </div>
    </div>`).join(""):`<div class="empty">No orders yet. <a href="index.html#shop" style="color:var(--blue)">Go to the shop</a>.</div>`;

@@ -479,6 +479,12 @@ platformFilters.addEventListener("click", (event) => {
   document.getElementById("shop").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
+document.querySelectorAll("[data-jump-platform]").forEach((button)=>button.addEventListener("click",()=>{
+  activePlatform=button.dataset.jumpPlatform||"all";
+  markActiveFilter();renderProducts();
+  document.getElementById("shop").scrollIntoView({behavior:"smooth",block:"start"});
+}));
+
 searchInput.addEventListener("input", renderProducts);
 filterSelect.addEventListener("change", renderProducts);
 cartButton.addEventListener("click", openCart);
