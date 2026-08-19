@@ -19,6 +19,7 @@
       <nav class="simple-links">
         <a href="#shop">Shop</a>
         <a href="orders.html">My Orders</a>
+        <a href="wallet.html">Wallet</a>
       </nav>
 
       <div class="simple-actions" id="accountActions">
@@ -51,7 +52,7 @@
         <aside class="simple-how">
           <h2>How it works</h2>
           <div class="simple-step"><span>1</span><div><strong>Choose</strong><small>Open a product and read the details.</small></div></div>
-          <div class="simple-step"><span>2</span><div><strong>Pay</strong><small>Continue to secure Paystack checkout.</small></div></div>
+          <div class="simple-step"><span>2</span><div><strong>Pay</strong><small>Use your wallet balance after a verified top-up.</small></div></div>
           <div class="simple-step"><span>3</span><div><strong>Track</strong><small>See payment, delivery and order status in My Orders.</small></div></div>
         </aside>
       </div>
@@ -176,9 +177,10 @@
       <div id="checkoutMessage" class="simple-message"></div>
 
       <button class="simple-btn primary full pay-button" id="payButton" type="button">
-        Pay Securely with Paystack
+        Pay with Wallet Balance
       </button>
-      <p class="simple-note">You will be taken to Paystack to complete payment. Do not close the page until payment finishes.</p>
+      <button class="simple-btn secondary full" id="directPayButton" type="button">Paystack Direct Checkout (fallback)</button>
+      <p class="simple-note">Wallet purchases are deducted securely by the server. Add money first if your balance is too low.</p>
     </div>
   </div>
 

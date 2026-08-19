@@ -11,7 +11,7 @@ const schema = new mongoose.Schema({
   currency:{type:String,default:"NGN"},
   status:{type:String,enum:["pending","processing","completed","cancelled","refunded"],default:"pending"},
   paymentStatus:{type:String,enum:["pending","paid","failed","refunded"],default:"pending"},
-  paymentMethod:{type:String,enum:["paystack","manual"],default:"paystack"},
+  paymentMethod:{type:String,enum:["wallet","paystack","manual"],default:"wallet"},
   paymentReference:{type:String,default:""},
   deliveryContent:{type:String,default:"",select:false},
   deliveredAt:{type:Date,default:null}

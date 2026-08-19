@@ -2,7 +2,7 @@ const bcrypt=require("bcryptjs");
 const jwt=require("jsonwebtoken");
 const User=require("../models/User");
 const token=u=>jwt.sign({id:u._id,role:u.role},process.env.JWT_SECRET,{expiresIn:"7d"});
-const safe=u=>({id:u._id,firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,isActive:u.isActive});
+const safe=u=>({id:u._id,firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0});
 exports.register=async(req,res)=>{
   try{
     const{firstName,lastName,email,phone,password}=req.body;

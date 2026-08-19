@@ -6,6 +6,7 @@ const schema = new mongoose.Schema({
   phone:{type:String,required:true,trim:true},
   password:{type:String,required:true,minlength:6},
   role:{type:String,enum:["user","admin"],default:"user"},
-  isActive:{type:Boolean,default:true}
+  isActive:{type:Boolean,default:true},
+  walletBalanceKobo:{type:Number,default:0,min:0}
 },{timestamps:true});
 module.exports = mongoose.model("User",schema);

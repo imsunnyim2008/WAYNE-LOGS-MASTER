@@ -31,6 +31,10 @@ server/render.yaml
 
 FEATURES
 --------
+- Closed-loop customer wallet (no withdrawals)
+- Provider-verified top-ups and wallet transaction history
+- Atomic wallet purchase, stock, order and ledger updates
+- Admin wallet balance and transaction visibility
 - Social + VPN store only
 - Facebook, Instagram, TikTok, YouTube, X, Snapchat, Telegram, WhatsApp,
   Discord, Reddit, LinkedIn, Pinterest, Threads, Twitch and VPN seed products

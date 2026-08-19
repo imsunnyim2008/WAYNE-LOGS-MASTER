@@ -2,6 +2,8 @@ const crypto=require("crypto");
 const mongoose=require("mongoose");
 const Order=require("../models/Order");
 const Product=require("../models/Product");
+const User=require("../models/User");
+const WalletTransaction=require("../models/WalletTransaction");
 const BASE="https://api.paystack.co";
 
 async function ps(path,opts={}){
@@ -208,6 +210,32 @@ exports.mine=async(req,res)=>{
   }catch(e){
     res.status(500).json({message:"Could not load orders."});
   }
+};
+
+exports.payWithWallet=async(req,res)=>{
+  const session=await mongoose.startSession();
+  try{
+    let result;
+    await session.withTransaction(async()=>{
+      const order=await Order.findOne({_id:req.params.id,user:req.user._id}).select("+deliveryContent").session(session);
+      if(!order)throw Object.assign(new Error("Order not found."),{status:404});
+      if(order.paymentStatus==="paid"){result=order;return}
+      const amountKobo=Math.round(Number(order.totalAmount)*100);
+      const product=await Product.findOneAndUpdate({_id:order.product,status:"active",stock:{$gte:order.quantity}},{$inc:{stock:-order.quantity}},{new:true,session}).select("+privateDelivery");
+      if(!product)throw Object.assign(new Error("This product is currently unavailable."),{status:409});
+      const user=await User.findOneAndUpdate({_id:req.user._id,walletBalanceKobo:{$gte:amountKobo}},{$inc:{walletBalanceKobo:-amountKobo}},{new:true,session});
+      if(!user)throw Object.assign(new Error("Insufficient wallet balance. Add money first."),{status:409});
+      const reference="BUY-"+order._id;
+      await WalletTransaction.create([{user:user._id,type:"purchase",status:"completed",amountKobo,currency:order.currency||"NGN",reference,provider:"wallet",order:order._id,description:"Purchase: "+order.productName,balanceAfterKobo:user.walletBalanceKobo,verifiedAt:new Date()}],{session});
+      order.paymentStatus="paid";order.paymentMethod="wallet";order.paymentReference=reference;
+      if(product.deliveryType==="instant"){order.deliveryContent=product.privateDelivery||"";order.status="completed";order.deliveredAt=new Date()}else{order.status="processing"}
+      await order.save({session});result=order;
+    });
+    res.json({success:true,order:result});
+  }catch(error){
+    if(error?.code===11000){const order=await Order.findOne({_id:req.params.id,user:req.user._id});return res.json({success:true,order})}
+    res.status(error.status||500).json({message:error.status?error.message:"Could not complete wallet purchase."});
+  }finally{await session.endSession()}
 };
 
 exports.adminAll=async(req,res)=>{

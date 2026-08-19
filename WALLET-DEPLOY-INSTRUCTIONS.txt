@@ -1,0 +1,83 @@
+WAYNE LOGS WALLET UPDATE — REPLACE AND DEPLOY
+================================================
+
+WHAT THIS UPDATE ADDS
+---------------------
+- Customer Wallet page with balance, Add Money, and transaction history
+- Server-verified top-ups only (a browser success message never credits money)
+- Atomic wallet purchases: balance, stock, order, and ledger update together
+- No withdrawals
+- Admin wallet balances and transaction list
+- Paystack direct checkout retained only as a fallback
+- Provider adapter isolated in server/services/paymentProvider.js
+
+IMPORTANT BEFORE DEPLOYING
+--------------------------
+1. Back up the current GitHub repository and MongoDB database.
+2. Use MongoDB Atlas (replica set/transactions are required for safe atomic purchases).
+3. Keep your existing Render secrets. Never upload server/.env.
+4. Test with Paystack TEST keys before using real money.
+
+REPLACE THE PROJECT FILES
+-------------------------
+1. Extract this ZIP.
+2. Copy everything inside the extracted folder into your existing WAYNE-LOGS-MASTER-FULL folder.
+3. Choose "Replace the files in the destination" when Windows asks.
+4. Do not replace your private local server/.env. This ZIP intentionally has no server/.env.
+
+RENDER ENVIRONMENT VARIABLES
+----------------------------
+Keep your existing MONGO_URI, JWT_SECRET, PAYSTACK_SECRET_KEY, FRONTEND_URL, and ADMIN_EMAIL.
+Add:
+
+WALLET_PROVIDER=paystack
+WALLET_MIN_TOPUP_KOBO=10000
+WALLET_MAX_TOPUP_KOBO=500000000
+
+10000 kobo = ₦100. The maximum above is ₦5,000,000. Change these limits if needed.
+
+PAYSTACK WEBHOOKS
+-----------------
+Use the existing webhook below. This update safely dispatches both wallet top-ups and direct orders from the same URL:
+https://wayne-logs-master-api.onrender.com/api/paystack/webhook
+
+The provider-specific wallet endpoint below is also available for gateways that support separate endpoints, but it is not needed for Paystack:
+https://wayne-logs-master-api.onrender.com/api/wallet/webhooks/paystack
+
+DEPLOY
+------
+From the existing project folder:
+
+git add -A
+git commit -m "Add secure customer wallet system"
+git push
+
+Wait for both Vercel and Render to show a successful deployment.
+
+TEST IN THIS ORDER
+------------------
+1. Register/login as a test customer.
+2. Open Wallet and confirm the balance starts at ₦0.00.
+3. Add ₦100 using Paystack test mode.
+4. Before payment verification, confirm the balance stays ₦0.00.
+5. Complete payment and return to Wallet. Confirm one completed deposit and ₦100.00 balance.
+6. Buy a low-price test product with Wallet Balance.
+7. Confirm the balance decreases once, the order is paid, and one purchase transaction appears.
+8. Refresh/retry the purchase request and confirm it is not charged twice.
+9. In Admin, open Wallets and Users to confirm transactions and balances are visible.
+10. Test insufficient balance and out-of-stock cases; neither should deduct money.
+11. Finally test Paystack Direct Checkout fallback.
+
+MONNIFY OR ANOTHER PROVIDER
+---------------------------
+The provider boundary is server/services/paymentProvider.js. Implement these four adapter functions for Monnify:
+- initializeTopup
+- verifyTopup
+- verifyWebhook
+- parseWebhook
+
+Then set WALLET_PROVIDER=monnify and add the provider secrets only in Render. Do not change walletController.js and never put provider secrets in frontend files. The included code deliberately refuses an unimplemented provider instead of crediting a wallet unsafely.
+
+ROLLBACK
+--------
+If testing fails, redeploy the previous Git commit. Existing users and orders remain compatible; walletBalanceKobo defaults to zero for old users. Do not manually edit wallet balances in MongoDB.
