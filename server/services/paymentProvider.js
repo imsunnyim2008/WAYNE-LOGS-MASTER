@@ -1,5 +1,5 @@
 const crypto=require("crypto");
-const providerName=()=>String(process.env.WALLET_PROVIDER||"paystack").toLowerCase();
+const providerName=()=>String(process.env.WALLET_PROVIDER||"manual_bank").toLowerCase();
 async function paystack(path,options={}){
   if(!process.env.PAYSTACK_SECRET_KEY)throw new Error("PAYSTACK_SECRET_KEY is not configured.");
   const response=await fetch("https://api.paystack.co"+path,{...options,headers:{Authorization:"Bearer "+process.env.PAYSTACK_SECRET_KEY,"Content-Type":"application/json",...(options.headers||{})}});

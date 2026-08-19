@@ -30,19 +30,22 @@ RENDER ENVIRONMENT VARIABLES
 Keep your existing MONGO_URI, JWT_SECRET, PAYSTACK_SECRET_KEY, FRONTEND_URL, and ADMIN_EMAIL.
 Add:
 
-WALLET_PROVIDER=paystack
+WALLET_PROVIDER=manual_bank
 WALLET_MIN_TOPUP_KOBO=10000
 WALLET_MAX_TOPUP_KOBO=500000000
+WALLET_BANK_NAME=Your actual bank name
+WALLET_BANK_ACCOUNT_NAME=Your actual account name
+WALLET_BANK_ACCOUNT_NUMBER=Your actual account number
 
 10000 kobo = ₦100. The maximum above is ₦5,000,000. Change these limits if needed.
 
-PAYSTACK WEBHOOKS
+MANUAL BANK-TRANSFER SAFETY
 -----------------
-Use the existing webhook below. This update safely dispatches both wallet top-ups and direct orders from the same URL:
-https://wayne-logs-master-api.onrender.com/api/paystack/webhook
-
-The provider-specific wallet endpoint below is also available for gateways that support separate endpoints, but it is not needed for Paystack:
-https://wayne-logs-master-api.onrender.com/api/wallet/webhooks/paystack
+- A customer submission does not credit the wallet.
+- Open your bank app and confirm the exact payment actually arrived.
+- Match the amount and bank reference shown in Admin.
+- Only then press Approve. Never approve from a screenshot alone.
+- Approval is recorded and cannot credit the same request twice.
 
 DEPLOY
 ------

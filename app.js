@@ -64,6 +64,12 @@ function esc(value) {
   return el.innerHTML;
 }
 
+const platformIcons={facebook:["facebook","1877F2"],instagram:["instagram","E4405F"],tiktok:["tiktok","000000"],youtube:["youtube","FF0000"],twitter:["x","000000"],x:["x","000000"],discord:["discord","5865F2"],telegram:["telegram","26A5E4"],whatsapp:["whatsapp","25D366"],linkedin:["linkedin","0A66C2"],snapchat:["snapchat","FFFC00"],reddit:["reddit","FF4500"],pinterest:["pinterest","BD081C"],threads:["threads","000000"],twitch:["twitch","9146FF"],vpn:["protonvpn","6D4AFF"]};
+function platformIcon(platform,fallback="★"){
+  const key=String(platform||"").toLowerCase().trim(),entry=platformIcons[key];
+  return entry?`<img class="platform-logo-img" src="https://cdn.simpleicons.org/${entry[0]}/${entry[1]}" alt="${esc(platform)}">`:`<span>${esc(fallback)}</span>`;
+}
+
 function deliveryText(product) {
   return product?.deliveryType === "instant"
     ? "Instant after verified payment"
@@ -145,7 +151,7 @@ function buildPlatformFilters() {
   const keep = [...fixed].map((el) => el.outerHTML).join("");
   const extra = known
     .filter((name) => name.toLowerCase() !== "vpn")
-    .map((name) => `<button class="platform-pill" type="button" data-platform="${esc(name)}">${esc(name)}</button>`)
+    .map((name) => `<button class="platform-pill" type="button" data-platform="${esc(name)}">${platformIcon(name,name.charAt(0))}${esc(name)}</button>`)
     .join("");
   platformFilters.innerHTML = keep + extra;
   markActiveFilter();
@@ -204,7 +210,7 @@ function renderProducts() {
   productGrid.innerHTML = list.map((product) => `
     <article class="simple-product" data-product="${esc(product._id)}" tabindex="0" role="button">
       <div class="simple-product-top">
-        <div class="simple-product-icon" style="--c1:${esc(product.color1 || "#7b61ff")};--c2:${esc(product.color2 || "#ff5cab")}">${esc(product.icon || "★")}</div>
+        <div class="simple-product-icon" style="--c1:${esc(product.color1 || "#7b61ff")};--c2:${esc(product.color2 || "#ff5cab")}">${platformIcon(product.platform,product.icon)}</div>
         <div class="simple-product-title">
           <small>${esc(product.platform || "Digital")}</small>
           <h3>${esc(product.name)}</h3>
@@ -240,7 +246,7 @@ function openProduct(id) {
   if (!product) return;
   currentProduct = product;
 
-  modalArt.textContent = product.icon || "★";
+  modalArt.innerHTML = platformIcon(product.platform,product.icon);
   modalArt.style.setProperty("--c1", product.color1 || "#7b61ff");
   modalArt.style.setProperty("--c2", product.color2 || "#ff5cab");
   modalPlatform.textContent = product.platform || "Digital";
@@ -293,7 +299,7 @@ function renderCart() {
 
   cartItems.innerHTML = `
     <div class="simple-cart-item">
-      <div class="simple-product-icon" style="--c1:${esc(product.color1 || "#7b61ff")};--c2:${esc(product.color2 || "#ff5cab")}">${esc(product.icon || "★")}</div>
+      <div class="simple-product-icon" style="--c1:${esc(product.color1 || "#7b61ff")};--c2:${esc(product.color2 || "#ff5cab")}">${platformIcon(product.platform,product.icon)}</div>
       <div>
         <strong>${esc(product.name)}</strong>
         <small>${esc(product.platform)} · ${esc(deliveryText(product))}</small>
@@ -336,7 +342,7 @@ function openCheckoutFor(id) {
   closeProduct();
 
   checkoutProduct.innerHTML = `
-    <div class="simple-product-icon" style="--c1:${esc(product.color1 || "#7b61ff")};--c2:${esc(product.color2 || "#ff5cab")}">${esc(product.icon || "★")}</div>
+    <div class="simple-product-icon" style="--c1:${esc(product.color1 || "#7b61ff")};--c2:${esc(product.color2 || "#ff5cab")}">${platformIcon(product.platform,product.icon)}</div>
     <div>
       <strong>${esc(product.name)}</strong>
       <small>${esc(product.platform)} · ${esc(deliveryText(product))}</small>

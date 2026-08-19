@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="store-simple.css">
 </head>
-<body class="simple-store">
+<body class="simple-store premium-store">
   <header class="simple-header">
     <div class="simple-wrap simple-nav">
       <a class="simple-brand" href="index.html">
@@ -33,27 +33,27 @@
     </div>
   </header>
 
+  <div class="premium-ticker"><div class="simple-wrap"><span>✨ Premium digital services</span><i></i><span>⚡ Fast order processing</span><i></i><span>🔒 Secure wallet checkout</span></div></div>
+
   <main>
     <section class="simple-hero">
       <div class="simple-wrap simple-hero-grid">
         <div>
-          <span class="simple-kicker">SOCIAL SERVICES + VPN</span>
-          <h1>Choose it. See exactly what you get. Pay securely.</h1>
+          <span class="simple-kicker">YOUR DIGITAL SERVICES MARKETPLACE</span>
+          <h1>Premium Social Media Services & VPN</h1>
           <p>
-            No confusing menus. Pick a product, read what is included, see the price,
-            then buy when you are ready.
+            Everything you need in one polished store. Choose a platform, review the details, and pay safely from your WAYNE LOGS wallet.
           </p>
           <div class="simple-hero-actions">
             <a class="simple-btn primary large" href="#shop">Shop Now</a>
-            <a class="simple-btn secondary large" href="orders.html">Track My Orders</a>
+            <a class="simple-btn secondary large" href="wallet.html">＋ Add Money</a>
           </div>
         </div>
 
-        <aside class="simple-how">
-          <h2>How it works</h2>
-          <div class="simple-step"><span>1</span><div><strong>Choose</strong><small>Open a product and read the details.</small></div></div>
-          <div class="simple-step"><span>2</span><div><strong>Pay</strong><small>Use your wallet balance after a verified top-up.</small></div></div>
-          <div class="simple-step"><span>3</span><div><strong>Track</strong><small>See payment, delivery and order status in My Orders.</small></div></div>
+        <aside class="simple-how premium-visual">
+          <div class="orbit-logo big">W</div>
+          <div class="orbit-logo facebook">f</div><div class="orbit-logo instagram">◎</div><div class="orbit-logo tiktok">♪</div><div class="orbit-logo youtube">▶</div><div class="orbit-logo vpn">✓</div>
+          <strong>All your favorite platforms</strong><small>One secure wallet. One simple dashboard.</small>
         </aside>
       </div>
     </section>
@@ -63,8 +63,8 @@
         <div class="simple-section-title">
           <div>
             <span class="simple-kicker">STORE</span>
-            <h2>What do you want to buy?</h2>
-            <p>Tap a platform to filter the store, or search by name.</p>
+            <h2>Explore our services</h2>
+            <p>Choose a platform or search for exactly what you need.</p>
           </div>
         </div>
 
@@ -179,7 +179,7 @@
       <button class="simple-btn primary full pay-button" id="payButton" type="button">
         Pay with Wallet Balance
       </button>
-      <button class="simple-btn secondary full" id="directPayButton" type="button">Paystack Direct Checkout (fallback)</button>
+      <button class="simple-btn secondary full" id="directPayButton" type="button" hidden>Direct Checkout</button>
       <p class="simple-note">Wallet purchases are deducted securely by the server. Add money first if your balance is too low.</p>
     </div>
   </div>
