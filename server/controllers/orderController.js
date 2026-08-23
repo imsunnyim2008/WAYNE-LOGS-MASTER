@@ -8,6 +8,7 @@ const InventoryItem=require("../models/InventoryItem");
 const inventoryCrypto=require("../services/inventoryCrypto");
 const emailService=require("../services/emailService");
 const notifications=require("../services/notificationService");
+const referralService=require("../services/referralService");
 const BASE="https://api.paystack.co";
 
 async function ps(path,opts={}){
@@ -254,6 +255,7 @@ exports.payWithWallet=async(req,res)=>{
     });
     await sendPurchaseEmails(result._id).catch(e=>console.error("Purchase email task failed:",e.message));
     await notifications.create({user:result.user,type:"purchase",title:"Purchase completed",message:`Your order for ${result.productName} is ready.`,link:"orders.html",key:`purchase:${result._id}`}).catch(()=>{});
+    await referralService.rewardForPurchase({userId:result.user,orderId:result._id,totalAmount:result.totalAmount}).catch(e=>console.error("Referral reward task failed:",e.message));
     res.json({success:true,order:result});
   }catch(error){
     if(error?.code===11000){const order=await Order.findOne({_id:req.params.id,user:req.user._id});return res.json({success:true,order})}

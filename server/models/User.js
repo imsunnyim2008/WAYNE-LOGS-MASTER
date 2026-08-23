@@ -7,6 +7,8 @@ const schema = new mongoose.Schema({
   password:{type:String,required:true,minlength:6},
   role:{type:String,enum:["user","admin"],default:"user"},
   isActive:{type:Boolean,default:true},
-  walletBalanceKobo:{type:Number,default:0,min:0}
+  walletBalanceKobo:{type:Number,default:0,min:0},
+  referralCode:{type:String,unique:true,sparse:true,uppercase:true,trim:true,index:true},
+  referredBy:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null,immutable:true}
 },{timestamps:true});
 module.exports = mongoose.model("User",schema);

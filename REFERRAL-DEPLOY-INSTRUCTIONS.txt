@@ -1,0 +1,30 @@
+WAYNE LOGS REFERRAL REWARDS
+
+WHAT THIS UPDATE DOES
+- Every customer receives a unique referral code and invite link on My Profile.
+- A new customer can open that link or type the code during registration.
+- Registration alone never gives money.
+- The inviter receives N1,000 only after the invited customer completes a purchase of N1,000 or more.
+- A referred customer can trigger only one reward. Repeated clicks or payment attempts cannot create extra rewards.
+- Referrals using the same phone number are rejected.
+- Rewards appear in Wallet Transaction History and Notifications.
+
+DEPLOY IN 3 STEPS
+1. Replace the existing project files with all files from this update. Keep your own .env file/private keys.
+2. In the project terminal run:
+   git add -A
+   git commit -m "Add secure referral rewards"
+   git push
+3. Wait for Render and Vercel to finish. Sign in, open My Profile, and copy the invite link.
+
+OPTIONAL RENDER ENVIRONMENT VALUES
+These defaults already work without adding anything:
+REFERRAL_REWARD_KOBO=100000
+REFERRAL_MIN_PURCHASE_KOBO=100000
+
+100000 kobo means N1,000. Never put these values in Vercel config.js; they belong only in the Render backend Environment page.
+
+SAFE TEST
+1. Customer A opens My Profile and copies the referral link.
+2. Open the link in a different browser and create Customer B with a different email and phone.
+3. Customer B completes a wallet purchase of at least N1,000. Customer A then receives N1,000 once.
