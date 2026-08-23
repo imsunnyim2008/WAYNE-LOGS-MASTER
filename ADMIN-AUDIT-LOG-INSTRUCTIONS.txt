@@ -1,0 +1,18 @@
+WAYNE LOGS - ADMIN SECURITY AUDIT LOG
+
+The protected Audit Log records successful sensitive admin actions:
+- Manual-payment approvals and rejections
+- Customer wallet credits and cleared balances
+- Product creation, updates and deletion
+- Inventory restocking counts
+- Order-status changes
+- Support replies and status changes
+- Customer notification broadcasts
+- Announcement and Telegram setting changes
+
+Each record includes the administrator, date, action, target, safe summary and IP address. Admin passwords, customer login inventory and private delivery content are never copied into the log. Failed actions are not recorded as successful changes.
+
+DEPLOY IN 3 STEPS
+1. Replace all project files with this update. Keep your private server .env.
+2. Run git add -A, git commit -m "Add protected admin audit log", then git push.
+3. Wait for Render and Vercel. Open Admin > Audit Log, perform one test action such as changing a support status, then refresh the audit table.
