@@ -91,8 +91,8 @@ function setNavLoggedOut() {
 }
 
 function setNavLoggedIn(user) {
-  accountLink.textContent = "My Orders";
-  accountLink.href = "orders.html";
+  accountLink.textContent = "My Profile";
+  accountLink.href = "profile.html";
   registerLink.hidden = true;
   adminLink.hidden = user?.role !== "admin";
 

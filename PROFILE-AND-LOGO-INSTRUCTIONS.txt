@@ -1,0 +1,9 @@
+WAYNE LOGS — CUSTOMER PROFILE AND BAT LOGO
+
+1. Replace every project file and the server folder with the contents of this ZIP.
+2. Run git add -A, git commit -m "Add customer profiles and new bat logo", and git push.
+3. After Vercel deploys, sign in and open My Profile from the store header.
+
+The protected profile shows the signed-in customer's name, email, phone number, wallet balance, account type, status and membership date. Passwords and private delivery records are never displayed.
+
+The bat artwork replaces the W logo across the storefront, dashboard, orders, authentication, profile and admin pages.
