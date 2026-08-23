@@ -1,0 +1,15 @@
+WAYNE LOGS - PREMIUM BUTTON ANIMATIONS
+
+This update animates buttons and clickable controls across customer and admin pages.
+
+- Smooth hover lift on computers
+- Responsive press effect on phones and computers
+- Premium light-sweep effect
+- Visible keyboard focus glow
+- Clear disabled/loading appearance
+- Reduced-motion accessibility support
+
+DEPLOY IN 3 STEPS
+1. Replace the project files with this update. Keep your private .env.
+2. Run git add -A, git commit -m "Add premium button animations", then git push.
+3. Wait for Vercel, refresh the website, and test buttons on a phone and computer.
