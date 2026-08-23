@@ -56,3 +56,20 @@ exports.adminReview=async(req,res)=>{
   catch(error){res.status(error.status||500).json({message:error.status?error.message:"Could not review top-up."})}
   finally{await session.endSession()}
 };
+exports.adminCredit=async(req,res)=>{
+  const email=String(req.body.email||"").trim().toLowerCase(),amountKobo=Math.round(Number(req.body.amount)*100),reason=String(req.body.reason||"").trim().slice(0,200),requestId=String(req.body.requestId||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,80);
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter the customer's registered email address."});
+  if(!Number.isSafeInteger(amountKobo)||amountKobo<100||amountKobo>500000000)return res.status(400).json({message:"Enter a credit between ₦1 and ₦5,000,000."});
+  if(reason.length<4)return res.status(400).json({message:"Enter a clear reason for this credit."});
+  if(requestId.length<8)return res.status(400).json({message:"Invalid credit request."});
+  const reference="ADM-"+requestId;let transaction;const session=await mongoose.startSession();
+  try{await session.withTransaction(async()=>{
+    transaction=await WalletTransaction.findOne({reference}).session(session);
+    if(transaction)return;
+    const user=await User.findOneAndUpdate({email,isActive:true},{$inc:{walletBalanceKobo:amountKobo}},{new:true,session});
+    if(!user)throw Object.assign(new Error("Customer not found."),{status:404});
+    [transaction]=await WalletTransaction.create([{user:user._id,type:"deposit",status:"completed",amountKobo,currency:"NGN",reference,provider:"admin_credit",description:reason,balanceAfterKobo:user.walletBalanceKobo,verifiedAt:new Date(),reviewedBy:req.user._id,reviewNote:reason}],{session});
+  });res.json({success:true,transaction})}
+  catch(error){res.status(error.status||500).json({message:error.status?error.message:"Could not credit the wallet."})}
+  finally{await session.endSession()}
+};
