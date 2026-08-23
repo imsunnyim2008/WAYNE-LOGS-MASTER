@@ -52,6 +52,7 @@ async function load(){
     ${o.deliveryContent?`<div class="delivery"><h3>🔓 Your Delivery</h3><div class="delivery-content">${esc(o.deliveryContent)}</div></div>`:`<div class="locked">🔒 Delivery appears here after verified payment and completion.</div>`}
     <div class="order-actions">
       ${o.paymentStatus==="pending"?`<button class="primary-btn" type="button" data-pay="${esc(o._id)}">Pay from Wallet</button>`:""}
+      <a class="ghost-btn" href="support.html?order=${esc(o._id)}">Get Support</a>
       <a class="ghost-btn" href="index.html#shop">Back to Shop</a>
     </div>
    </div>`).join(""):`<div class="empty">No orders yet. <a href="index.html#shop" style="color:var(--blue)">Go to the shop</a>.</div>`;

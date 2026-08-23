@@ -1,0 +1,20 @@
+WAYNE LOGS — CUSTOMER SUPPORT CENTRE
+
+CUSTOMERS CAN
+- Open a general ticket or attach it to one of their orders.
+- Use Get Support directly from My Orders to preselect the order.
+- Read Admin replies and continue the conversation.
+- See whether a ticket is Open, In progress or Resolved.
+
+ADMIN CAN
+- Open Admin > Support to see every ticket.
+- See the customer and related order.
+- Reply, change status or resolve with a reply.
+- Review the complete conversation without exposing unrelated private data.
+
+DEPLOY
+1. Replace all project files and the server folder with this ZIP.
+2. Run git add -A, git commit -m "Add customer support centre", and git push.
+3. Wait for Vercel and Render, then test with a customer account.
+
+Customers are warned never to place passwords, recovery codes or private delivery credentials in support messages.
