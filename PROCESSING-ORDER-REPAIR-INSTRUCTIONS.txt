@@ -1,0 +1,18 @@
+WAYNE LOGS - PAID PROCESSING ORDER REPAIR
+
+This update fixes paid wallet orders remaining on Processing when an older product was saved as Manual delivery.
+
+- The server automatically detects available inventory records for the product.
+- It securely assigns one unused record to the paid order.
+- Payment and order become Successful.
+- The customer sees the login details in My Orders.
+- Future purchases also detect inventory automatically, even if the old product setting says Manual.
+- Assignment is atomic, so one inventory record cannot be given to two customers.
+
+IMPORTANT
+There must be at least one Available record for that exact product under Admin > Inventory. If there is no available record, the order must remain Processing because the server cannot safely invent login details.
+
+DEPLOY IN 3 STEPS
+1. Replace all project files with this update. Keep your private .env.
+2. Run git add -A, git commit -m "Repair paid processing inventory orders", then git push.
+3. After Render deploys, confirm the product has an Available inventory record, then refresh the customer's My Orders page.

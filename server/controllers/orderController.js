@@ -49,6 +49,20 @@ async function sendPurchaseEmails(orderId){
   if(product){try{await emailService.sendLowStockAlert({product,threshold})}catch(e){await Product.updateOne({_id:product._id},{$set:{lowStockAlertSentAt:null}});console.error("Low-stock email failed:",e.message)}}
 }
 
+async function repairPaidInventoryOrder(orderId,userId){
+  const session=await mongoose.startSession();let repaired=null;
+  try{await session.withTransaction(async()=>{
+    const order=await Order.findOne({_id:orderId,user:userId,paymentStatus:"paid"}).select("+deliveryContent +inventoryItem").session(session);
+    if(!order)return;
+    if(order.inventoryItem&&order.deliveryContent){repaired=order;return}
+    let item=null;
+    if(order.inventoryItem)item=await InventoryItem.findOne({_id:order.inventoryItem,order:order._id,soldTo:userId,status:"sold"}).select("+encryptedContent").session(session);
+    else item=await InventoryItem.findOneAndUpdate({product:order.product,status:"available"},{$set:{status:"sold",soldTo:userId,order:order._id,soldAt:new Date()}},{new:true,sort:{createdAt:1},session}).select("+encryptedContent");
+    if(!item){repaired=order;return}
+    order.inventoryItem=item._id;order.deliveryContent=inventoryCrypto.decrypt(item.encryptedContent);order.status="completed";order.deliveredAt=order.deliveredAt||new Date();await order.save({session});repaired=order;
+  });return repaired}finally{await session.endSession()}
+}
+
 async function finalize(orderId,ref){
   const session=await mongoose.startSession();
   let out;
@@ -216,12 +230,10 @@ exports.mine=async(req,res)=>{
     for(const o of orders){
       // Repair an older paid inventory order if it was created as manual delivery.
       // The inventory record is still restricted to this exact customer and order.
-      if(o.paymentStatus==="paid"&&o.inventoryItem&&!o.deliveryContent){
-        const item=await InventoryItem.findOne({_id:o.inventoryItem,order:o._id,soldTo:req.user._id,status:"sold"}).select("+encryptedContent");
-        if(item){o.deliveryContent=inventoryCrypto.decrypt(item.encryptedContent);o.status="completed";o.deliveredAt=o.deliveredAt||new Date();await o.save()}
-      }
-      const row=o.toObject();
-      if(o.paymentStatus!=="paid"||o.status!=="completed")delete row.deliveryContent;
+      let current=o;
+      if(o.paymentStatus==="paid"&&(!o.deliveryContent||o.status!=="completed"))current=await repairPaidInventoryOrder(o._id,req.user._id)||o;
+      const row=current.toObject();
+      if(current.paymentStatus!=="paid"||current.status!=="completed")delete row.deliveryContent;
       delete row.inventoryItem;
       out.push(row);
     }
@@ -243,18 +255,17 @@ exports.payWithWallet=async(req,res)=>{
       const product=await Product.findOneAndUpdate({_id:order.product,status:"active",stock:{$gte:order.quantity}},{$inc:{stock:-order.quantity}},{new:true,session}).select("+privateDelivery");
       if(!product)throw Object.assign(new Error("This product is currently unavailable."),{status:409});
       let uniqueDelivery="";
-      if(product.inventoryManaged){
-        const item=await InventoryItem.findOneAndUpdate({product:product._id,status:"available"},{$set:{status:"sold",soldTo:req.user._id,order:order._id,soldAt:new Date()}},{new:true,sort:{createdAt:1},session}).select("+encryptedContent");
-        if(!item)throw Object.assign(new Error("This product has no unused delivery records left."),{status:409});
+      const item=await InventoryItem.findOneAndUpdate({product:product._id,status:"available"},{$set:{status:"sold",soldTo:req.user._id,order:order._id,soldAt:new Date()}},{new:true,sort:{createdAt:1},session}).select("+encryptedContent");
+      if(item){
         uniqueDelivery=inventoryCrypto.decrypt(item.encryptedContent);
         order.inventoryItem=item._id;
-      }
+      }else if(product.inventoryManaged)throw Object.assign(new Error("This product has no unused delivery records left."),{status:409});
       const user=await User.findOneAndUpdate({_id:req.user._id,walletBalanceKobo:{$gte:amountKobo}},{$inc:{walletBalanceKobo:-amountKobo}},{new:true,session});
       if(!user)throw Object.assign(new Error("Insufficient wallet balance. Add money first."),{status:409});
       const reference="BUY-"+order._id;
       await WalletTransaction.create([{user:user._id,type:"purchase",status:"completed",amountKobo,currency:order.currency||"NGN",reference,provider:"wallet",order:order._id,description:"Purchase: "+order.productName,balanceAfterKobo:user.walletBalanceKobo,verifiedAt:new Date()}],{session});
       order.paymentStatus="paid";order.paymentMethod="wallet";order.paymentReference=reference;
-      if(product.inventoryManaged||product.deliveryType==="instant"){order.deliveryContent=product.inventoryManaged?uniqueDelivery:(product.privateDelivery||"");order.status="completed";order.deliveredAt=new Date()}else{order.status="processing"}
+      if(uniqueDelivery||product.deliveryType==="instant"){order.deliveryContent=uniqueDelivery||(product.privateDelivery||"");order.status="completed";order.deliveredAt=new Date()}else{order.status="processing"}
       await order.save({session});result=order;
     });
     await sendPurchaseEmails(result._id).catch(e=>console.error("Purchase email task failed:",e.message));
