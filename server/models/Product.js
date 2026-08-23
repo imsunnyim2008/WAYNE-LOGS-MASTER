@@ -12,6 +12,7 @@ const schema = new mongoose.Schema({
   color2:{type:String,default:"#ff5db1"},
   status:{type:String,enum:["active","inactive"],default:"active"},
   deliveryType:{type:String,enum:["manual","instant"],default:"manual"},
+  inventoryManaged:{type:Boolean,default:false},
   privateDelivery:{type:String,default:"",select:false},
   createdBy:{type:mongoose.Schema.Types.ObjectId,ref:"User"}
 },{timestamps:true});

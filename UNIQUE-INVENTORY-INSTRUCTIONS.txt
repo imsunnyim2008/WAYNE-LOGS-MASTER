@@ -1,0 +1,20 @@
+WAYNE LOGS — UNIQUE ONE-TIME DELIVERY INVENTORY
+
+WHAT IT DOES
+- Paste one authorized delivery record per line in Admin > Products.
+- Every successful wallet purchase receives exactly one unused record.
+- The same record cannot be delivered twice, even when customers buy simultaneously.
+- Stock equals the number of unused records and decreases automatically.
+- Inventory is encrypted before it is stored in MongoDB.
+
+DEPLOY
+1. Replace your project with all files and the server folder from this ZIP.
+2. Run git add -A, git commit -m "Add unique one-time product inventory", and git push.
+3. Wait for both Vercel and Render to finish deploying.
+
+ADD INVENTORY
+1. Open Admin > Products and edit your Facebook product (or create a new one).
+2. In Unique delivery inventory, paste one complete authorized delivery record per line. For 31 remaining, paste 31 different lines.
+3. Save. The Stock field will become the exact number of unused lines.
+
+Never paste the same record twice. Duplicate lines are ignored automatically. Use this only for digital assets, licences or access details you own and are authorized to distribute.
