@@ -1,0 +1,14 @@
+WAYNE LOGS - ADMIN SIDEBAR FIX
+
+This update fixes the left admin menu being clipped or appearing to crash.
+
+- The desktop sidebar stays fixed at full screen height.
+- The main admin content no longer overlaps the menu.
+- The menu scrolls cleanly when the screen is short.
+- View Store and Logout remain accessible.
+- On phones, the sidebar still opens and closes as a mobile drawer.
+
+DEPLOY IN 3 STEPS
+1. Replace the project files with this update. Keep your private .env.
+2. Run git add -A, git commit -m "Fix admin sidebar layout", then git push.
+3. Wait for Vercel, refresh Admin once, and test the menu while scrolling.
