@@ -1,0 +1,12 @@
+WAYNE LOGS — AUTOMATIC ADMIN PLATFORM GRID
+
+1. Replace your project with the files from this ZIP.
+
+2. Run:
+   git add -A
+   git commit -m "Add automatic platform selector to admin"
+   git push
+
+3. Open Admin > Products. Tap a platform card before entering the remaining product information. Platform name, product type, icon and official brand colors are filled automatically. You only enter the product name, price, stock, delivery, description and private fulfillment.
+
+Editing an existing product also selects its matching platform automatically.

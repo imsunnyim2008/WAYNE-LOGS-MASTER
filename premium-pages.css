@@ -48,3 +48,14 @@ body{width:100%;min-width:0}.container,.section,.nav-inner,.auth-card,.order-car
   .nav-actions{grid-template-columns:1fr 1fr}.nav-actions>*:last-child{grid-column:1/-1}
   .brand span:last-child{font-size:15px}.stats{grid-template-columns:1fr}
 }
+
+/* Admin visual platform selector and automatic brand defaults */
+.platform-picker-wrap{grid-column:1/-1;min-width:0}.platform-picker-wrap>label{display:block;margin-bottom:9px;color:#28415d;font-size:13px;font-weight:850}
+.admin-platform-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;padding:13px;border:1px solid #d7e2ed;border-radius:18px;background:#f5f9fc}
+.admin-platform-option{min-width:0;min-height:86px;padding:10px 6px;border:1px solid #dbe5ef;border-radius:15px;background:#fff;color:#17304d;display:grid;place-items:center;gap:4px;cursor:pointer;box-shadow:0 5px 14px rgba(29,62,96,.05);transition:.16s}
+.admin-platform-option:hover{transform:translateY(-2px);border-color:#80ccec}.admin-platform-option.selected{border-color:#079ee4;background:#e9f7fd;box-shadow:0 0 0 3px rgba(9,162,223,.12)}
+.admin-platform-option img,.admin-platform-option>span{width:30px;height:30px;object-fit:contain;display:grid;place-items:center;font-size:20px;font-weight:950}.admin-platform-option b{max-width:100%;font-size:11px;line-height:1.15;overflow-wrap:anywhere}.admin-platform-option small{font-size:9px;color:#75889c}
+.auto-field{pointer-events:none;background:#edf4f9!important;color:#60758c!important}.brand-color-preview{min-height:52px;padding:8px 11px;border:1px solid #d7e2ed;border-radius:14px;background:#edf4f9;display:flex;align-items:center;gap:9px}.brand-color-preview input[type="color"]{pointer-events:none;width:38px;height:34px;padding:2px;border:0;background:transparent}.brand-color-preview span{font-size:12px;font-weight:800;color:#60758c}
+@media(max-width:1200px){.admin-platform-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:760px){.admin-platform-grid{grid-template-columns:repeat(3,minmax(0,1fr));padding:9px;gap:7px}.admin-platform-option{min-height:78px}}
+@media(max-width:390px){.admin-platform-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
