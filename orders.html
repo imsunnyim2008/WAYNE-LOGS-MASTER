@@ -2,7 +2,7 @@
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>My Orders | WAYNE LOGS</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=20260823-delivery1">
 <style>
 .order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.order-actions button,.order-actions a{display:inline-flex;text-decoration:none}
 .order-help{padding:14px;border-radius:14px;background:rgba(124,92,255,.08);border:1px solid rgba(124,92,255,.18);color:var(--muted);margin-bottom:18px}
@@ -48,8 +48,8 @@ async function load(){
      </div>
      <div class="order-price">${money(o.totalAmount)}</div>
     </div>
-    <div class="badges"><span class="badge ${esc(o.paymentStatus)}">Payment: ${esc(o.paymentStatus)}</span><span class="badge ${esc(o.status)}">Order: ${esc(o.status)}</span></div>
-    ${o.deliveryContent?`<div class="delivery"><h3>🔓 Your Delivery</h3><div class="delivery-content">${esc(o.deliveryContent)}</div></div>`:`<div class="locked">🔒 Delivery appears here after verified payment and completion.</div>`}
+    <div class="badges"><span class="badge ${esc(o.paymentStatus)}">Payment: ${o.paymentStatus==="paid"?"Successful":esc(o.paymentStatus)}</span><span class="badge ${esc(o.status)}">Order: ${o.status==="completed"?"Successful":esc(o.status)}</span></div>
+    ${o.deliveryContent?`<div class="delivery"><h3>🔓 Your Purchased Login Details</h3><div class="delivery-content">${esc(o.deliveryContent)}</div><button class="ghost-btn copy-delivery" type="button">Copy Login Details</button><small>Keep these details private. They were assigned only to your order.</small></div>`:`<div class="locked">🔒 Your login details will appear here immediately after a successful wallet purchase.</div>`}
     <div class="order-actions">
       ${o.paymentStatus==="pending"?`<button class="primary-btn" type="button" data-pay="${esc(o._id)}">Pay from Wallet</button>`:""}
       <a class="ghost-btn" href="support.html?order=${esc(o._id)}">Get Support</a>
@@ -57,6 +57,7 @@ async function load(){
     </div>
    </div>`).join(""):`<div class="empty">No orders yet. <a href="index.html#shop" style="color:var(--blue)">Go to the shop</a>.</div>`;
   ordersList.querySelectorAll("[data-pay]").forEach(btn=>btn.addEventListener("click",()=>retryPayment(btn.dataset.pay,btn)));
+  ordersList.querySelectorAll(".copy-delivery").forEach(btn=>btn.addEventListener("click",async()=>{const text=btn.parentElement.querySelector(".delivery-content")?.textContent||"";try{await navigator.clipboard.writeText(text)}catch{const area=document.createElement("textarea");area.value=text;document.body.appendChild(area);area.select();document.execCommand("copy");area.remove()}window.waynePopup?.("Login details copied successfully.","success");btn.textContent="Copied!";setTimeout(()=>btn.textContent="Copy Login Details",1800)}));
  }catch(e){show(e.message)}
 }
 load();

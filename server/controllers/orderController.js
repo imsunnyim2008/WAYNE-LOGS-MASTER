@@ -211,14 +211,18 @@ exports.verify=async(req,res)=>{
 
 exports.mine=async(req,res)=>{
   try{
-    const orders=await Order.find({user:req.user._id}).sort({createdAt:-1});
+    const orders=await Order.find({user:req.user._id}).select("+deliveryContent +inventoryItem").sort({createdAt:-1});
     const out=[];
     for(const o of orders){
-      const row=o.toObject();
-      if(o.paymentStatus==="paid"&&o.status==="completed"){
-        const full=await Order.findById(o._id).select("+deliveryContent");
-        row.deliveryContent=full.deliveryContent;
+      // Repair an older paid inventory order if it was created as manual delivery.
+      // The inventory record is still restricted to this exact customer and order.
+      if(o.paymentStatus==="paid"&&o.inventoryItem&&!o.deliveryContent){
+        const item=await InventoryItem.findOne({_id:o.inventoryItem,order:o._id,soldTo:req.user._id,status:"sold"}).select("+encryptedContent");
+        if(item){o.deliveryContent=inventoryCrypto.decrypt(item.encryptedContent);o.status="completed";o.deliveredAt=o.deliveredAt||new Date();await o.save()}
       }
+      const row=o.toObject();
+      if(o.paymentStatus!=="paid"||o.status!=="completed")delete row.deliveryContent;
+      delete row.inventoryItem;
       out.push(row);
     }
     res.json({success:true,orders:out});
@@ -250,7 +254,7 @@ exports.payWithWallet=async(req,res)=>{
       const reference="BUY-"+order._id;
       await WalletTransaction.create([{user:user._id,type:"purchase",status:"completed",amountKobo,currency:order.currency||"NGN",reference,provider:"wallet",order:order._id,description:"Purchase: "+order.productName,balanceAfterKobo:user.walletBalanceKobo,verifiedAt:new Date()}],{session});
       order.paymentStatus="paid";order.paymentMethod="wallet";order.paymentReference=reference;
-      if(product.deliveryType==="instant"){order.deliveryContent=product.inventoryManaged?uniqueDelivery:(product.privateDelivery||"");order.status="completed";order.deliveredAt=new Date()}else{order.status="processing"}
+      if(product.inventoryManaged||product.deliveryType==="instant"){order.deliveryContent=product.inventoryManaged?uniqueDelivery:(product.privateDelivery||"");order.status="completed";order.deliveredAt=new Date()}else{order.status="processing"}
       await order.save({session});result=order;
     });
     await sendPurchaseEmails(result._id).catch(e=>console.error("Purchase email task failed:",e.message));

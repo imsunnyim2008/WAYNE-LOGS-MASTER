@@ -1,0 +1,19 @@
+WAYNE LOGS - SUCCESSFUL WALLET PURCHASE AND LOG DELIVERY
+
+This update makes inventory-managed products complete automatically after wallet payment.
+
+- The wallet balance is deducted atomically.
+- Exactly one unused log is assigned to the order.
+- The order and payment display Successful.
+- The purchased login details appear immediately in My Orders.
+- Customers can copy their login details with one button.
+- The same inventory log cannot be assigned to another customer.
+- Older paid inventory orders that were stuck as Processing are safely repaired when their owner opens My Orders.
+
+IMPORTANT
+The product must have unused items in Admin > Inventory. Each inventory line must contain one complete customer delivery record.
+
+DEPLOY IN 3 STEPS
+1. Replace all project files from this update. Keep your private .env.
+2. Run git add -A, git commit -m "Complete wallet orders and deliver unique logs", then git push.
+3. Wait for Render and Vercel, then test with a customer wallet purchase and open My Orders.
