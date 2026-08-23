@@ -124,3 +124,48 @@
 @media(max-width:900px){.premium-store .simple-product{grid-template-columns:1fr}.premium-store .simple-product-body{padding:0 20px 20px;grid-template-columns:1fr}.premium-store .simple-price-row{min-width:0}.premium-store .simple-hero-grid{padding:30px}.premium-visual{display:none}}
 @media(max-width:620px){.premium-ticker .simple-wrap{justify-content:flex-start;overflow:hidden;white-space:nowrap}.premium-ticker span:nth-of-type(3),.premium-ticker i:nth-of-type(2){display:none}.premium-store .simple-hero-grid{min-height:auto;padding:28px 22px;border-radius:22px}.premium-store .simple-hero h1{font-size:38px}.premium-store .simple-product-top{padding:18px}.premium-store .simple-product-body{padding:0 18px 18px}.premium-store .simple-price-row{align-items:center}.premium-store .simple-card-actions{flex-direction:row}}
 .platform-showcase{padding:4px 0 18px}.platform-showcase .simple-wrap>span{display:block;color:#6d8197;font-size:13px;font-weight:850;margin-bottom:12px}.platform-logo-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:9px}.platform-logo-grid button{border:1px solid #dbe5ef;background:#fff;border-radius:17px;padding:13px 6px;display:grid;place-items:center;gap:7px;color:#29445f;cursor:pointer;box-shadow:0 7px 20px rgba(30,68,108,.06);transition:.18s}.platform-logo-grid button:hover{transform:translateY(-3px);border-color:#8fd3ef;box-shadow:0 14px 28px rgba(30,88,135,.12)}.platform-logo-grid img{width:30px;height:30px;object-fit:contain}.platform-logo-grid b{font-size:11px;white-space:nowrap}@media(max-width:1000px){.platform-logo-grid{grid-template-columns:repeat(6,1fr)}}@media(max-width:560px){.platform-logo-grid{grid-template-columns:repeat(4,1fr)}.platform-logo-grid button{padding:11px 4px}.platform-logo-grid b{font-size:10px}}
+
+/* Final narrow-phone product layout: keep names and actions inside the card. */
+@media(max-width:620px){.premium-store .simple-product{width:100%;min-width:0}.premium-store .simple-product-top{align-items:flex-start;min-width:0}.premium-store .simple-product-title{flex:1;min-width:0}.premium-store .simple-product-title h3{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;word-break:break-word;line-height:1.28}.premium-store .simple-product-body{min-width:0}.premium-store .simple-product-body p{overflow-wrap:anywhere}.premium-store .simple-price-row{width:100%;display:grid;grid-template-columns:1fr;align-items:stretch;gap:13px}.premium-store .simple-card-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}.premium-store .simple-card-actions button{width:100%;min-width:0;justify-content:center;padding:11px 8px}.premium-store .simple-price{font-size:22px}.premium-store .simple-toolbar{width:100%;min-width:0}.premium-store .simple-search,.premium-store .simple-select{width:100%;min-width:0}}
+@media(max-width:360px){.premium-store .simple-product-top,.premium-store .simple-product-body{padding-left:13px;padding-right:13px}.premium-store .simple-product-icon{width:48px;height:48px}.premium-store .simple-card-actions{grid-template-columns:1fr}.premium-store .simple-price{font-size:20px}}
+
+/* Complete mobile storefront pass */
+.simple-store{width:100%;max-width:100%;overflow-x:hidden}
+.simple-store :where(h1,h2,h3,p,strong,small,span,a){overflow-wrap:anywhere}
+.simple-store :where(input,select,textarea){font-size:16px}
+@media(max-width:720px){
+  .simple-wrap{width:calc(100% - 24px)}
+  .simple-nav{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:10px 0}
+  .simple-brand{min-width:0}.simple-brand span:last-child{overflow:hidden;text-overflow:ellipsis}
+  .simple-actions{grid-column:1/-1;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;overflow:visible;padding:0}
+  .simple-actions .simple-btn{width:100%;min-width:0;padding:10px 6px;text-align:center;font-size:13px;white-space:normal}
+  .premium-ticker .simple-wrap{width:calc(100% - 20px);min-height:38px;gap:8px;font-size:12px}
+  .premium-store .simple-hero{padding:18px 0 24px}.premium-store .simple-hero-grid{padding:25px 20px}
+  .premium-store .simple-hero h1{font-size:clamp(31px,10vw,42px);line-height:1.05;letter-spacing:-1.2px}
+  .premium-store .simple-hero p{font-size:15px;line-height:1.55}
+  .simple-hero-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.simple-hero-actions .simple-btn{width:100%;text-align:center}
+  .platform-logo-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.platform-logo-grid button{min-width:0}.platform-logo-grid b{width:100%;overflow:hidden;text-overflow:ellipsis}
+  .platform-filters{margin-inline:-12px;padding-inline:12px}
+  .premium-store .simple-search{min-height:54px;padding:0 14px}.premium-store .simple-select{min-height:50px}
+  .simple-section-title h2{font-size:clamp(27px,8vw,34px)}
+  .simple-trust article{min-width:0}.simple-trust article>div{min-width:0}
+  .simple-footer{padding-bottom:calc(88px + env(safe-area-inset-bottom))}.simple-footer .simple-wrap{align-items:flex-start}
+  .simple-drawer{width:100%;right:-100%;padding:16px 14px calc(20px + env(safe-area-inset-bottom))}
+  .simple-cart-item{align-items:flex-start}.simple-cart-item>div{min-width:0}.simple-cart-item strong{display:block}
+  .simple-modal{padding:8px;align-items:end}.simple-modal-card{width:100%;max-height:94dvh;padding:20px 15px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0}
+  .simple-modal-card h2{font-size:25px;padding-right:44px}.large-icon{width:62px;height:62px}.floating{right:12px;top:12px}
+  .checkout-product{align-items:flex-start}.checkout-product>div{min-width:0}.checkout-row{align-items:flex-start}.checkout-row>*{min-width:0}.checkout-row strong{max-width:58%;overflow-wrap:anywhere}
+}
+@media(max-width:430px){
+  .simple-wrap{width:calc(100% - 18px)}
+  .simple-logo{width:38px;height:38px}.premium-store .simple-brand{font-size:17px}
+  .simple-actions .simple-btn{font-size:12px;padding:9px 4px}.simple-count{min-width:18px;height:18px;padding:0 4px}
+  .simple-hero-actions{grid-template-columns:1fr}.platform-logo-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .premium-store .simple-product-top,.premium-store .simple-product-body{padding-left:14px;padding-right:14px}
+  .simple-product-body p{font-size:14px}.simple-trust{padding-bottom:35px}
+}
+@media(max-width:340px){
+  .simple-actions{grid-template-columns:1fr 1fr}.simple-actions>*:first-child{grid-column:1/-1}
+  .platform-logo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .premium-store .simple-card-actions{grid-template-columns:1fr}
+}

@@ -1,0 +1,12 @@
+WAYNE LOGS — COMPLETE MOBILE UPDATE
+
+1. Unzip this package and copy every file and the server folder into your WAYNE-LOGS-MASTER-FULL folder. Choose Replace the files in the destination.
+
+2. In the VS Code terminal run:
+   git add -A
+   git commit -m "Make every WAYNE LOGS page mobile responsive"
+   git push
+
+3. Wait for Vercel and Render to finish deploying, then open waynelogs.com in a private/incognito tab and refresh once.
+
+This update covers the store, navigation, social-media/VPN grid, hero, search, filters, product cards, cart, checkout popups, announcement, Telegram button, wallet dashboard, transactions, orders, login, registration, forms, tables, and admin panel.

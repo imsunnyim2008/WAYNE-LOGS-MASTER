@@ -16,3 +16,35 @@ html,body{max-width:100%;overflow-x:hidden}img,svg,video{max-width:100%;height:a
 @media(max-width:760px){body{font-size:15px}.admin-top{height:68px;padding:0 12px}.admin-content{padding:12px}.panel{padding:15px;border-radius:17px}.panel-head{align-items:flex-start;flex-wrap:wrap}.admin-sidebar{width:min(290px,86vw);left:-100%;box-shadow:20px 0 50px rgba(0,0,0,.3)}.admin-sidebar.open{left:0}.admin-grid{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat-card{padding:14px;border-radius:15px}.stat-card strong{font-size:22px}.field input,.field select,.field textarea{font-size:16px}.primary-btn,.ghost-btn,.danger-btn,.icon-btn{min-height:44px}.table-wrap table{min-width:680px}.nav-inner{gap:8px}.brand{min-width:0}.brand span:last-child{white-space:nowrap}.section{padding-left:0;padding-right:0}.order-card{padding:14px}.order-price{font-size:18px}}
 @media(max-width:480px){.container{width:calc(100% - 20px)}.admin-content{padding:9px}.panel{padding:13px;margin-bottom:11px}.stats{grid-template-columns:1fr 1fr}.admin-top small{display:none}.admin-top h2{font-size:18px}.admin-top #adminName{max-width:110px;font-size:12px}.brand-mark{width:38px;height:38px}.brand span:last-child{font-size:16px}.auth-page{padding:12px}.auth-card{padding:19px;border-radius:20px}.auth-card h1{font-size:30px}.order-actions>*{width:100%;justify-content:center}.wayne-announcement-actions{flex-direction:column}}
 @media(max-width:360px){.stats{grid-template-columns:1fr}.admin-top #adminName{display:none}.panel h3{font-size:18px}.container{width:calc(100% - 14px)}}
+
+/* Complete mobile pass: customer, wallet, orders, authentication and admin */
+body{width:100%;min-width:0}.container,.section,.nav-inner,.auth-card,.order-card,.wallet-card{min-width:0}
+:where(h1,h2,h3,p,strong,small,span,a,td,th){overflow-wrap:anywhere}
+@media(max-width:760px){
+  .nav-inner{display:grid;grid-template-columns:minmax(0,1fr);align-items:center}
+  .nav-inner .brand{justify-self:start}.nav-actions{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}
+  .nav-actions>*{min-width:0;width:100%;padding:10px 5px;text-align:center;justify-content:center;font-size:13px;white-space:normal}
+  .section-head{align-items:flex-start;gap:12px;flex-wrap:wrap}.section-head h2{font-size:clamp(29px,9vw,42px);line-height:1.08}
+  .wallet-card{padding:22px 18px;border-radius:20px}.wallet-balance{font-size:clamp(35px,12vw,52px)}
+  .wallet-grid{grid-template-columns:minmax(0,1fr);gap:12px}.tx{grid-template-columns:minmax(0,1fr);gap:7px}.tx-amount{text-align:left}
+  .order-top,.order-product-line{min-width:0}.order-top{align-items:flex-start;gap:10px}.order-product-line>div:last-child{min-width:0}.order-name{white-space:normal;word-break:break-word}
+  .order-price{flex:0 0 auto}.order-actions{display:grid;grid-template-columns:1fr;gap:8px}.order-actions>*{width:100%;justify-content:center}
+  .auth-card{width:100%;max-height:none}.auth-card .admin-grid{grid-template-columns:1fr}
+  .admin-shell{display:block}.admin-main{width:100%;margin:0}.admin-top{position:sticky;top:0;z-index:20}
+  .admin-grid{gap:10px}.admin-grid>*{min-width:0}.admin-menu button,.admin-menu a{min-height:44px}
+  .panel :where(input,select,textarea,button){max-width:100%}.panel .primary-btn,.panel .danger-btn{width:100%;justify-content:center}
+  .wayne-announcement{width:calc(100% - 16px)!important;max-height:calc(100dvh - 16px)!important;overflow-y:auto!important;padding:20px 16px calc(16px + env(safe-area-inset-bottom))!important}
+  .wayne-telegram{right:12px!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;width:52px!important;height:52px!important}
+}
+@media(max-width:480px){
+  .nav-inner{padding:8px 0}.nav-actions{gap:5px}.nav-actions>*{font-size:12px;padding:9px 4px}
+  .section{padding-top:22px;padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+  .order-card{border-radius:16px}.order-top{display:grid;grid-template-columns:minmax(0,1fr)}.order-price{justify-self:start}
+  .stats{grid-template-columns:1fr 1fr}.stat-card small{font-size:11px}.stat-card strong{font-size:20px}
+  .admin-top>div{min-width:0}.admin-top .icon-btn{flex:0 0 auto}.admin-top h2{max-width:48vw}
+  .table-wrap{margin-inline:-13px;width:calc(100% + 26px);max-width:none;padding-bottom:5px}.table-wrap table{min-width:620px}
+}
+@media(max-width:340px){
+  .nav-actions{grid-template-columns:1fr 1fr}.nav-actions>*:last-child{grid-column:1/-1}
+  .brand span:last-child{font-size:15px}.stats{grid-template-columns:1fr}
+}
