@@ -1,0 +1,8 @@
+WAYNE LOGS - NOTIFICATION BADGE FIX
+
+This fixes the unread notification number being cut off on the bell button, especially on phones.
+
+DEPLOY IN 3 STEPS
+1. Replace the project files with this update. Keep your private .env.
+2. Run git add -A, git commit -m "Fix notification badge on mobile", then git push.
+3. Wait for Vercel and refresh the page. The full red unread number should appear inside the bell button.
