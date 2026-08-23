@@ -24,7 +24,7 @@ exports.initialize=async(req,res)=>{try{
     if(!bank.name||!bank.accountName||!bank.accountNumber){transaction.status="failed";await transaction.save();return res.status(503).json({message:"Bank-transfer top-ups are not configured yet."})}
     return res.status(201).json({success:true,mode:"manual_bank",reference,amountKobo,bank});
   }
-  try{const initialized=await provider.initializeTopup({email:req.user.email,amountKobo,reference,userId:req.user._id,callbackUrl:`${front}/wallet.html?topup=callback&reference=${encodeURIComponent(reference)}`});transaction.providerReference=initialized.providerReference||reference;await transaction.save();res.status(201).json({success:true,reference,authorizationUrl:initialized.authorizationUrl})}
+  try{const initialized=await provider.initializeTopup({email:req.user.email,firstName:req.user.firstName,lastName:req.user.lastName,phone:req.user.phone,amountKobo,reference,userId:req.user._id,callbackUrl:`${front}/dashboard.html?topup=callback&reference=${encodeURIComponent(reference)}`,webhookUrl:`${String(process.env.BACKEND_URL||"").replace(/\/$/,"")}/api/wallet/webhooks/${provider.name()}`});transaction.providerReference=initialized.providerReference||reference;await transaction.save();res.status(201).json({success:true,mode:"online",provider:provider.name(),reference,authorizationUrl:initialized.authorizationUrl})}
   catch(error){transaction.status="failed";await transaction.save();throw error}
 }catch(error){res.status(503).json({message:error.message||"Could not start wallet top-up."})}};
 exports.submitManual=async(req,res)=>{try{

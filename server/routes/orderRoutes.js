@@ -5,7 +5,5 @@ r.post("/",protect,c.create);
 r.get("/my",protect,c.mine);
 r.get("/admin/all",protect,adminOnly,c.adminAll);
 r.patch("/admin/:id/status",protect,adminOnly,c.adminStatus);
-r.post("/:id/paystack/initialize",protect,c.initialize);
-r.post("/:id/paystack/verify",protect,c.verify);
 r.post("/:id/wallet/pay",protect,c.payWithWallet);
 module.exports=r;

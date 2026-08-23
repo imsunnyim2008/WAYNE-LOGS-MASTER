@@ -1,0 +1,45 @@
+WAYNE LOGS - POCKETFI AND KORA SETUP
+
+IMPORTANT
+- Do not put secret keys in config.js, HTML, GitHub, or Vercel.
+- Add secret keys only in Render > your backend service > Environment.
+- Leave WALLET_PROVIDER=manual_bank while both accounts are under review.
+
+POCKETFI (after approval)
+1. In Render Environment, add:
+   WALLET_PROVIDER=pocketfi
+   POCKETFI_SECRET_KEY=the secret key from PocketFi
+   POCKETFI_BUSINESS_ID=the business ID from PocketFi
+   POCKETFI_BASE_URL=https://api.pocketfi.ng
+   FRONTEND_URL=https://waynelogs.com
+   BACKEND_URL=https://YOUR-RENDER-SERVICE.onrender.com
+2. Save changes and wait for Render to redeploy.
+3. Test first with the smallest allowed amount.
+
+KORA PAY (after approval)
+1. In Render Environment, add:
+   WALLET_PROVIDER=kora
+   KORA_SECRET_KEY=the secret key from Kora
+   KORA_BASE_URL=https://api.korapay.com/merchant
+   FRONTEND_URL=https://waynelogs.com
+   BACKEND_URL=https://YOUR-RENDER-SERVICE.onrender.com
+2. Save changes and wait for Render to redeploy.
+3. Test first with the smallest allowed amount.
+
+HOW IT WORKS
+- Add Money opens the selected provider's hosted checkout.
+- The provider returns the customer to dashboard.html.
+- The Render backend asks the provider directly whether payment succeeded.
+- MongoDB credits the exact amount once. Repeating the callback cannot credit twice.
+- Failed or pending payments never increase the balance.
+- Purchases deduct from the wallet atomically.
+- Withdrawals remain disabled.
+
+SWITCHING PROVIDERS
+Change only WALLET_PROVIDER in Render:
+- manual_bank
+- pocketfi
+- kora
+
+If a provider changes its production API address, update its BASE_URL using the
+exact value displayed in that provider's approved merchant dashboard.

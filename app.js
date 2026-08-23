@@ -37,7 +37,6 @@ const checkoutEmail = $("checkoutEmail");
 const checkoutTotal = $("checkoutTotal");
 const checkoutMessage = $("checkoutMessage");
 const payButton = $("payButton");
-const directPayButton = $("directPayButton");
 
 let token = localStorage.getItem("wayneToken") || "";
 let currentUser = null;
@@ -354,7 +353,6 @@ function openCheckoutFor(id) {
   checkoutMessage.textContent = "";
   payButton.disabled = false;
   payButton.textContent = "Pay with Wallet Balance";
-  directPayButton.disabled = false;
 
   checkoutModal.classList.add("show");
   checkoutModal.setAttribute("aria-hidden", "false");
@@ -372,7 +370,7 @@ function showCheckoutMessage(text, type = "error") {
   checkoutMessage.className = `simple-message show ${type}`;
 }
 
-async function pay(useDirect = false) {
+async function pay() {
   if (!checkoutSelection) return;
   if (!token || !currentUser) {
     requireLoginFor(checkoutSelection._id);
@@ -380,9 +378,8 @@ async function pay(useDirect = false) {
   }
 
   payButton.disabled = true;
-  directPayButton.disabled = true;
-  payButton.textContent = useDirect ? "Starting payment..." : "Paying from wallet...";
-  showCheckoutMessage(useDirect ? "Creating your order and opening Paystack..." : "Securely checking and deducting your wallet balance...", "info");
+  payButton.textContent = "Paying from wallet...";
+  showCheckoutMessage("Securely checking and deducting your wallet balance...", "info");
 
   try {
     let response = await fetch(API_URL + "/api/orders", {
@@ -407,38 +404,17 @@ async function pay(useDirect = false) {
     const order = data.order;
     localStorage.setItem("wayneLastOrderId", order._id);
 
-    if (!useDirect) {
-      response = await fetch(`${API_URL}/api/orders/${order._id}/wallet/pay`, {method:"POST",headers:{Authorization:"Bearer "+token}});
-      data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Wallet payment could not be completed.");
-      clearCart();
-      location.href = "orders.html?walletPurchase=success";
-      return;
-    }
-
-    response = await fetch(`${API_URL}/api/orders/${order._id}/paystack/initialize`, {
-      method: "POST",
-      headers: { Authorization: "Bearer " + token }
-    });
+    response = await fetch(`${API_URL}/api/orders/${order._id}/wallet/pay`, {method:"POST",headers:{Authorization:"Bearer "+token}});
     data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Payment could not start.");
-    }
-
-    if (!data.authorizationUrl) {
-      throw new Error("Paystack did not return a payment page.");
-    }
-
+    if (!response.ok) throw new Error(data.message || "Wallet payment could not be completed.");
     clearCart();
-    location.href = data.authorizationUrl;
+    location.href = "orders.html?walletPurchase=success";
   } catch (error) {
     showCheckoutMessage(
       `${error.message} Your order is saved. You can also retry from My Orders.`,
       "error"
     );
     payButton.disabled = false;
-    directPayButton.disabled = false;
     payButton.textContent = "Pay with Wallet Balance";
   }
 }
@@ -504,8 +480,7 @@ modalAdd.addEventListener("click", () => {
 modalBuy.addEventListener("click", () => {
   if (currentProduct) openCheckoutFor(currentProduct._id);
 });
-payButton.addEventListener("click", () => pay(false));
-directPayButton.addEventListener("click", () => pay(true));
+payButton.addEventListener("click", pay);
 
 productModal.addEventListener("click", (event) => {
   if (event.target === productModal) closeProduct();
