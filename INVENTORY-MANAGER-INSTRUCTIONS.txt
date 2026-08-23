@@ -1,0 +1,19 @@
+WAYNE LOGS — ADMIN INVENTORY MANAGER
+
+FEATURES
+- Available, sold and low-stock totals.
+- A card for every inventory-managed product.
+- Low-stock warning at 5 or fewer unused records.
+- Secure bulk restocking without editing the product.
+- Sold-record history showing customer, date and order ID.
+- Private inventory contents remain encrypted and are never exposed in the Admin history.
+
+DEPLOY
+1. Replace all project files and the server folder with this ZIP.
+2. Run git add -A, git commit -m "Add secure admin inventory manager", and git push.
+3. Wait for Vercel and Render, then open Admin > Inventory.
+
+TO RESTOCK
+1. Select the product card.
+2. Paste new authorized delivery records, one per line.
+3. Click Add Inventory Securely. New records increase stock; duplicates are ignored.
