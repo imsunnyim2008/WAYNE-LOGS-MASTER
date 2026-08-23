@@ -1,7 +1,9 @@
 const bcrypt=require("bcryptjs");
 const jwt=require("jsonwebtoken");
 const User=require("../models/User");
-const token=u=>jwt.sign({id:u._id,role:u.role},process.env.JWT_SECRET,{expiresIn:"7d"});
+const token=u=>jwt.sign({id:u._id,role:u.role},process.env.JWT_SECRET,{expiresIn:u.role==="admin"?"2h":"7d"});
+const attempts=new Map(),WINDOW=15*60*1000,MAX_ATTEMPTS=5;
+function attemptKey(req,email){return String(req.ip||req.socket?.remoteAddress||"")+"|"+String(email||"").toLowerCase()}
 const safe=u=>({id:u._id,firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0});
 exports.register=async(req,res)=>{
   try{
@@ -17,9 +19,12 @@ exports.register=async(req,res)=>{
 exports.login=async(req,res)=>{
   try{
     const{email,password}=req.body;
+    const key=attemptKey(req,email),now=Date.now(),record=attempts.get(key);
+    if(record&&record.until>now&&record.count>=MAX_ATTEMPTS)return res.status(429).json({message:"Too many failed login attempts. Try again in 15 minutes."});
     const u=await User.findOne({email:(email||"").toLowerCase()});
-    if(!u||!(await bcrypt.compare(password||"",u.password))) return res.status(401).json({message:"Invalid email or password."});
+    if(!u||!(await bcrypt.compare(password||"",u.password))){const active=record&&record.until>now?record:{count:0,until:now+WINDOW};active.count++;attempts.set(key,active);return res.status(401).json({message:"Invalid email or password."})}
     if(!u.isActive) return res.status(403).json({message:"Account disabled."});
+    attempts.delete(key);
     res.json({success:true,token:token(u),user:safe(u)});
   }catch(e){res.status(500).json({message:"Could not login."});}
 };

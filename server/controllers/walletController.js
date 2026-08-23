@@ -1,6 +1,7 @@
-const crypto=require("crypto"),mongoose=require("mongoose");
+const crypto=require("crypto"),mongoose=require("mongoose"),bcrypt=require("bcryptjs");
 const User=require("../models/User"),WalletTransaction=require("../models/WalletTransaction"),provider=require("../services/paymentProvider");
 const MIN_KOBO=Number(process.env.WALLET_MIN_TOPUP_KOBO||10000),MAX_KOBO=Number(process.env.WALLET_MAX_TOPUP_KOBO||500000000);
+const creditAttempts=new Map();
 async function credit(reference,v){
   const session=await mongoose.startSession(); let transaction;
   try{await session.withTransaction(async()=>{
@@ -57,11 +58,19 @@ exports.adminReview=async(req,res)=>{
   finally{await session.endSession()}
 };
 exports.adminCredit=async(req,res)=>{
-  const email=String(req.body.email||"").trim().toLowerCase(),amountKobo=Math.round(Number(req.body.amount)*100),reason=String(req.body.reason||"").trim().slice(0,200),requestId=String(req.body.requestId||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,80);
+  const email=String(req.body.email||"").trim().toLowerCase(),amountKobo=Math.round(Number(req.body.amount)*100),reason=String(req.body.reason||"").trim().slice(0,200),requestId=String(req.body.requestId||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,80),adminPassword=String(req.body.adminPassword||"");
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter the customer's registered email address."});
   if(!Number.isSafeInteger(amountKobo)||amountKobo<100||amountKobo>500000000)return res.status(400).json({message:"Enter a credit between ₦1 and ₦5,000,000."});
   if(reason.length<4)return res.status(400).json({message:"Enter a clear reason for this credit."});
   if(requestId.length<8)return res.status(400).json({message:"Invalid credit request."});
+  const attemptKey=String(req.user._id),now=Date.now(),attempt=creditAttempts.get(attemptKey);
+  if(attempt&&attempt.until>now&&attempt.count>=5)return res.status(429).json({message:"Too many incorrect password attempts. Wallet credits are locked for 15 minutes."});
+  const admin=await User.findById(req.user._id).select("+password");
+  if(!admin||!(await bcrypt.compare(adminPassword,admin.password))){const active=attempt&&attempt.until>now?attempt:{count:0,until:now+15*60*1000};active.count++;creditAttempts.set(attemptKey,active);return res.status(403).json({message:"Your admin password is incorrect. Credit was not added."})}
+  creditAttempts.delete(attemptKey);
+  const dailyLimit=Number(process.env.ADMIN_DAILY_CREDIT_LIMIT_KOBO||500000000),start=new Date();start.setHours(0,0,0,0);
+  const totals=await WalletTransaction.aggregate([{$match:{provider:"admin_credit",status:"completed",createdAt:{$gte:start}}},{$group:{_id:null,total:{$sum:"$amountKobo"}}}]);
+  if((totals[0]?.total||0)+amountKobo>dailyLimit)return res.status(429).json({message:`Daily admin credit limit of ₦${(dailyLimit/100).toLocaleString("en-NG")} would be exceeded.`});
   const reference="ADM-"+requestId;let transaction;const session=await mongoose.startSession();
   try{await session.withTransaction(async()=>{
     transaction=await WalletTransaction.findOne({reference}).session(session);
