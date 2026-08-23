@@ -1,0 +1,23 @@
+WAYNE LOGS — IN-SITE NOTIFICATION CENTRE
+
+AUTOMATIC NOTIFICATIONS
+- Successful product purchase.
+- Wallet funding or Admin wallet credit.
+- New Admin reply to a support ticket.
+- Admin announcements sent to every active customer.
+
+CUSTOMERS
+- A bell and unread badge appear in the header after login.
+- The Notifications page shows all updates.
+- Opening a notification marks it read.
+- Mark All as Read clears the unread badge.
+
+ADMIN BROADCAST
+- Open Admin > Settings > Publish Customer Notification.
+- Enter a title, message and safe website link.
+- Confirm publication to send it to all active customer accounts.
+
+DEPLOY
+1. Replace all files and the server folder.
+2. Run git add -A, git commit -m "Add in-site notification centre", and git push.
+3. Wait for Vercel and Render, then test a purchase or Admin announcement.

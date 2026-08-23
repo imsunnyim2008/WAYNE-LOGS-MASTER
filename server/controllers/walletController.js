@@ -1,5 +1,6 @@
 const crypto=require("crypto"),mongoose=require("mongoose"),bcrypt=require("bcryptjs");
 const User=require("../models/User"),WalletTransaction=require("../models/WalletTransaction"),provider=require("../services/paymentProvider");
+const notifications=require("../services/notificationService");
 const MIN_KOBO=Number(process.env.WALLET_MIN_TOPUP_KOBO||10000),MAX_KOBO=Number(process.env.WALLET_MAX_TOPUP_KOBO||500000000);
 const creditAttempts=new Map();
 async function credit(reference,v){
@@ -11,7 +12,7 @@ async function credit(reference,v){
     const user=await User.findByIdAndUpdate(transaction.user,{$inc:{walletBalanceKobo:transaction.amountKobo}},{new:true,session});
     if(!user)throw new Error("USER_NOT_FOUND");
     transaction.status="completed";transaction.providerReference=v.reference;transaction.balanceAfterKobo=user.walletBalanceKobo;transaction.verifiedAt=new Date();await transaction.save({session});
-  });return transaction}finally{await session.endSession()}
+  });if(transaction?.status==="completed")await notifications.create({user:transaction.user,type:"wallet",title:"Wallet funded",message:`₦${(transaction.amountKobo/100).toLocaleString("en-NG")} was added to your wallet.`,link:"dashboard.html",key:`wallet:${transaction.reference}`}).catch(()=>{});return transaction}finally{await session.endSession()}
 }
 exports.summary=async(req,res)=>{const user=await User.findById(req.user._id).select("walletBalanceKobo");res.json({success:true,wallet:{balanceKobo:user.walletBalanceKobo||0,currency:"NGN",withdrawalsEnabled:false,providers:{manualBank:true,kora:!!process.env.KORA_SECRET_KEY}}})};
 exports.history=async(req,res)=>{const transactions=await WalletTransaction.find({user:req.user._id}).sort({createdAt:-1}).limit(200);res.json({success:true,transactions})};
@@ -53,7 +54,7 @@ exports.adminReview=async(req,res)=>{
     const user=await User.findByIdAndUpdate(transaction.user,{$inc:{walletBalanceKobo:transaction.amountKobo}},{new:true,session});
     if(!user)throw new Error("USER_NOT_FOUND");
     transaction.status="completed";transaction.balanceAfterKobo=user.walletBalanceKobo;transaction.verifiedAt=new Date();transaction.reviewedBy=req.user._id;transaction.reviewNote="Bank receipt confirmed by admin";await transaction.save({session});
-  });res.json({success:true,transaction})}
+  });if(transaction?.status==="completed")await notifications.create({user:transaction.user,type:"wallet",title:"Wallet funded",message:`₦${(transaction.amountKobo/100).toLocaleString("en-NG")} was added to your wallet.`,link:"dashboard.html",key:`wallet:${transaction.reference}`}).catch(()=>{});res.json({success:true,transaction})}
   catch(error){res.status(error.status||500).json({message:error.status?error.message:"Could not review top-up."})}
   finally{await session.endSession()}
 };
@@ -78,7 +79,7 @@ exports.adminCredit=async(req,res)=>{
     const user=await User.findOneAndUpdate({email,isActive:true},{$inc:{walletBalanceKobo:amountKobo}},{new:true,session});
     if(!user)throw Object.assign(new Error("Customer not found."),{status:404});
     [transaction]=await WalletTransaction.create([{user:user._id,type:"deposit",status:"completed",amountKobo,currency:"NGN",reference,provider:"admin_credit",description:reason,balanceAfterKobo:user.walletBalanceKobo,verifiedAt:new Date(),reviewedBy:req.user._id,reviewNote:reason}],{session});
-  });res.json({success:true,transaction})}
+  });if(transaction)await notifications.create({user:transaction.user,type:"wallet",title:"Wallet credit received",message:`₦${(transaction.amountKobo/100).toLocaleString("en-NG")} was added: ${transaction.description}`,link:"dashboard.html",key:`wallet:${transaction.reference}`}).catch(()=>{});res.json({success:true,transaction})}
   catch(error){res.status(error.status||500).json({message:error.status?error.message:"Could not credit the wallet."})}
   finally{await session.endSession()}
 };
