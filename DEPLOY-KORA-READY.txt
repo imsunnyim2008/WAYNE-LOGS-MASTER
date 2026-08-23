@@ -1,0 +1,35 @@
+WAYNE LOGS - CLEAN KORA-READY DEPLOYMENT
+
+CURRENT CUSTOMER FLOW
+1. Customer creates an account and signs in.
+2. Add Money opens the wallet dashboard.
+3. Add Money always displays both Kora Pay and Manual Bank Transfer.
+4. Kora Pay opens Kora's hosted checkout when live keys are configured.
+5. The Render backend verifies the Kora payment directly before crediting MongoDB.
+6. Store purchases deduct from wallet balance atomically.
+7. There are no withdrawals and no direct Paystack checkout.
+
+REPLACE AND DEPLOY
+1. Copy all files from this package over the existing project.
+2. Replace files when Windows asks.
+3. Commit and push the replacement to GitHub.
+4. Wait for Vercel and Render to finish deploying.
+
+WHILE KORA IS UNDER REVIEW
+Set in Render:
+WALLET_BANK_NAME=your bank name
+WALLET_BANK_ACCOUNT_NAME=your exact account name
+WALLET_BANK_ACCOUNT_NUMBER=your account number
+FRONTEND_URL=https://waynelogs.com
+BACKEND_URL=https://wayne-logs-master-api.onrender.com
+
+AFTER KORA APPROVAL
+Add these only in Render > Environment:
+KORA_SECRET_KEY=your live Kora secret key
+KORA_BASE_URL=https://api.korapay.com/merchant
+FRONTEND_URL=https://waynelogs.com
+BACKEND_URL=https://wayne-logs-master-api.onrender.com
+
+Never put KORA_SECRET_KEY in GitHub, Vercel, config.js, HTML, screenshots, or chat.
+Test the smallest permitted amount first after Kora activates the live account.
+Manual Bank Transfer remains available after Kora is activated.

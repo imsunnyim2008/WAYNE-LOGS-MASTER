@@ -24,8 +24,7 @@ async function kora(path,options={}){
   return requestJson(base+path,{...options,headers:{Authorization:"Bearer "+process.env.KORA_SECRET_KEY,"Content-Type":"application/json",...(options.headers||{})}},body=>body.status===true);
 }
 exports.name=providerName;
-exports.initializeTopup=async({email,firstName,lastName,phone,amountKobo,reference,callbackUrl,userId,webhookUrl})=>{
-  const name=providerName();
+exports.initializeTopup=async({providerName:name,email,firstName,lastName,phone,amountKobo,reference,callbackUrl,userId,webhookUrl})=>{
   if(name==="paystack"){
     const data=await paystack("/transaction/initialize",{method:"POST",body:JSON.stringify({email,amount:String(amountKobo),currency:"NGN",reference,callback_url:callbackUrl,metadata:{purpose:"wallet_topup",walletReference:reference,userId:String(userId)}})});
     return {authorizationUrl:data.authorization_url,providerReference:data.reference};
@@ -43,8 +42,7 @@ exports.initializeTopup=async({email,firstName,lastName,phone,amountKobo,referen
   }
   throw new Error("The selected wallet provider is not supported.");
 };
-exports.verifyTopup=async(reference)=>{
-  const name=providerName();
+exports.verifyTopup=async(reference,name=providerName())=>{
   if(name==="paystack"){
     const data=await paystack("/transaction/verify/"+encodeURIComponent(reference),{method:"GET"});
     return {successful:data.status==="success",amountKobo:Number(data.amount),currency:data.currency,reference:data.reference};

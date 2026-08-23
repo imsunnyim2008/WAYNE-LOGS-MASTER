@@ -12,19 +12,21 @@ async function credit(reference,v){
     transaction.status="completed";transaction.providerReference=v.reference;transaction.balanceAfterKobo=user.walletBalanceKobo;transaction.verifiedAt=new Date();await transaction.save({session});
   });return transaction}finally{await session.endSession()}
 }
-exports.summary=async(req,res)=>{const user=await User.findById(req.user._id).select("walletBalanceKobo");res.json({success:true,wallet:{balanceKobo:user.walletBalanceKobo||0,currency:"NGN",withdrawalsEnabled:false,provider:provider.name()}})};
+exports.summary=async(req,res)=>{const user=await User.findById(req.user._id).select("walletBalanceKobo");res.json({success:true,wallet:{balanceKobo:user.walletBalanceKobo||0,currency:"NGN",withdrawalsEnabled:false,providers:{manualBank:true,kora:!!process.env.KORA_SECRET_KEY}}})};
 exports.history=async(req,res)=>{const transactions=await WalletTransaction.find({user:req.user._id}).sort({createdAt:-1}).limit(200);res.json({success:true,transactions})};
 exports.initialize=async(req,res)=>{try{
   const amountKobo=Math.round(Number(req.body.amount)*100);
   if(!Number.isSafeInteger(amountKobo)||amountKobo<MIN_KOBO||amountKobo>MAX_KOBO)return res.status(400).json({message:`Enter an amount between ₦${MIN_KOBO/100} and ₦${MAX_KOBO/100}.`});
-  const reference="WLT-"+Date.now()+"-"+crypto.randomBytes(8).toString("hex"),front=(process.env.FRONTEND_URL||"http://127.0.0.1:5500").replace(/\/$/,"");
-  const transaction=await WalletTransaction.create({user:req.user._id,type:"deposit",amountKobo,reference,provider:provider.name(),description:"Wallet top-up"});
-  if(provider.name()==="manual_bank"){
+  const selected=String(req.body.paymentMethod||"manual_bank").trim().toLowerCase();
+  if(!["manual_bank","kora","korapay"].includes(selected))return res.status(400).json({message:"Choose Kora Pay or Manual Bank Transfer."});
+  const method=selected==="korapay"?"kora":selected,reference="WLT-"+Date.now()+"-"+crypto.randomBytes(8).toString("hex"),front=(process.env.FRONTEND_URL||"http://127.0.0.1:5500").replace(/\/$/,"");
+  const transaction=await WalletTransaction.create({user:req.user._id,type:"deposit",amountKobo,reference,provider:method,description:method==="kora"?"Kora wallet top-up":"Manual bank wallet top-up"});
+  if(method==="manual_bank"){
     const bank={name:process.env.WALLET_BANK_NAME||"",accountName:process.env.WALLET_BANK_ACCOUNT_NAME||"",accountNumber:process.env.WALLET_BANK_ACCOUNT_NUMBER||""};
     if(!bank.name||!bank.accountName||!bank.accountNumber){transaction.status="failed";await transaction.save();return res.status(503).json({message:"Bank-transfer top-ups are not configured yet."})}
     return res.status(201).json({success:true,mode:"manual_bank",reference,amountKobo,bank});
   }
-  try{const initialized=await provider.initializeTopup({email:req.user.email,firstName:req.user.firstName,lastName:req.user.lastName,phone:req.user.phone,amountKobo,reference,userId:req.user._id,callbackUrl:`${front}/dashboard.html?topup=callback&reference=${encodeURIComponent(reference)}`,webhookUrl:`${String(process.env.BACKEND_URL||"").replace(/\/$/,"")}/api/wallet/webhooks/${provider.name()}`});transaction.providerReference=initialized.providerReference||reference;await transaction.save();res.status(201).json({success:true,mode:"online",provider:provider.name(),reference,authorizationUrl:initialized.authorizationUrl})}
+  try{const initialized=await provider.initializeTopup({providerName:method,email:req.user.email,firstName:req.user.firstName,lastName:req.user.lastName,phone:req.user.phone,amountKobo,reference,userId:req.user._id,callbackUrl:`${front}/dashboard.html?topup=callback&reference=${encodeURIComponent(reference)}`,webhookUrl:`${String(process.env.BACKEND_URL||"").replace(/\/$/,"")}/api/wallet/webhooks/${method}`});transaction.providerReference=initialized.providerReference||reference;await transaction.save();res.status(201).json({success:true,mode:"online",provider:method,reference,authorizationUrl:initialized.authorizationUrl})}
   catch(error){transaction.status="failed";await transaction.save();throw error}
 }catch(error){res.status(503).json({message:error.message||"Could not start wallet top-up."})}};
 exports.submitManual=async(req,res)=>{try{
@@ -34,7 +36,7 @@ exports.submitManual=async(req,res)=>{try{
   if(!transaction)return res.status(409).json({message:"This top-up cannot be submitted again."});
   res.json({success:true,transaction});
 }catch(error){res.status(500).json({message:"Could not submit transfer details."})}};
-exports.verify=async(req,res)=>{try{const transaction=await WalletTransaction.findOne({reference:req.body.reference,user:req.user._id,type:"deposit"});if(!transaction)return res.status(404).json({message:"Top-up not found."});if(transaction.status==="completed")return res.json({success:true,transaction});const result=await provider.verifyTopup(transaction.providerReference||transaction.reference);res.json({success:true,transaction:await credit(transaction.reference,result)})}catch(error){res.status(400).json({message:"Top-up has not been verified. Your wallet was not credited."})}};
+exports.verify=async(req,res)=>{try{const transaction=await WalletTransaction.findOne({reference:req.body.reference,user:req.user._id,type:"deposit"});if(!transaction)return res.status(404).json({message:"Top-up not found."});if(transaction.status==="completed")return res.json({success:true,transaction});if(transaction.provider!=="kora")return res.status(400).json({message:"This payment requires manual review."});const result=await provider.verifyTopup(transaction.providerReference||transaction.reference,transaction.provider);res.json({success:true,transaction:await credit(transaction.reference,result)})}catch(error){res.status(400).json({message:"Top-up has not been verified. Your wallet was not credited."})}};
 exports.webhook=async(req,res)=>{try{const name=String(req.params.provider||"").toLowerCase();if(!Buffer.isBuffer(req.body)||!provider.verifyWebhook(name,req.body,req.headers))return res.sendStatus(401);const event=provider.parseWebhook(name,req.body);if(!event||!event.successful)return res.sendStatus(200);const transaction=await WalletTransaction.findOne({$or:[{reference:event.reference},{providerReference:event.reference}],type:"deposit"});if(transaction)await credit(transaction.reference,event);res.sendStatus(200)}catch(error){res.sendStatus(500)}};
 exports.adminAll=async(req,res)=>{const transactions=await WalletTransaction.find().populate("user","firstName lastName email walletBalanceKobo").populate("order","productName totalAmount").sort({createdAt:-1}).limit(500);res.json({success:true,transactions})};
 exports.adminReview=async(req,res)=>{
