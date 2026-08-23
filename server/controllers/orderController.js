@@ -6,6 +6,7 @@ const User=require("../models/User");
 const WalletTransaction=require("../models/WalletTransaction");
 const InventoryItem=require("../models/InventoryItem");
 const inventoryCrypto=require("../services/inventoryCrypto");
+const emailService=require("../services/emailService");
 const BASE="https://api.paystack.co";
 
 async function ps(path,opts={}){
@@ -35,6 +36,15 @@ function meta(v){
   if(!v)return{};
   if(typeof v==="object")return v;
   try{return JSON.parse(v)}catch{return{}}
+}
+
+async function sendPurchaseEmails(orderId){
+  if(!emailService.isConfigured())return;
+  const claimed=await Order.findOneAndUpdate({_id:orderId,paymentStatus:"paid",receiptEmailSentAt:null},{$set:{receiptEmailSentAt:new Date()}},{new:true}).populate("user","firstName lastName email");
+  if(claimed?.user){try{await emailService.sendPurchaseReceipt({user:claimed.user,order:claimed})}catch(e){await Order.updateOne({_id:claimed._id},{$set:{receiptEmailSentAt:null}});console.error("Receipt email failed:",e.message)}}
+  const threshold=Number(process.env.LOW_STOCK_THRESHOLD||5);
+  const product=await Product.findOneAndUpdate({_id:claimed?.product,stock:{$lte:threshold},lowStockAlertSentAt:null},{$set:{lowStockAlertSentAt:new Date()}},{new:true});
+  if(product){try{await emailService.sendLowStockAlert({product,threshold})}catch(e){await Product.updateOne({_id:product._id},{$set:{lowStockAlertSentAt:null}});console.error("Low-stock email failed:",e.message)}}
 }
 
 async function finalize(orderId,ref){
@@ -73,6 +83,7 @@ async function finalize(orderId,ref){
       await o.save({session});
       out=o;
     });
+    if(out?._id)await sendPurchaseEmails(out._id).catch(e=>console.error("Purchase email task failed:",e.message));
     return out;
   }finally{
     await session.endSession();
@@ -240,6 +251,7 @@ exports.payWithWallet=async(req,res)=>{
       if(product.deliveryType==="instant"){order.deliveryContent=product.inventoryManaged?uniqueDelivery:(product.privateDelivery||"");order.status="completed";order.deliveredAt=new Date()}else{order.status="processing"}
       await order.save({session});result=order;
     });
+    await sendPurchaseEmails(result._id).catch(e=>console.error("Purchase email task failed:",e.message));
     res.json({success:true,order:result});
   }catch(error){
     if(error?.code===11000){const order=await Order.findOne({_id:req.params.id,user:req.user._id});return res.json({success:true,order})}

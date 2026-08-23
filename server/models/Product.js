@@ -13,6 +13,7 @@ const schema = new mongoose.Schema({
   status:{type:String,enum:["active","inactive"],default:"active"},
   deliveryType:{type:String,enum:["manual","instant"],default:"manual"},
   inventoryManaged:{type:Boolean,default:false},
+  lowStockAlertSentAt:{type:Date,default:null},
   privateDelivery:{type:String,default:"",select:false},
   createdBy:{type:mongoose.Schema.Types.ObjectId,ref:"User"}
 },{timestamps:true});

@@ -15,6 +15,7 @@ const schema = new mongoose.Schema({
   paymentReference:{type:String,default:""},
   deliveryContent:{type:String,default:"",select:false},
   inventoryItem:{type:mongoose.Schema.Types.ObjectId,ref:"InventoryItem",default:null,select:false},
+  receiptEmailSentAt:{type:Date,default:null},
   deliveredAt:{type:Date,default:null}
 },{timestamps:true});
 module.exports = mongoose.model("Order",schema);

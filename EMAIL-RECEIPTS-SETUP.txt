@@ -1,0 +1,22 @@
+WAYNE LOGS — EMAIL RECEIPTS AND LOW-STOCK ALERTS
+
+WHAT WORKS
+- One receipt after a successful purchase.
+- Receipt includes order ID, product, amount and status.
+- Private delivery records are never emailed; customers sign in to view them.
+- One admin warning when a product reaches the low-stock threshold.
+- Restocking above the threshold resets the warning for the next low-stock cycle.
+- Email failure never cancels or reverses a completed wallet purchase.
+
+RENDER ENVIRONMENT KEYS
+SMTP_HOST=your SMTP server hostname
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your SMTP username
+SMTP_PASS=your SMTP password or app password
+EMAIL_FROM=WAYNE LOGS <your verified sender email>
+ADMIN_ALERT_EMAIL=the email that should receive low-stock alerts
+LOW_STOCK_THRESHOLD=5
+FRONTEND_URL=https://waynelogs.com
+
+Use port 465 with SMTP_SECURE=true when required by your email provider. Never commit SMTP_PASS to GitHub or place it in frontend files. Add it only in Render Environment.
