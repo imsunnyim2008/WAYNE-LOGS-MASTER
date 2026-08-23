@@ -169,3 +169,28 @@
   .platform-logo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .premium-store .simple-card-actions{grid-template-columns:1fr}
 }
+
+/* WAYNE LOGS category browser — original card design with live inventory */
+.platform-showcase{padding:28px 0 34px}
+.category-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:18px}
+.category-heading h2{margin:5px 0 5px;color:#10233d;font-size:clamp(28px,4vw,40px);letter-spacing:-1px}
+.category-heading p{margin:0;color:#687b93}.category-live{flex:0 0 auto;padding:9px 13px;border-radius:999px;background:#e9faf3;color:#148455;font-size:12px;font-weight:900}
+.platform-logo-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.platform-logo-grid button{position:relative;min-width:0;min-height:84px;grid-template-columns:44px minmax(0,1fr);grid-template-rows:auto auto;justify-items:start;text-align:left;column-gap:11px;row-gap:3px;padding:15px;border-radius:19px;background:linear-gradient(145deg,#fff,#f8fbfe)}
+.platform-logo-grid button img,.category-icon{grid-row:1/3;width:44px;height:44px;padding:9px;border-radius:14px;object-fit:contain;background:#f1f6fb;border:1px solid #e0e9f2}
+.platform-logo-grid button b{align-self:end;width:100%;font-size:14px;white-space:normal;line-height:1.2;color:#17304d}
+.platform-logo-grid button small{align-self:start;width:100%;font-size:10px;font-weight:800;color:#71859b;white-space:normal}
+.platform-logo-grid button.selected{border-color:#159fdc;background:#eaf8fe;box-shadow:0 0 0 3px rgba(9,162,223,.1),0 14px 30px rgba(27,92,141,.12)}
+.platform-logo-grid button.category-empty{opacity:.64}.platform-logo-grid button.category-empty small{color:#9a6e7a}
+.platform-logo-grid .category-all{background:linear-gradient(135deg,#1649bf,#10a9e3);border:0;box-shadow:0 13px 30px rgba(16,105,195,.22)}
+.platform-logo-grid .category-all b,.platform-logo-grid .category-all small{color:#fff}.platform-logo-grid .category-all .category-icon{color:#1556c9;background:#fff;border:0;font-size:22px}
+.category-icon{display:grid;place-items:center;color:#1556c9;font-size:20px}.category-icon.dating{color:#e83e8c;background:#fff0f6}.category-icon.people{color:#087fc4;background:#eaf7fd}
+.category-icon.brand-linkedin{background:#0a66c2;color:#fff;border:0;font-size:18px;font-weight:950;font-family:Arial,sans-serif}.category-icon.brand-grindr{background:#fecb16;color:#111;border:0}.category-icon.brand-bumble{background:#ffc629;color:#111;border:0;font-size:25px}
+.stock-badge{display:inline-flex;width:max-content;max-width:100%;margin-top:7px;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:900;line-height:1}
+.stock-badge.in-stock{color:#117b50;background:#e9faf3;border:1px solid #c5eddc}.stock-badge.out-stock{color:#b23850;background:#fff0f3;border:1px solid #ffd2da}
+.premium-store .simple-product-title h3{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.premium-store .simple-buy-info{display:grid}.premium-store .simple-buy-info div{background:#f5f9fc;border-color:#e0e8f0}.premium-store .simple-buy-info strong{color:#2b4864}
+@media(max-width:1000px){.platform-logo-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:720px){.category-heading{align-items:flex-start;flex-direction:column}.platform-showcase{padding:22px 0 27px}.platform-logo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.platform-logo-grid button{min-height:78px;padding:12px;grid-template-columns:39px minmax(0,1fr);column-gap:8px}.platform-logo-grid button img,.category-icon{width:39px;height:39px;padding:8px}.premium-store .simple-buy-info{grid-template-columns:1fr 1fr;margin-bottom:0}}
+@media(max-width:390px){.platform-logo-grid{gap:8px}.platform-logo-grid button{padding:10px;border-radius:15px}.platform-logo-grid button b{font-size:12px}.platform-logo-grid button small{font-size:9px}.category-live{padding:7px 10px}.premium-store .simple-buy-info{grid-template-columns:1fr}}
+@media(max-width:320px){.platform-logo-grid{grid-template-columns:1fr}.platform-logo-grid button{min-height:68px}}

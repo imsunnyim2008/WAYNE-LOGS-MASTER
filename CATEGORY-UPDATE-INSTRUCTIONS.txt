@@ -1,0 +1,12 @@
+WAYNE LOGS CATEGORY BROWSER UPDATE
+
+1. Copy every unzipped file and the server folder into WAYNE-LOGS-MASTER-FULL. Choose Replace the files in the destination.
+
+2. Run in the VS Code terminal:
+   git add -A
+   git commit -m "Add live platform categories and stock display"
+   git push
+
+3. Wait for Vercel to deploy, then refresh waynelogs.com. Add products in the Admin panel using the matching Platform name, such as Facebook, TikTok, TikTok Ads, Telegram, Spotify, Badoo or VPN. The category automatically shows the product count and remaining units.
+
+Customers can click any category, see matching products, view remaining stock, open product details and purchase through the existing wallet checkout.

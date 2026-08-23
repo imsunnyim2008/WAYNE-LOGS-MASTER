@@ -63,7 +63,7 @@ function esc(value) {
   return el.innerHTML;
 }
 
-const platformIcons={facebook:["facebook","1877F2"],instagram:["instagram","E4405F"],tiktok:["tiktok","000000"],youtube:["youtube","FF0000"],twitter:["x","000000"],x:["x","000000"],discord:["discord","5865F2"],telegram:["telegram","26A5E4"],whatsapp:["whatsapp","25D366"],linkedin:["linkedin","0A66C2"],snapchat:["snapchat","FFFC00"],reddit:["reddit","FF4500"],pinterest:["pinterest","BD081C"],threads:["threads","000000"],twitch:["twitch","9146FF"],vpn:["protonvpn","6D4AFF"]};
+const platformIcons={facebook:["facebook","1877F2"],instagram:["instagram","E4405F"],tiktok:["tiktok","000000"],"tiktok ads":["tiktok","000000"],youtube:["youtube","FF0000"],twitter:["x","000000"],x:["x","000000"],discord:["discord","5865F2"],telegram:["telegram","26A5E4"],whatsapp:["whatsapp","25D366"],linkedin:["linkedin","0A66C2"],snapchat:["snapchat","FFFC00"],reddit:["reddit","FF4500"],pinterest:["pinterest","BD081C"],quora:["quora","B92B27"],github:["github","181717"],spotify:["spotify","1ED760"],grindr:["grindr","FEC016"],bumble:["bumble","FFC629"],badoo:["badoo","783BF9"],threads:["threads","000000"],twitch:["twitch","9146FF"],vpn:["protonvpn","6D4AFF"]};
 function platformIcon(platform,fallback="★"){
   const key=String(platform||"").toLowerCase().trim(),entry=platformIcons[key];
   return entry?`<img class="platform-logo-img" src="https://cdn.simpleicons.org/${entry[0]}/${entry[1]}" alt="${esc(platform)}">`:`<span>${esc(fallback)}</span>`;
@@ -144,6 +144,25 @@ function platformName(value) {
   return String(value || "").trim();
 }
 
+function platformKey(value) {
+  const key = platformName(value).toLowerCase();
+  if (["twitter", "twitter / x", "x.com"].includes(key)) return "x";
+  if (["youtube accounts", "youtube accounts & channels", "youtube channels"].includes(key)) return "youtube";
+  if (["dating", "dating app", "dating accounts"].includes(key)) return "dating apps";
+  return key;
+}
+
+function updateCategoryCounts() {
+  document.querySelectorAll("[data-category-count]").forEach((label) => {
+    const key = platformKey(label.dataset.categoryCount);
+    const matching = key === "all" ? products : products.filter((p) => platformKey(p.platform) === key);
+    const available = matching.filter((p) => Number(p.stock) > 0);
+    const units = available.reduce((sum, p) => sum + Number(p.stock || 0), 0);
+    label.textContent = available.length ? `${available.length} product${available.length === 1 ? "" : "s"} · ${units} left` : "No stock";
+    label.closest("button")?.classList.toggle("category-empty", !available.length);
+  });
+}
+
 function buildPlatformFilters() {
   const known = [...new Set(products.map((p) => platformName(p.platform)).filter(Boolean))];
   const fixed = platformFilters.querySelectorAll("[data-platform='all'],[data-platform='social'],[data-platform='vpn']");
@@ -173,6 +192,7 @@ async function loadProducts() {
     if (!response.ok) throw new Error(data.message || "Could not load products.");
     products = Array.isArray(data.products) ? data.products : [];
     buildPlatformFilters();
+    updateCategoryCounts();
     renderProducts();
     renderCart();
   } catch (error) {
@@ -192,7 +212,7 @@ function productMatches(product) {
   if (activePlatform === "social") platformOk = product.type === "social";
   else if (activePlatform === "vpn") platformOk = product.type === "vpn";
   else if (activePlatform !== "all") {
-    platformOk = String(product.platform || "").toLowerCase() === String(activePlatform).toLowerCase();
+    platformOk = platformKey(product.platform) === platformKey(activePlatform);
   }
 
   return searchOk && typeOk && platformOk;
@@ -202,7 +222,8 @@ function renderProducts() {
   const list = products.filter(productMatches);
 
   if (!list.length) {
-    productGrid.innerHTML = '<div class="simple-empty">No products match that filter.</div>';
+    const selected = activePlatform === "all" ? "this category" : activePlatform;
+    productGrid.innerHTML = `<div class="simple-empty"><strong>No products available in ${esc(selected)}.</strong><br><small>Please check another category or come back after new stock is added.</small></div>`;
     return;
   }
 
@@ -213,6 +234,7 @@ function renderProducts() {
         <div class="simple-product-title">
           <small>${esc(product.platform || "Digital")}</small>
           <h3>${esc(product.name)}</h3>
+          <span class="stock-badge ${Number(product.stock) > 0 ? "in-stock" : "out-stock"}">${Number(product.stock) > 0 ? esc(product.stock + " remaining") : "Out of stock"}</span>
         </div>
       </div>
 
@@ -457,6 +479,7 @@ platformFilters.addEventListener("click", (event) => {
 
 document.querySelectorAll("[data-jump-platform]").forEach((button)=>button.addEventListener("click",()=>{
   activePlatform=button.dataset.jumpPlatform||"all";
+  document.querySelectorAll("[data-jump-platform]").forEach((item)=>item.classList.toggle("selected",item===button));
   markActiveFilter();renderProducts();
   document.getElementById("shop").scrollIntoView({behavior:"smooth",block:"start"});
 }));
