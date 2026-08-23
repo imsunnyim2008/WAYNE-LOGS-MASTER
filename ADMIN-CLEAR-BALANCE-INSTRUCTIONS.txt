@@ -1,0 +1,15 @@
+WAYNE LOGS - ADMIN CLEAR BALANCE UPDATE
+
+WHAT IT ADDS
+- A Clear Customer Wallet Balance panel inside Admin > Wallets.
+- A Clear Balance shortcut beside customers who currently have money.
+- Admin password confirmation and a second warning before clearing.
+- The customer's entire wallet is atomically set to N0.
+- The removed amount, administrator and reason are permanently recorded as a wallet adjustment.
+- The customer receives a notification explaining that the wallet was adjusted.
+- Admin accounts cannot be targeted by this customer tool.
+
+DEPLOY IN 3 STEPS
+1. Replace the current project files with all files from this update. Keep your private server .env.
+2. Run git add -A, git commit -m "Add protected admin balance clearing", then git push.
+3. Wait for Render and Vercel. Open Admin > Users, press Clear Balance beside a customer, enter a reason and your admin password, then confirm.

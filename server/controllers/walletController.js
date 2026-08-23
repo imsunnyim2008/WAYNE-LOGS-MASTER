@@ -83,3 +83,28 @@ exports.adminCredit=async(req,res)=>{
   catch(error){res.status(error.status||500).json({message:error.status?error.message:"Could not credit the wallet."})}
   finally{await session.endSession()}
 };
+exports.adminClear=async(req,res)=>{
+  const email=String(req.body.email||"").trim().toLowerCase(),reason=String(req.body.reason||"").trim().slice(0,200),requestId=String(req.body.requestId||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,80),adminPassword=String(req.body.adminPassword||"");
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter the customer's registered email address."});
+  if(reason.length<4)return res.status(400).json({message:"Enter a clear reason for removing the balance."});
+  if(requestId.length<8)return res.status(400).json({message:"Invalid clear-balance request."});
+  const attemptKey="clear:"+String(req.user._id),now=Date.now(),attempt=creditAttempts.get(attemptKey);
+  if(attempt&&attempt.until>now&&attempt.count>=5)return res.status(429).json({message:"Too many incorrect password attempts. Balance clearing is locked for 15 minutes."});
+  const admin=await User.findById(req.user._id).select("+password");
+  if(!admin||!(await bcrypt.compare(adminPassword,admin.password))){const active=attempt&&attempt.until>now?attempt:{count:0,until:now+15*60*1000};active.count++;creditAttempts.set(attemptKey,active);return res.status(403).json({message:"Your admin password is incorrect. The balance was not changed."})}
+  creditAttempts.delete(attemptKey);
+  const reference="CLR-"+requestId;let transaction;const session=await mongoose.startSession();
+  try{await session.withTransaction(async()=>{
+    transaction=await WalletTransaction.findOne({reference}).session(session);if(transaction)return;
+    const user=await User.findOne({email,isActive:true,role:"user"}).session(session);
+    if(!user)throw Object.assign(new Error("Active customer not found."),{status:404});
+    const removed=Number(user.walletBalanceKobo||0);
+    if(removed<1)throw Object.assign(new Error("This customer's wallet is already ₦0."),{status:409});
+    user.walletBalanceKobo=0;await user.save({session});
+    [transaction]=await WalletTransaction.create([{user:user._id,type:"adjustment",status:"completed",amountKobo:removed,currency:"NGN",reference,provider:"admin_clear",description:"Balance cleared: "+reason,balanceAfterKobo:0,verifiedAt:new Date(),reviewedBy:req.user._id,reviewNote:reason}],{session});
+  });
+  if(transaction)await notifications.create({user:transaction.user,type:"wallet",title:"Wallet balance adjusted",message:`Your wallet balance was set to ₦0. Reason: ${reason}`,link:"dashboard.html",key:`wallet:${transaction.reference}`}).catch(()=>{});
+  res.json({success:true,transaction,removedKobo:transaction?.amountKobo||0});
+  }catch(error){res.status(error.status||500).json({message:error.status?error.message:"Could not clear the wallet balance."})}
+  finally{await session.endSession()}
+};
