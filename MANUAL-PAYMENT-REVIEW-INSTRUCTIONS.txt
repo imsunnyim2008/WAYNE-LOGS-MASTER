@@ -1,0 +1,12 @@
+WAYNE LOGS - MANUAL PAYMENT REVIEW UPDATE
+
+- Submitted manual payments display visible Approve and Reject buttons.
+- After approval, a popup confirms that payment was approved and the wallet was credited.
+- After rejection, a popup confirms that payment was rejected and no credit was added.
+- Reviewed transactions continue showing a green Approved or red Rejected label.
+- Pending transactions show Waiting for customer submission.
+
+DEPLOY IN 3 STEPS
+1. Replace the project files with this update. Keep your private .env file.
+2. Run git add -A, git commit -m "Improve manual payment review controls", then git push.
+3. Wait for deployment and open Admin > Wallets. Refresh the page once.

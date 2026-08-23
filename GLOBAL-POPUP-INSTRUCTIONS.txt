@@ -1,0 +1,19 @@
+WAYNE LOGS - GLOBAL ACTION POPUPS
+
+This update adds premium popup feedback across customer and admin pages.
+
+Examples covered:
+- Purchases and wallet actions
+- Manual payment submissions, approvals and rejections
+- Admin wallet credits and balance clearing
+- Product, inventory and order changes
+- Support requests and replies
+- Notifications, announcements and settings
+- Registration and other saved actions
+
+Successful actions show a green popup. Failed actions show a red popup with the server's reason. Normal page loading does not create popups.
+
+DEPLOY IN 3 STEPS
+1. Replace the project files with this update. Keep your private server .env.
+2. Run git add -A, git commit -m "Add global admin and customer action popups", then git push.
+3. Wait for Vercel and Render, then refresh the website. The updated files include cache protection.

@@ -5,6 +5,34 @@ window.WAYNE_API_URL = ["localhost","127.0.0.1"].includes(location.hostname)
   ? "http://localhost:5000"
   : "https://wayne-logs-master-api.onrender.com";
 
+// One premium feedback system for customer and admin actions.
+(function installWayneActionFeedback(){
+  const style=document.createElement("style");
+  style.textContent=`.wayne-toast-area{position:fixed;right:20px;top:20px;width:min(390px,calc(100vw - 30px));display:grid;gap:12px;z-index:100000;pointer-events:none}.wayne-toast{pointer-events:auto;display:grid;grid-template-columns:44px 1fr 30px;align-items:center;gap:12px;padding:15px;border-radius:18px;background:#fff;color:#10233d;border:1px solid #d9e5ef;box-shadow:0 18px 55px rgba(12,37,64,.2);animation:wayneToastIn .25s ease}.wayne-toast.success{border-left:5px solid #10b981}.wayne-toast.error{border-left:5px solid #ef476f}.wayne-toast.info{border-left:5px solid #168bd2}.wayne-toast-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#edf8f4;font-size:21px}.wayne-toast.error .wayne-toast-icon{background:#fff0f3}.wayne-toast.info .wayne-toast-icon{background:#ebf7ff}.wayne-toast strong{display:block;font-size:14px;margin-bottom:3px}.wayne-toast p{margin:0;color:#61758d;font-size:13px;line-height:1.4}.wayne-toast-close{border:0;background:transparent;color:#73859a;font-size:20px;cursor:pointer;padding:3px}@keyframes wayneToastIn{from{opacity:0;transform:translateY(-12px) scale(.97)}to{opacity:1;transform:none}}@media(max-width:600px){.wayne-toast-area{right:15px;top:15px}.wayne-toast{grid-template-columns:38px 1fr 28px;padding:13px}.wayne-toast-icon{width:38px;height:38px}}`;
+  document.head.appendChild(style);
+  let lastShown=0;
+  function show(message,type="success",title){
+    const text=String(message||"").trim();if(!text)return;
+    lastShown=Date.now();let area=document.querySelector(".wayne-toast-area");if(!area){area=document.createElement("div");area.className="wayne-toast-area";document.body.appendChild(area)}
+    const toast=document.createElement("section"),icon=document.createElement("span"),copy=document.createElement("div"),heading=document.createElement("strong"),body=document.createElement("p"),close=document.createElement("button");
+    toast.className="wayne-toast "+type;icon.className="wayne-toast-icon";close.className="wayne-toast-close";icon.textContent=type==="error"?"✕":type==="info"?"ℹ":"✓";heading.textContent=title||(type==="error"?"Action failed":type==="info"?"Notice":"Successful");body.textContent=text;close.textContent="×";close.setAttribute("aria-label","Close message");copy.append(heading,body);toast.append(icon,copy,close);area.prepend(toast);const remove=()=>toast.remove();close.onclick=remove;setTimeout(remove,type==="error"?7000:4500);
+  }
+  window.waynePopup=show;
+  window.alert=message=>show(message,/failed|error|incorrect|cannot|could not|invalid|rejected/i.test(String(message))?"error":"success");
+  const originalFetch=window.fetch.bind(window);
+  window.fetch=async function(input,options={}){
+    const response=await originalFetch(input,options),method=String(options.method||(input&&input.method)||"GET").toUpperCase();
+    if(!["POST","PUT","PATCH","DELETE"].includes(method))return response;
+    const started=Date.now();
+    response.clone().json().then(data=>setTimeout(()=>{
+      if(lastShown>started)return;
+      const url=String(typeof input==="string"?input:input?.url||"");let message=data?.message||"Action completed successfully.";
+      if(response.ok){if(url.includes("/admin/credit"))message="Customer wallet credited successfully.";else if(url.includes("/admin/clear"))message="Customer balance cleared successfully.";else if(url.includes("/review"))message="Manual payment review completed successfully.";else if(url.includes("pay-with-wallet"))message="Purchase completed successfully.";else if(url.includes("/support"))message="Support action completed successfully.";else if(url.includes("/broadcast"))message="Notification published successfully.";else if(url.includes("/settings"))message="Settings saved successfully.";show(message,"success")}else show(message,"error")
+    },250)).catch(()=>{});
+    return response;
+  };
+})();
+
 // Keep every customer and admin page on the same premium visual system.
 if (!document.querySelector('link[href="premium-pages.css"]')) {
   const premiumTheme = document.createElement("link");
