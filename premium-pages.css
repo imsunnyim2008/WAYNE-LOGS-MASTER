@@ -21,6 +21,7 @@ html,body{max-width:100%;overflow-x:hidden}img,svg,video{max-width:100%;height:a
 body{width:100%;min-width:0}.container,.section,.nav-inner,.auth-card,.order-card,.wallet-card{min-width:0}
 :where(h1,h2,h3,p,strong,small,span,a,td,th){overflow-wrap:anywhere}
 @media(max-width:760px){
+  body.wayne-store-overlay-open .wayne-customer-dock,body.wayne-store-overlay-open .wayne-telegram{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
   .nav-inner{display:grid;grid-template-columns:minmax(0,1fr);align-items:center}
   .nav-inner .brand{justify-self:start}.nav-actions{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}
   .nav-actions>*{min-width:0;width:100%;padding:10px 5px;text-align:center;justify-content:center;font-size:13px;white-space:normal}
@@ -200,6 +201,15 @@ html{scroll-behavior:smooth;background:#edf5fc}body{background:radial-gradient(c
   .simple-actions{gap:5px!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}.simple-actions .simple-btn{min-height:40px!important;padding:8px 11px!important;border:1px solid rgba(142,190,222,.44)!important;border-radius:13px!important;background:linear-gradient(145deg,rgba(243,250,255,.96),rgba(218,239,252,.9))!important;font-size:13px!important;box-shadow:inset 0 1px 0 #fff,0 5px 14px rgba(14,72,120,.07)!important}.simple-actions .simple-btn .wayne-nav-icon{width:18px;height:18px}.simple-actions .notification-bell{width:40px!important;padding:8px!important}.simple-actions .cart-button{color:#fff!important;background:linear-gradient(135deg,#1769d6,#08a7df)!important;border-color:rgba(255,255,255,.34)!important}.simple-actions .cart-button .wayne-nav-icon{color:#fff}.simple-actions .notification-badge{right:-5px!important;top:-7px!important}
 }
 @media(min-width:761px) and (max-width:1100px){.simple-header .simple-wrap{width:calc(100% - 24px)}.simple-links{gap:9px!important}.simple-links a{font-size:12px}.simple-actions .simple-btn{padding:7px 8px!important;font-size:11px!important}.premium-store .simple-brand{font-size:17px!important}}
+
+/* Mobile checkout safety: no floating controls over payment and no crushed email */
+@media(max-width:760px){
+  body:has(.simple-modal.show) .wayne-customer-dock,body:has(.simple-modal.show) .wayne-telegram,body:has(.simple-drawer.open) .wayne-customer-dock,body:has(.simple-drawer.open) .wayne-telegram{opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translate(-50%,18px)!important}
+  body:has(.simple-modal.show) .wayne-telegram,body:has(.simple-drawer.open) .wayne-telegram{transform:translateY(18px)!important}
+  .simple-modal{z-index:10020!important;padding:8px!important}.simple-modal-card{max-height:calc(100dvh - 16px)!important;padding-bottom:calc(20px + env(safe-area-inset-bottom))!important}
+  .checkout-row:not(.total){display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:6px!important}.checkout-row:not(.total) strong{width:100%!important;max-width:100%!important;text-align:left!important;overflow-wrap:anywhere!important;word-break:normal!important;line-height:1.4}.checkout-row.total{display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important}.checkout-row.total strong{max-width:none!important;text-align:right!important}
+  .checkout-product{display:grid!important;grid-template-columns:auto minmax(0,1fr)!important}.checkout-product>div:last-child{min-width:0!important}.checkout-product strong{white-space:normal!important;overflow-wrap:anywhere!important}
+}
 
 /* Better visual grouping inside customer and admin panels */
 .admin-section>.panel+.panel,.section .panel+.panel{margin-top:18px}.panel-head{padding-bottom:13px;margin-bottom:17px;border-bottom:1px solid rgba(137,174,205,.2)}.stats{gap:14px}.stat-card{min-height:116px;display:flex;flex-direction:column;justify-content:center}.admin-grid{gap:15px 18px}.table-wrap{border:1px solid rgba(164,192,215,.3);border-radius:17px;background:rgba(255,255,255,.4)}table{border-collapse:separate;border-spacing:0}thead{background:rgba(224,240,252,.45)}th:first-child{border-radius:14px 0 0 0}th:last-child{border-radius:0 14px 0 0}

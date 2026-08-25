@@ -287,12 +287,14 @@ function openProduct(id) {
 
   productModal.classList.add("show");
   productModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("wayne-store-overlay-open");
   document.body.style.overflow = "hidden";
 }
 
 function closeProduct() {
   productModal.classList.remove("show");
   productModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("wayne-store-overlay-open");
   document.body.style.overflow = "";
 }
 
@@ -341,11 +343,13 @@ function renderCart() {
 function openCart() {
   cartDrawer.classList.add("open");
   overlay.classList.add("show");
+  document.body.classList.add("wayne-store-overlay-open");
 }
 
 function closeCart() {
   cartDrawer.classList.remove("open");
   overlay.classList.remove("show");
+  document.body.classList.remove("wayne-store-overlay-open");
 }
 
 function requireLoginFor(id) {
@@ -384,12 +388,14 @@ function openCheckoutFor(id) {
 
   checkoutModal.classList.add("show");
   checkoutModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("wayne-store-overlay-open");
   document.body.style.overflow = "hidden";
 }
 
 function closeCheckout() {
   checkoutModal.classList.remove("show");
   checkoutModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("wayne-store-overlay-open");
   document.body.style.overflow = "";
 }
 
