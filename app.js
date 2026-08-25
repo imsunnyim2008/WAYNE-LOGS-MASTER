@@ -44,6 +44,7 @@ let products = [];
 let activePlatform = "all";
 let currentProduct = null;
 let checkoutSelection = null;
+let checkoutRequestId = "";
 let cart = [];
 
 try {
@@ -358,6 +359,7 @@ function openCheckoutFor(id) {
   }
 
   checkoutSelection = product;
+  checkoutRequestId = (globalThis.crypto?.randomUUID?.() || `buy_${Date.now()}_${Math.random().toString(36).slice(2)}`).replace(/[^A-Za-z0-9_-]/g, "_");
   setCartProduct(id, false);
   closeCart();
   closeProduct();
@@ -410,7 +412,7 @@ async function pay() {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({ productId: checkoutSelection._id })
+      body: JSON.stringify({ productId: checkoutSelection._id, requestId: checkoutRequestId })
     });
     let data = await response.json();
 

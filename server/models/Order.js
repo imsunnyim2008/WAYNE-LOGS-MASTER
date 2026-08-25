@@ -13,6 +13,8 @@ const schema = new mongoose.Schema({
   paymentStatus:{type:String,enum:["pending","paid","failed","refunded"],default:"pending"},
   paymentMethod:{type:String,enum:["wallet","paystack","manual"],default:"wallet"},
   paymentReference:{type:String,default:""},
+  purchaseRequestId:{type:String,default:undefined,unique:true,sparse:true,index:true,select:false},
+  activePurchaseKey:{type:String,default:undefined,unique:true,sparse:true,index:true,select:false},
   deliveryContent:{type:String,default:"",select:false},
   inventoryItem:{type:mongoose.Schema.Types.ObjectId,ref:"InventoryItem",default:null,select:false},
   receiptEmailSentAt:{type:Date,default:null},

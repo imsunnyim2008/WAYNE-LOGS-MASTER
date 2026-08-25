@@ -80,6 +80,7 @@ async function finalize(orderId,ref){
       o.paymentStatus="paid";
       o.paymentReference=ref;
       o.paymentMethod="paystack";
+      o.activePurchaseKey=undefined;
 
       if(p && p.status==="active" && Number(p.stock)>=Number(o.quantity)){
         p.stock=Number(p.stock)-Number(o.quantity);
@@ -110,20 +111,24 @@ async function finalize(orderId,ref){
 
 exports.create=async(req,res)=>{
   try{
-    const {productId}=req.body;
+    const {productId}=req.body,requestId=String(req.body.requestId||"").trim();
     if(!mongoose.isValidObjectId(productId))return res.status(400).json({message:"Invalid product."});
+    if(!/^[A-Za-z0-9_-]{16,100}$/.test(requestId))return res.status(400).json({message:"This checkout request is invalid. Refresh the store and try again."});
+    const replay=await Order.findOne({user:req.user._id,purchaseRequestId:requestId});
+    if(replay)return res.json({success:true,order:replay,replayed:true});
 
     const p=await Product.findById(productId);
     if(!p||p.status!=="active"||Number(p.stock)<1)return res.status(400).json({message:"This product is currently unavailable."});
 
     // Reuse an existing unpaid order for the same item so repeated payment attempts
     // do not create a pile of duplicate pending orders.
+    const activePurchaseKey=`${req.user._id}:${p._id}`;
     let o=await Order.findOne({
       user:req.user._id,
       product:p._id,
       paymentStatus:"pending",
       status:"pending"
-    }).sort({createdAt:-1});
+    }).sort({createdAt:-1}).select("+purchaseRequestId +activePurchaseKey");
 
     if(!o){
       o=await Order.create({
@@ -135,12 +140,15 @@ exports.create=async(req,res)=>{
         quantity:1,
         unitPrice:p.price,
         totalAmount:p.price,
-        currency:p.currency||"NGN"
+        currency:p.currency||"NGN",
+        purchaseRequestId:requestId,
+        activePurchaseKey
       });
-    }
+    }else{let changed=false;if(!o.purchaseRequestId){o.purchaseRequestId=requestId;changed=true}if(!o.activePurchaseKey){o.activePurchaseKey=activePurchaseKey;changed=true}if(changed)await o.save()}
 
     res.status(201).json({success:true,order:o});
   }catch(e){
+    if(e?.code===11000){const existing=await Order.findOne({user:req.user._id,$or:[{purchaseRequestId:String(req.body.requestId||"")},{activePurchaseKey:`${req.user._id}:${req.body.productId}`} ]});if(existing)return res.json({success:true,order:existing,replayed:true})}
     res.status(500).json({message:"Could not create order."});
   }
 };
@@ -266,7 +274,7 @@ exports.payWithWallet=async(req,res)=>{
       if(!user)throw Object.assign(new Error("Insufficient wallet balance. Add money first."),{status:409});
       const reference="BUY-"+order._id;
       await WalletTransaction.create([{user:user._id,type:"purchase",status:"completed",amountKobo,currency:order.currency||"NGN",reference,provider:"wallet",order:order._id,description:"Purchase: "+order.productName,balanceAfterKobo:user.walletBalanceKobo,verifiedAt:new Date()}],{session});
-      order.paymentStatus="paid";order.paymentMethod="wallet";order.paymentReference=reference;
+      order.paymentStatus="paid";order.paymentMethod="wallet";order.paymentReference=reference;order.activePurchaseKey=undefined;
       if(uniqueDelivery||product.deliveryType==="instant"){order.deliveryContent=uniqueDelivery||(product.privateDelivery||"");order.status="completed";order.deliveredAt=new Date()}else{order.status="processing"}
       await order.save({session});result=order;
     });
@@ -301,6 +309,7 @@ exports.adminStatus=async(req,res)=>{
     if(s==="completed"&&o.paymentStatus!=="paid"){
       return res.status(400).json({message:"Unpaid order cannot be completed."});
     }
+    if(s==="cancelled")o.activePurchaseKey=undefined;
     o.status=s;
     await o.save();
     res.json({success:true,order:o});

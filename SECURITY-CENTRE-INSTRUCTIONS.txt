@@ -1,0 +1,21 @@
+WAYNE LOGS — SECURITY & RISK CENTRE
+
+Checkout hardening:
+- Every checkout receives a unique request ID.
+- Replayed requests return the original order instead of creating another charge.
+- Two requests arriving at the same moment cannot create two active orders for the same customer and product.
+- Repeated clicks are blocked while payment is running.
+- Excessive purchase attempts are limited for one minute.
+- Product price is always loaded by the backend.
+- Wallet, stock and inventory delivery remain atomic.
+- Wallet balances cannot become negative.
+- Every inventory record can be assigned only once.
+
+Admin panel:
+- Protection-status checklist
+- Failed payments and cancelled-order counters
+- Refund and admin-credit counters
+- Recent sensitive wallet and security activity
+- Security guidance for administrators
+
+No new Render environment keys are required.
