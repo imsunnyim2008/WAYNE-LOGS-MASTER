@@ -1,0 +1,13 @@
+WAYNE LOGS — SALES REPORTS
+
+The new Sales Reports panel includes:
+
+- Revenue, paid sales, all orders and average sale
+- 7-day, 30-day, 90-day, all-time and custom date filters
+- Revenue activity chart
+- Order-status breakdown
+- Best-selling products and top platforms
+- Recent paid sales
+- Safe CSV download
+
+Reports use existing order information. No new Render environment keys are required.
