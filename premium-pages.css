@@ -225,3 +225,7 @@ html{scroll-behavior:smooth;background:#edf5fc}body{background:radial-gradient(c
 /* Direct, visible Inventory Manager action */
 .inventory-product-card{padding-bottom:46px!important}.inventory-card-action{position:absolute;left:16px;bottom:13px;display:block;color:#087fc4;font-size:12px;font-weight:950;transition:transform .16s ease}.inventory-product-card:active .inventory-card-action{transform:translateX(4px)}
 @media(max-width:760px){.inventory-product-card{min-height:170px;padding:18px 16px 48px!important}.inventory-card-action{font-size:13px}}
+
+/* Readable administrator order statuses */
+.order-status-control{display:grid;gap:7px;min-width:138px}.admin-section .order-status-select{width:100%;min-width:132px;background:#eef7fd!important;color:#173b58!important;border:1px solid #c8ddeb!important;padding:11px 34px 11px 12px!important}.admin-section .order-status-select option{background:#fff;color:#173b58}.order-current-status{display:inline-flex;width:max-content;padding:6px 9px;border-radius:999px;font-size:10px;font-weight:950;text-transform:capitalize}.order-current-status.pending{background:#fff1d8;color:#946000}.order-current-status.processing{background:#e4f4ff;color:#0876b3}.order-current-status.completed{background:#dff8eb;color:#08794f}.order-current-status.cancelled,.order-current-status.refunded{background:#ffeaee;color:#bd3852}
+@media(max-width:760px){.order-status-control{min-width:142px}.admin-section .order-status-select{font-size:14px!important;color:#173b58!important;-webkit-text-fill-color:#173b58!important}}
