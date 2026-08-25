@@ -16,7 +16,7 @@
 <div id="message" class="message"></div>
 <div id="ordersList" class="order-list"><div class="empty">Loading orders...</div></div>
 </div></main>
-<script src="config.js?v=20260825-icons1"></script>
+<script src="config.js?v=20260825-globaldialog1"></script>
 <script>
 const API_URL=localStorage.getItem("wayneApiUrl")||window.WAYNE_API_URL||"http://localhost:5000";
 const token=localStorage.getItem("wayneToken"),params=new URLSearchParams(location.search);
@@ -29,7 +29,7 @@ const orderPlatformIcons={facebook:["facebook","1877F2","f"],instagram:["instagr
 function orderPlatformKey(value){const key=String(value||"").trim().toLowerCase();if(["twitter / x","x.com"].includes(key))return"x";return key}
 function orderPlatformIcon(platform,fallback="★"){const entry=orderPlatformIcons[orderPlatformKey(platform)];if(!entry)return`<span class="order-icon-fallback">${esc(fallback)}</span>`;return`<img src="https://cdn.simpleicons.org/${entry[0]}/${entry[1]}" alt="${esc(platform)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="order-icon-fallback" style="--brand:#${entry[1]}" hidden>${esc(entry[2])}</span>`}
 function show(t,type="error"){message.textContent=t;message.className="message "+type;message.style.display="block"}
-if(params.get("walletPurchase")==="success"){show("Wallet payment completed successfully.","success");history.replaceState({},"","orders.html")}
+if(params.get("walletPurchase")==="success"){show("Wallet payment completed successfully.","success");window.waynePopup?.("Your wallet payment completed successfully and your order is ready.","success","Purchase successful");history.replaceState({},"","orders.html")}
 async function retryPayment(orderId,button){
  button.disabled=true;button.textContent="Paying from wallet...";
  try{

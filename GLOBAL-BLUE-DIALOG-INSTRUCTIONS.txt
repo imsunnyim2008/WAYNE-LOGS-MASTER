@@ -1,0 +1,16 @@
+WAYNE LOGS — GLOBAL BLUE ACTION DIALOGS
+
+State-changing actions now use a consistent centred blue dialog:
+- A final Cancel / Continue question appears before the request is sent.
+- Successful actions show a blue-style result dialog with an OK button.
+- Failed actions show the same dialog layout with a clear error state.
+- Cancelling confirms that nothing was changed.
+
+Covered actions include purchases, wallet funding, manual-payment reviews, wallet credits, balance clearing, refunds, products, inventory, support, announcements, settings, temporary passwords, order status and logout.
+
+Navigation, menus, filters, search, view-details and ordinary page links stay instant.
+
+Form buttons also show readiness:
+- Soft blue and disabled while required information is incomplete.
+- Bold blue when the form is valid.
+- Dangerous actions remain red.
