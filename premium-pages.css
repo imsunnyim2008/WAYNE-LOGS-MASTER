@@ -178,6 +178,11 @@ html{scroll-behavior:smooth;background:#edf5fc}body{background:radial-gradient(c
 }
 @media(max-width:380px){.simple-actions,.nav-actions,.dash-nav{width:calc(100vw - 12px)!important;bottom:calc(6px + env(safe-area-inset-bottom))!important}.simple-actions .simple-btn,.nav-actions .ghost-btn,.dash-nav a,.dash-nav button{min-height:46px!important}}
 
+/* Mobile dock containment and login-state correction */
+.simple-actions [hidden]{display:none!important}
+@media(max-width:760px){body>.wayne-mobile-dock{position:fixed!important;inset:auto auto calc(9px + env(safe-area-inset-bottom)) 50%!important;transform:translateX(-50%)!important;visibility:visible}.simple-header .simple-nav,.nav .nav-inner,.dash-header{grid-template-columns:1fr!important}.simple-header .simple-brand,.nav .brand,.dash-brand{margin:auto!important}}
+@media(max-width:380px){body>.wayne-mobile-dock{bottom:calc(6px + env(safe-area-inset-bottom))!important}}
+
 /* Better visual grouping inside customer and admin panels */
 .admin-section>.panel+.panel,.section .panel+.panel{margin-top:18px}.panel-head{padding-bottom:13px;margin-bottom:17px;border-bottom:1px solid rgba(137,174,205,.2)}.stats{gap:14px}.stat-card{min-height:116px;display:flex;flex-direction:column;justify-content:center}.admin-grid{gap:15px 18px}.table-wrap{border:1px solid rgba(164,192,215,.3);border-radius:17px;background:rgba(255,255,255,.4)}table{border-collapse:separate;border-spacing:0}thead{background:rgba(224,240,252,.45)}th:first-child{border-radius:14px 0 0 0}th:last-child{border-radius:0 14px 0 0}
 @media(max-width:760px){.stats{gap:9px}.stat-card{min-height:96px;padding:15px!important}.admin-section>.panel+.panel,.section .panel+.panel{margin-top:12px}.panel-head{gap:10px;padding-bottom:11px;margin-bottom:13px}}

@@ -87,6 +87,7 @@ function setNavLoggedOut() {
   accountLink.textContent = "Login";
   accountLink.href = "login.html";
   registerLink.hidden = false;
+  registerLink.removeAttribute("hidden");
   adminLink.hidden = true;
   document.getElementById("logoutNav")?.remove();
   document.getElementById("accountActions")?.classList.add("session-ready");
@@ -96,6 +97,7 @@ function setNavLoggedIn(user) {
   accountLink.textContent = "My Profile";
   accountLink.href = "profile.html";
   registerLink.hidden = true;
+  registerLink.setAttribute("hidden", "");
   adminLink.hidden = user?.role !== "admin";
 
   let logout = document.getElementById("logoutNav");

@@ -80,11 +80,27 @@ window.WAYNE_API_URL = ["localhost","127.0.0.1"].includes(location.hostname)
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 
+// Move customer navigation outside blurred headers on phones so fixed positioning
+// uses the screen itself instead of the header as its containing block.
+(function installWayneMobileDock(){
+  const records=new Map(),query=matchMedia('(max-width:760px)');
+  const update=()=>{
+    document.querySelectorAll('.simple-actions,.nav-actions,.dash-nav').forEach(dock=>{
+      if(!records.has(dock))records.set(dock,{parent:dock.parentNode,next:dock.nextSibling});
+      const record=records.get(dock);
+      if(query.matches){dock.classList.add('wayne-mobile-dock');if(dock.parentNode!==document.body)document.body.appendChild(dock)}
+      else{dock.classList.remove('wayne-mobile-dock');if(dock.parentNode!==record.parent)record.parent.insertBefore(dock,record.next&&record.next.parentNode===record.parent?record.next:null)}
+    });
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update);else update();
+  query.addEventListener?.('change',update);
+})();
+
 // Keep every customer and admin page on the same premium visual system.
 if (!document.querySelector('link[href="premium-pages.css"]')) {
   const premiumTheme = document.createElement("link");
   premiumTheme.rel = "stylesheet";
-  premiumTheme.href = "premium-pages.css?v=20260825-navdock1";
+  premiumTheme.href = "premium-pages.css?v=20260825-layoutfix1";
   document.head.appendChild(premiumTheme);
 }
 
