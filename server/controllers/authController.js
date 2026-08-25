@@ -42,7 +42,7 @@ exports.login=async(req,res)=>{
     if(u.mustChangePassword){const consumed=await User.findOneAndUpdate({_id:u._id,mustChangePassword:true,temporaryPasswordUsedAt:null},{$set:{temporaryPasswordUsedAt:new Date()}},{new:true});if(!consumed)return res.status(403).json({message:"This temporary password was already used. Ask the administrator for a new one."});u.temporaryPasswordUsedAt=consumed.temporaryPasswordUsedAt}
     attempts.delete(key);
     res.json({success:true,token:token(u),user:safe(u)});
-  }catch(e){res.status(500).json({message:"Could not login."});}
+  }catch(e){console.error("Login error:",e);res.status(500).json({message:"Could not login."});}
 };
 exports.me=async(req,res)=>{try{req.user.referralCode=await referralService.ensureReferralCode(req.user);req.user.wayneId=await wayneIdService.ensureWayneId(req.user);res.json({success:true,user:safe(req.user)})}catch(e){res.status(500).json({message:"Could not load profile."})}};
 exports.adminUsers=async(req,res)=>{
