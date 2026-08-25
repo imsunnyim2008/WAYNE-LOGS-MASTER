@@ -1,0 +1,8 @@
+WAYNE LOGS — OVERVIEW ONLY UPDATE
+
+This package changes only the content displayed inside the Overview page.
+
+It does not remove, rename, redesign or change the existing left navigation panels:
+Products, Inventory, Orders, Support, Wallets, Users, Password Help, Audit Log, Settings and View Store.
+
+Replace the four supplied files, commit and push.
