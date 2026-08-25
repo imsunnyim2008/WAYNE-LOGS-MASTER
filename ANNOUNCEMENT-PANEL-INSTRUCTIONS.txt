@@ -1,0 +1,13 @@
+WAYNE LOGS — ANNOUNCEMENT MANAGER PANEL
+
+The existing announcement tools were moved out of Settings into their own admin panel.
+
+Announcement Manager now contains:
+- Website announcement popup switch, title and message
+- Telegram contact link
+- Customer notification title, message and destination link
+- Publish-to-all-customers button
+
+Settings now contains only the backend URL.
+Existing announcement behavior and customer information were not changed.
+No new Render environment keys are required.
