@@ -221,3 +221,7 @@ html{scroll-behavior:smooth;background:#edf5fc}body{background:radial-gradient(c
 
 /* Consistent blue readiness for action buttons */
 :where(.primary-btn,.simple-btn.primary,form button[type="submit"]:not(.danger-btn),form button:not([type]):not(.danger-btn)){font-weight:900}:where(.primary-btn,.simple-btn.primary,form button[type="submit"]:not(.danger-btn),form button:not([type]):not(.danger-btn)):disabled{opacity:1!important;background:#e8f4ff!important;color:#83b7df!important;border-color:#c8e4f7!important;box-shadow:none!important}:where(.primary-btn,.simple-btn.primary,form button[type="submit"]:not(.danger-btn),form button:not([type]):not(.danger-btn)).wayne-form-ready:not(:disabled){background:linear-gradient(135deg,#1768d4,#079ed9);color:#fff;border-color:#0b7fc4;box-shadow:0 11px 25px rgba(13,112,196,.24)}
+
+/* Direct, visible Inventory Manager action */
+.inventory-product-card{padding-bottom:46px!important}.inventory-card-action{position:absolute;left:16px;bottom:13px;display:block;color:#087fc4;font-size:12px;font-weight:950;transition:transform .16s ease}.inventory-product-card:active .inventory-card-action{transform:translateX(4px)}
+@media(max-width:760px){.inventory-product-card{min-height:170px;padding:18px 16px 48px!important}.inventory-card-action{font-size:13px}}
