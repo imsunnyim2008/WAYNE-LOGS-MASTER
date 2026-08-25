@@ -15,6 +15,7 @@ function details(req){
   if(path.includes("/support/admin/")&&path.endsWith("/replies"))return{action:"support.replied",entity:"support",target:id,summary:"Administrator replied to a support ticket.",metadata:{resolved:b.resolve===true}};
   if(path.includes("/support/admin/")&&path.endsWith("/status"))return{action:"support.status_changed",entity:"support",target:id,summary:`Support status changed to ${clean(b.status,30)}.`,metadata:{status:clean(b.status,30)}};
   if(path.endsWith("/notifications/admin/broadcast"))return{action:"notification.broadcast",entity:"notification",target:"all-customers",summary:`Customer notification published: ${clean(b.title,120)}.`,metadata:{title:clean(b.title,120),link:clean(b.link,250)}};
+  if(path.endsWith("/auth/admin/password-assistance/reset"))return{action:"password.temporary_issued",entity:"security",target:clean(b.email),summary:"One-use temporary customer password issued.",metadata:{email:clean(b.email)}};
   return null;
 }
 module.exports=(req,res,next)=>{

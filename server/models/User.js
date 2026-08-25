@@ -9,6 +9,9 @@ const schema = new mongoose.Schema({
   isActive:{type:Boolean,default:true},
   walletBalanceKobo:{type:Number,default:0,min:0},
   referralCode:{type:String,unique:true,sparse:true,uppercase:true,trim:true,index:true},
-  referredBy:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null,immutable:true}
+  referredBy:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null,immutable:true},
+  sessionVersion:{type:Number,default:0,min:0},
+  mustChangePassword:{type:Boolean,default:false},
+  temporaryPasswordUsedAt:{type:Date,default:null}
 },{timestamps:true});
 module.exports = mongoose.model("User",schema);
