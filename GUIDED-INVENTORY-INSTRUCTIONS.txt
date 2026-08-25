@@ -1,0 +1,9 @@
+WAYNE LOGS — GUIDED INVENTORY ENTRY
+
+The large one-record-per-line box has been replaced by numbered inventory cards.
+
+1. Paste one complete legitimate delivery item into Record 1.
+2. Tap Save & Next. Record 2 opens automatically.
+3. Continue, then use Save Product & Inventory when finished.
+
+Empty records and duplicates are ignored. Existing encrypted inventory is preserved when editing a product.
