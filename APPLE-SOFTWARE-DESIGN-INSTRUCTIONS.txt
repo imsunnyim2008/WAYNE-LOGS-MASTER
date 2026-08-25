@@ -1,0 +1,20 @@
+WAYNE LOGS — APPLE-INSPIRED SOFTWARE DESIGN
+
+This update applies one consistent liquid-glass design to the customer website and admin panel.
+
+Included:
+- Translucent glass cards, navigation, forms and panels
+- Blue glass buttons with hover, press and touch feedback
+- Smooth card entrance animations, including dynamically loaded content
+- Polished inputs, shadows, spacing and mobile presentation
+- Reduced Motion support for accessibility and performance
+- Existing wallet, inventory, orders, security and backend logic preserved
+
+DEPLOY
+1. Replace the project files with this update.
+2. Run: git add -A
+3. Run: git commit -m "Apply Apple inspired liquid software design"
+4. Run: git push
+5. Wait for deployment, then refresh the website twice.
+
+No new environment variables are required.

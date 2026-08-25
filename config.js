@@ -49,11 +49,33 @@ window.WAYNE_API_URL = ["localhost","127.0.0.1"].includes(location.hostname)
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install);else install();
 })();
 
+// Soft entrance motion for existing and dynamically loaded interface cards.
+(function installWayneMotion(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  document.documentElement.classList.add("wayne-motion");
+  const selector=".panel,.order-card,.stat-card,.auth-card,.notification-card,.inventory-product-card,.support-ticket,.guided-record-card,.refund-order-card,.security-protection,.admin-platform-option";
+  let observer;
+  const prepare=root=>root.querySelectorAll?.(selector).forEach(element=>{
+    if(element.classList.contains("wayne-reveal"))return;
+    element.classList.add("wayne-reveal");observer.observe(element);
+  });
+  const start=()=>{
+    observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
+      if(entry.isIntersecting){entry.target.classList.add("wayne-visible");observer.unobserve(entry.target)}
+    }),{threshold:.06,rootMargin:"0px 0px -18px"});
+    prepare(document);
+    new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{
+      if(node.nodeType!==1)return;if(node.matches?.(selector)){node.classList.add("wayne-reveal");observer.observe(node)}prepare(node);
+    }))).observe(document.body,{childList:true,subtree:true});
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
+})();
+
 // Keep every customer and admin page on the same premium visual system.
 if (!document.querySelector('link[href="premium-pages.css"]')) {
   const premiumTheme = document.createElement("link");
   premiumTheme.rel = "stylesheet";
-  premiumTheme.href = "premium-pages.css?v=20260825-liquidglass1";
+  premiumTheme.href = "premium-pages.css?v=20260825-appleui1";
   document.head.appendChild(premiumTheme);
 }
 
