@@ -4,6 +4,7 @@ const notifications=require("../services/notificationService");
 const wayneIdService=require("../services/wayneIdService");
 const MIN_KOBO=Number(process.env.WALLET_MIN_TOPUP_KOBO||10000),MAX_KOBO=Number(process.env.WALLET_MAX_TOPUP_KOBO||500000000);
 const creditAttempts=new Map();
+const normalizeWayneId=value=>{const raw=String(value||"").trim().toUpperCase().replace(/\s+/g,"");return /^[A-F0-9]{10}$/.test(raw)?"WL-"+raw:raw};
 async function credit(reference,v){
   const session=await mongoose.startSession(); let transaction;
   try{await session.withTransaction(async()=>{
@@ -18,7 +19,7 @@ async function credit(reference,v){
 exports.summary=async(req,res)=>{try{const user=await User.findById(req.user._id).select("walletBalanceKobo wayneId");if(!user)return res.status(404).json({message:"Account not found."});try{user.wayneId=await wayneIdService.ensureWayneId(user)}catch(error){console.error("WAYNE ID wallet error:",error)}res.json({success:true,wallet:{balanceKobo:user.walletBalanceKobo||0,wayneId:user.wayneId||"",currency:"NGN",withdrawalsEnabled:false,providers:{manualBank:true,kora:!!process.env.KORA_SECRET_KEY}}})}catch(error){res.status(500).json({message:"Could not load the wallet."})}};
 exports.history=async(req,res)=>{const transactions=await WalletTransaction.find({user:req.user._id}).sort({createdAt:-1}).limit(200);res.json({success:true,transactions})};
 exports.lookupTransferRecipient=async(req,res)=>{try{
-  const wayneId=String(req.params.wayneId||"").trim().toUpperCase();
+  const wayneId=normalizeWayneId(req.params.wayneId);
   if(!/^WL-[A-F0-9]{10}$/.test(wayneId))return res.status(400).json({message:"Enter a valid WAYNE ID."});
   const recipient=await User.findOne({wayneId,isActive:true,role:"user"}).select("firstName lastName wayneId");
   if(!recipient)return res.status(404).json({message:"No active customer was found with that WAYNE ID."});
@@ -27,7 +28,7 @@ exports.lookupTransferRecipient=async(req,res)=>{try{
   res.json({success:true,recipient:{wayneId:recipient.wayneId,name:[recipient.firstName,lastInitial].filter(Boolean).join(" ")}});
 }catch(error){res.status(500).json({message:"Could not check that WAYNE ID."})}};
 exports.transfer=async(req,res)=>{
-  const wayneId=String(req.body.wayneId||"").trim().toUpperCase();
+  const wayneId=normalizeWayneId(req.body.wayneId);
   const amountKobo=Math.round(Number(req.body.amount)*100);
   const note=String(req.body.note||"").trim().slice(0,100);
   const requestId=String(req.body.requestId||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,80);
