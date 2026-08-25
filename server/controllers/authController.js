@@ -47,7 +47,7 @@ exports.adminUsers=async(req,res)=>{
   catch(e){res.status(500).json({message:"Could not load users."});}
 };
 const assistanceAttempts=new Map();
-function tempPassword(){return"WL!"+crypto.randomBytes(6).toString("hex")+"aA7"}
+function tempPassword(){const sets=["ABCDEFGHJKLMNPQRSTUVWXYZ","abcdefghijkmnopqrstuvwxyz","23456789","!@#$%&*?"];const pick=s=>s[crypto.randomInt(0,s.length)];const pool=sets.join("");const chars=sets.map(pick);while(chars.length<16)chars.push(pick(pool));for(let i=chars.length-1;i>0;i--){const j=crypto.randomInt(0,i+1);[chars[i],chars[j]]=[chars[j],chars[i]]}return chars.join("")}
 exports.adminPasswordSearch=async(req,res)=>{try{const email=String(req.query.email||"").trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter a valid customer email."});const user=await User.findOne({email,role:"user"}).select("firstName lastName email phone isActive mustChangePassword temporaryPasswordUsedAt createdAt");if(!user)return res.status(404).json({message:"Customer not found."});res.json({success:true,customer:user})}catch(e){res.status(500).json({message:"Could not search for the customer."})}};
 exports.adminTemporaryPassword=async(req,res)=>{try{
   res.set("Cache-Control","no-store");
