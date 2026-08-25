@@ -1,6 +1,7 @@
 const crypto=require("crypto"),mongoose=require("mongoose"),bcrypt=require("bcryptjs");
 const User=require("../models/User"),WalletTransaction=require("../models/WalletTransaction"),provider=require("../services/paymentProvider");
 const notifications=require("../services/notificationService");
+const wayneIdService=require("../services/wayneIdService");
 const MIN_KOBO=Number(process.env.WALLET_MIN_TOPUP_KOBO||10000),MAX_KOBO=Number(process.env.WALLET_MAX_TOPUP_KOBO||500000000);
 const creditAttempts=new Map();
 async function credit(reference,v){
@@ -14,8 +15,51 @@ async function credit(reference,v){
     transaction.status="completed";transaction.providerReference=v.reference;transaction.balanceAfterKobo=user.walletBalanceKobo;transaction.verifiedAt=new Date();await transaction.save({session});
   });if(transaction?.status==="completed")await notifications.create({user:transaction.user,type:"wallet",title:"Wallet funded",message:`₦${(transaction.amountKobo/100).toLocaleString("en-NG")} was added to your wallet.`,link:"dashboard.html",key:`wallet:${transaction.reference}`}).catch(()=>{});return transaction}finally{await session.endSession()}
 }
-exports.summary=async(req,res)=>{const user=await User.findById(req.user._id).select("walletBalanceKobo");res.json({success:true,wallet:{balanceKobo:user.walletBalanceKobo||0,currency:"NGN",withdrawalsEnabled:false,providers:{manualBank:true,kora:!!process.env.KORA_SECRET_KEY}}})};
+exports.summary=async(req,res)=>{const user=await User.findById(req.user._id).select("walletBalanceKobo wayneId");user.wayneId=await wayneIdService.ensureWayneId(user);res.json({success:true,wallet:{balanceKobo:user.walletBalanceKobo||0,wayneId:user.wayneId,currency:"NGN",withdrawalsEnabled:false,providers:{manualBank:true,kora:!!process.env.KORA_SECRET_KEY}}})};
 exports.history=async(req,res)=>{const transactions=await WalletTransaction.find({user:req.user._id}).sort({createdAt:-1}).limit(200);res.json({success:true,transactions})};
+exports.lookupTransferRecipient=async(req,res)=>{try{
+  const wayneId=String(req.params.wayneId||"").trim().toUpperCase();
+  if(!/^WL-[A-F0-9]{10}$/.test(wayneId))return res.status(400).json({message:"Enter a valid WAYNE ID."});
+  const recipient=await User.findOne({wayneId,isActive:true,role:"user"}).select("firstName lastName wayneId");
+  if(!recipient)return res.status(404).json({message:"No active customer was found with that WAYNE ID."});
+  if(String(recipient._id)===String(req.user._id))return res.status(400).json({message:"You cannot transfer credit to your own wallet."});
+  const lastInitial=recipient.lastName?recipient.lastName.charAt(0).toUpperCase()+".":"";
+  res.json({success:true,recipient:{wayneId:recipient.wayneId,name:[recipient.firstName,lastInitial].filter(Boolean).join(" ")}});
+}catch(error){res.status(500).json({message:"Could not check that WAYNE ID."})}};
+exports.transfer=async(req,res)=>{
+  const wayneId=String(req.body.wayneId||"").trim().toUpperCase();
+  const amountKobo=Math.round(Number(req.body.amount)*100);
+  const note=String(req.body.note||"").trim().slice(0,100);
+  const requestId=String(req.body.requestId||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,80);
+  if(!/^WL-[A-F0-9]{10}$/.test(wayneId))return res.status(400).json({message:"Enter a valid WAYNE ID."});
+  if(!Number.isSafeInteger(amountKobo)||amountKobo<10000||amountKobo>100000000)return res.status(400).json({message:"Enter an amount between ₦100 and ₦1,000,000."});
+  if(requestId.length<12)return res.status(400).json({message:"Invalid transfer request. Refresh and try again."});
+  const baseReference="TRF-"+requestId,session=await mongoose.startSession();let sender,recipient,outgoing;
+  try{
+    await session.withTransaction(async()=>{
+      outgoing=await WalletTransaction.findOne({reference:baseReference+"-OUT"}).session(session);
+      if(outgoing){sender=await User.findById(req.user._id).session(session);recipient=await User.findById(outgoing.counterparty).session(session);return}
+      recipient=await User.findOne({wayneId,isActive:true,role:"user"}).session(session);
+      if(!recipient)throw Object.assign(new Error("No active customer was found with that WAYNE ID."),{status:404});
+      if(String(recipient._id)===String(req.user._id))throw Object.assign(new Error("You cannot transfer credit to your own wallet."),{status:400});
+      sender=await User.findOneAndUpdate({_id:req.user._id,isActive:true,walletBalanceKobo:{$gte:amountKobo}},{$inc:{walletBalanceKobo:-amountKobo}},{new:true,session});
+      if(!sender)throw Object.assign(new Error("Your wallet balance is not enough for this transfer."),{status:409});
+      recipient=await User.findOneAndUpdate({_id:recipient._id,isActive:true},{$inc:{walletBalanceKobo:amountKobo}},{new:true,session});
+      if(!recipient)throw Object.assign(new Error("The recipient account is unavailable."),{status:409});
+      const description=note?`Credit transfer: ${note}`:"Customer credit transfer";
+      [outgoing]=await WalletTransaction.create([{user:sender._id,type:"transfer_out",status:"completed",amountKobo,currency:"NGN",reference:baseReference+"-OUT",provider:"wayne_transfer",description,balanceAfterKobo:sender.walletBalanceKobo,verifiedAt:new Date(),counterparty:recipient._id}],{session});
+      await WalletTransaction.create([{user:recipient._id,type:"transfer_in",status:"completed",amountKobo,currency:"NGN",reference:baseReference+"-IN",provider:"wayne_transfer",description,balanceAfterKobo:recipient.walletBalanceKobo,verifiedAt:new Date(),counterparty:sender._id}],{session});
+    });
+    await Promise.all([
+      notifications.create({user:sender._id,type:"wallet",title:"Credit sent",message:`₦${(amountKobo/100).toLocaleString("en-NG")} was sent to ${recipient.wayneId}.`,link:"dashboard.html",key:`transfer:${baseReference}:out`}).catch(()=>{}),
+      notifications.create({user:recipient._id,type:"wallet",title:"Credit received",message:`₦${(amountKobo/100).toLocaleString("en-NG")} was added to your wallet.`,link:"dashboard.html",key:`transfer:${baseReference}:in`}).catch(()=>{})
+    ]);
+    res.json({success:true,message:"Credit transferred successfully.",balanceKobo:sender.walletBalanceKobo,recipient:{wayneId:recipient.wayneId,firstName:recipient.firstName}});
+  }catch(error){
+    if(error?.code===11000)return res.status(409).json({message:"This transfer was already processed."});
+    res.status(error.status||500).json({message:error.status?error.message:"The transfer could not be completed. No credit was moved."});
+  }finally{await session.endSession()}
+};
 exports.initialize=async(req,res)=>{try{
   const amountKobo=Math.round(Number(req.body.amount)*100);
   if(!Number.isSafeInteger(amountKobo)||amountKobo<MIN_KOBO||amountKobo>MAX_KOBO)return res.status(400).json({message:`Enter an amount between ₦${MIN_KOBO/100} and ₦${MAX_KOBO/100}.`});

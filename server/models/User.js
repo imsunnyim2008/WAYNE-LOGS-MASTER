@@ -8,6 +8,7 @@ const schema = new mongoose.Schema({
   role:{type:String,enum:["user","admin"],default:"user"},
   isActive:{type:Boolean,default:true},
   walletBalanceKobo:{type:Number,default:0,min:0},
+  wayneId:{type:String,unique:true,sparse:true,uppercase:true,trim:true,index:true,immutable:true},
   referralCode:{type:String,unique:true,sparse:true,uppercase:true,trim:true,index:true},
   referredBy:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null,immutable:true},
   sessionVersion:{type:Number,default:0,min:0},

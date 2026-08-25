@@ -28,7 +28,7 @@ window.WAYNE_API_URL = ["localhost","127.0.0.1"].includes(location.hostname)
   document.addEventListener("click",async event=>{const button=event.target.closest("button");if(!button||button.dataset.wayneLogoutApproved==="1"||!/^(?:logout|log out)$/i.test(button.textContent.trim()))return;event.preventDefault();event.stopImmediatePropagation();const approved=await window.wayneConfirm("Do you want to securely log out of WAYNE LOGS?",{title:"Log out now?",confirmText:"Log out"});if(approved){button.dataset.wayneLogoutApproved="1";button.click();delete button.dataset.wayneLogoutApproved}},true);
   const originalFetch=window.fetch.bind(window);
   window.fetch=async function(input,options={}){
-    const method=String(options.method||(input&&input.method)||"GET").toUpperCase(),url=String(typeof input==="string"?input:input?.url||""),confirmation=confirmationFor(url,method);
+    const method=String(options.method||(input&&input.method)||"GET").toUpperCase(),url=String(typeof input==="string"?input:input?.url||""),confirmation=options.wayneConfirmed?null:confirmationFor(url,method);
     if(confirmation){const approved=await window.wayneConfirm(confirmation.message,confirmation);if(!approved){show("The action was cancelled. Nothing was changed.","info","Cancelled");const error=new Error("Action cancelled.");error.wayneCancelled=true;throw error}}
     const started=Date.now();let response;
     try{response=await originalFetch(input,options)}finally{setTimeout(()=>window.wayneRefreshFormReadiness?.(),400)}

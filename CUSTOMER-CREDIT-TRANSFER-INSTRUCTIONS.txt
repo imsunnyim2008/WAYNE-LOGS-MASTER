@@ -1,0 +1,29 @@
+WAYNE LOGS — CUSTOMER CREDIT TRANSFERS
+
+WHAT WAS ADDED
+1. Every registered account receives one permanent WAYNE ID, such as WL-12AB34CD56.
+2. The ID appears beside the customer's wallet balance and has a Copy button.
+3. Customers can enter another customer's WAYNE ID, confirm the masked name, enter an amount and send credit.
+4. The sender is debited and recipient is credited together in one MongoDB transaction.
+5. Both customers receive a wallet transaction record and notification.
+
+SECURITY RULES
+- A customer cannot transfer credit to their own WAYNE ID.
+- Transfers are rejected when the balance is insufficient.
+- Each request has a unique server reference and cannot be charged twice.
+- Recipient identity is checked on the server before the transfer.
+- Minimum transfer: N100. Maximum transfer: N1,000,000.
+- Completed transfers are final and cannot be reversed automatically.
+
+DEPLOYMENT
+Replace the whole project with this update, then push it to GitHub.
+Both Vercel and Render must finish deploying because frontend and backend files changed.
+No new Render environment key is required.
+
+TESTING
+1. Sign in as Customer A and copy the WAYNE ID from the Wallet page.
+2. Sign in as Customer B, open Wallet, paste Customer A's ID and enter at least N100.
+3. Confirm the displayed recipient name, approve the final question, and send.
+4. Check both wallets and both transaction histories.
+
+Existing customers receive their WAYNE ID automatically the next time they sign in or open Wallet.

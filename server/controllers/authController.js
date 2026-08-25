@@ -4,10 +4,11 @@ const crypto=require("crypto");
 const User=require("../models/User");
 const Referral=require("../models/Referral");
 const referralService=require("../services/referralService");
+const wayneIdService=require("../services/wayneIdService");
 const token=u=>jwt.sign({id:u._id,role:u.role,sv:Number(u.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:u.role==="admin"?"2h":"7d"});
 const attempts=new Map(),WINDOW=15*60*1000,MAX_ATTEMPTS=5;
 function attemptKey(req,email){return String(req.ip||req.socket?.remoteAddress||"")+"|"+String(email||"").toLowerCase()}
-const safe=u=>({id:u._id,firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,createdAt:u.createdAt});
+const safe=u=>({id:u._id,wayneId:u.wayneId||"",firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,createdAt:u.createdAt});
 exports.register=async(req,res)=>{
   let createdUser=null;
   try{
@@ -23,6 +24,7 @@ exports.register=async(req,res)=>{
     const u=await User.create({firstName,lastName,email,phone,password:hash,role,referredBy:referrer?referrer._id:null});
     createdUser=u;
     u.referralCode=await referralService.ensureReferralCode(u);
+    u.wayneId=await wayneIdService.ensureWayneId(u);
     if(referrer)await Referral.create({referrer:referrer._id,referredUser:u._id,code:enteredCode});
     res.status(201).json({success:true,token:token(u),user:safe(u)});
   }catch(e){if(createdUser?._id)await User.deleteOne({_id:createdUser._id}).catch(()=>{});res.status(500).json({message:"Could not register."});}
@@ -36,12 +38,13 @@ exports.login=async(req,res)=>{
     if(!u||!(await bcrypt.compare(password||"",u.password))){const active=record&&record.until>now?record:{count:0,until:now+WINDOW};active.count++;attempts.set(key,active);return res.status(401).json({message:"Invalid email or password."})}
     if(!u.isActive) return res.status(403).json({message:"Account disabled."});
     u.referralCode=await referralService.ensureReferralCode(u);
+    u.wayneId=await wayneIdService.ensureWayneId(u);
     if(u.mustChangePassword){const consumed=await User.findOneAndUpdate({_id:u._id,mustChangePassword:true,temporaryPasswordUsedAt:null},{$set:{temporaryPasswordUsedAt:new Date()}},{new:true});if(!consumed)return res.status(403).json({message:"This temporary password was already used. Ask the administrator for a new one."});u.temporaryPasswordUsedAt=consumed.temporaryPasswordUsedAt}
     attempts.delete(key);
     res.json({success:true,token:token(u),user:safe(u)});
   }catch(e){res.status(500).json({message:"Could not login."});}
 };
-exports.me=async(req,res)=>{try{req.user.referralCode=await referralService.ensureReferralCode(req.user);res.json({success:true,user:safe(req.user)})}catch(e){res.status(500).json({message:"Could not load profile."})}};
+exports.me=async(req,res)=>{try{req.user.referralCode=await referralService.ensureReferralCode(req.user);req.user.wayneId=await wayneIdService.ensureWayneId(req.user);res.json({success:true,user:safe(req.user)})}catch(e){res.status(500).json({message:"Could not load profile."})}};
 exports.adminUsers=async(req,res)=>{
   try{const users=await User.find().select("-password").sort({createdAt:-1});res.json({success:true,users});}
   catch(e){res.status(500).json({message:"Could not load users."});}
