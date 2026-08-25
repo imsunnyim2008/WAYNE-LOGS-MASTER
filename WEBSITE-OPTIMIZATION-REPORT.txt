@@ -1,0 +1,40 @@
+WAYNE LOGS — MOBILE, DESKTOP, PERFORMANCE AND SECURITY PASS
+
+COMPLETED
+- Removed measured horizontal overflow on 390px phones.
+- Verified zero horizontal overflow at 390x844 and 1440x900.
+- Verified no undersized visible action targets in the tested mobile viewport.
+- Loads the premium theme directly in every page head to prevent layout flashing.
+- Prevents duplicate premium stylesheet loading.
+- Replaced the nearly 1 MB favicon request with the existing 12 KB optimized logo.
+- Lazy-loads external platform icons.
+- Removed continuous cart-counter polling; cart updates are event driven.
+- Mobile Telegram support now lives inside Account and no longer covers products.
+- Account menu correctly shows Login/Create Account to guests.
+- Account menu correctly shows Profile/Notifications/Logout to signed-in users.
+- Admin Panel appears in Account only for administrator users.
+- Preserved the five-tab mobile dock: Shop, Wallet, Orders, Cart and Account.
+- Added keyboard focus indicators and live status announcements.
+- Improved mobile filter touch targets and account-sheet scrolling.
+- Added login and registration attempt throttling to the backend.
+- Added a safe JSON backend error handler.
+- Kept checkout, wallet, inventory, orders and payment verification logic unchanged.
+
+VALIDATION
+- All project JavaScript files passed syntax checks.
+- All inline page scripts passed syntax checks.
+- No duplicate HTML IDs were found.
+- No broken CSS brace structure was found.
+- Each page loads exactly one premium stylesheet.
+- Mobile test: no horizontal overflow, dock visible, zero undersized visible targets.
+- Desktop test: no horizontal overflow, mobile dock hidden.
+
+DEPLOYMENT
+1. Replace the project files.
+2. Run: git add -A
+3. Run: git commit -m "Optimize mobile desktop performance and security"
+4. Run: git push
+5. Wait for Vercel and Render deployments.
+6. Close and reopen the website once.
+
+No new environment variables are required.

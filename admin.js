@@ -42,7 +42,7 @@ const platformPresets=[
  {name:"VPN",slug:"protonvpn",color1:"#6D4AFF",color2:"#372580",icon:"✓",type:"vpn"}
 ];
 function presetKey(value){const key=String(value||"").trim().toLowerCase();return ["twitter","twitter / x","x.com"].includes(key)?"x":key}
-function presetIcon(p){return p.slug?`<img src="https://cdn.simpleicons.org/${p.slug}/${p.color1.slice(1)}" alt="">`:`<span style="color:${p.color1}">${esc(p.icon)}</span>`}
+function presetIcon(p){return p.slug?`<img loading="lazy" decoding="async" src="https://cdn.simpleicons.org/${p.slug}/${p.color1.slice(1)}" alt="">`:`<span style="color:${p.color1}">${esc(p.icon)}</span>`}
 function renderPlatformPicker(){platformPicker.innerHTML=platformPresets.map(p=>`<button type="button" class="admin-platform-option" data-platform-choice="${esc(p.name)}">${presetIcon(p)}<b>${esc(p.name)}</b><small>${p.type==="vpn"?"VPN":"Social"}</small></button>`).join("")}
 function selectPlatform(name){const p=platformPresets.find(x=>presetKey(x.name)===presetKey(name));if(!p)return;p_platform.value=p.name;p_type.value=p.type;p_icon.value=p.icon;p_c1.value=p.color1;p_c2.value=p.color2;brandColorText.textContent=`${p.color1} · ${p.color2}`;document.querySelectorAll("[data-platform-choice]").forEach(b=>b.classList.toggle("selected",presetKey(b.dataset.platformChoice)===presetKey(p.name)))}
 renderPlatformPicker();platformPicker.onclick=e=>{const b=e.target.closest("[data-platform-choice]");if(b)selectPlatform(b.dataset.platformChoice)};

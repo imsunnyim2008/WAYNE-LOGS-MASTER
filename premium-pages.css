@@ -202,6 +202,10 @@ html{scroll-behavior:smooth;background:#edf5fc}body{background:radial-gradient(c
 }
 @media(min-width:761px) and (max-width:1100px){.simple-header .simple-wrap{width:calc(100% - 24px)}.simple-links{gap:9px!important}.simple-links a{font-size:12px}.simple-actions .simple-btn{padding:7px 8px!important;font-size:11px!important}.premium-store .simple-brand{font-size:17px!important}}
 
+/* Final quality and performance corrections */
+:where(a,button,input,select,textarea):focus-visible{outline:3px solid rgba(8,144,207,.34)!important;outline-offset:3px!important}.message,.simple-message{overflow-wrap:anywhere}.simple-product,.order-card,.panel{content-visibility:auto;contain-intrinsic-size:auto 320px}
+@media(max-width:760px){.wayne-telegram{display:none!important}.platform-filters{width:100%!important;max-width:100%!important;margin-inline:0!important;padding-inline:0!important}.platform-pill{min-height:44px!important}.simple-store{overflow-x:clip!important}.wayne-account-sheet{max-height:calc(100dvh - 115px);overflow-y:auto}.wayne-account-sheet [data-sheet-telegram]{display:flex}}
+
 /* Mobile checkout safety: no floating controls over payment and no crushed email */
 @media(max-width:760px){
   body:has(.simple-modal.show) .wayne-customer-dock,body:has(.simple-modal.show) .wayne-telegram,body:has(.simple-drawer.open) .wayne-customer-dock,body:has(.simple-drawer.open) .wayne-telegram{opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translate(-50%,18px)!important}

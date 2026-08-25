@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>My Orders | WAYNE LOGS</title><link rel="icon" type="image/png" href="/assets/wayne-bat-logo.png"><link rel="apple-touch-icon" href="/assets/wayne-bat-logo.png"><meta name="theme-color" content="#0f2d53">
+<title>My Orders | WAYNE LOGS</title><link rel="icon" type="image/png" href="/assets/wayne-bat-logo.jpg"><link rel="apple-touch-icon" href="/assets/wayne-bat-logo.jpg"><meta name="theme-color" content="#0f2d53">
 <link rel="stylesheet" href="styles.css?v=20260823-delivery1">
 <style>
 .order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.order-actions button,.order-actions a{display:inline-flex;text-decoration:none}
 .order-help{padding:14px;border-radius:14px;background:rgba(124,92,255,.08);border:1px solid rgba(124,92,255,.18);color:var(--muted);margin-bottom:18px}
 .order-card{position:relative}.order-product-line{display:flex;gap:11px;align-items:center}.order-icon{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;background:#f4f8fb;border:1px solid #dce7ef;box-shadow:0 7px 16px rgba(24,69,110,.08);font-size:21px;flex:0 0 auto}.order-icon img{width:31px;height:31px;object-fit:contain}.order-icon-fallback{font-weight:950;color:var(--brand,#1265c4);font-family:Arial,sans-serif}
 </style>
-</head><body>
+<link rel="stylesheet" href="premium-pages.css?v=20260825-optimized2"></head><body>
 <nav class="nav"><div class="container nav-inner"><a class="brand" href="index.html"><span class="brand-mark">W</span><span>WAYNE LOGS</span></a><div class="nav-actions"><a class="ghost-btn" href="index.html">Shop</a><a class="ghost-btn" href="dashboard.html">Wallet</a><a class="ghost-btn" href="profile.html">Profile</a><button class="ghost-btn" id="logout">Logout</button></div></div></nav>
 <main class="section"><div class="container">
 <div class="section-head"><div><h2>My Orders</h2><p>Payment and delivery status for everything you buy.</p></div></div>
@@ -16,7 +16,7 @@
 <div id="message" class="message"></div>
 <div id="ordersList" class="order-list"><div class="empty">Loading orders...</div></div>
 </div></main>
-<script src="config.js?v=20260825-checkoutfix2"></script>
+<script src="config.js?v=20260825-optimized2"></script>
 <script>
 const API_URL=localStorage.getItem("wayneApiUrl")||window.WAYNE_API_URL||"http://localhost:5000";
 const token=localStorage.getItem("wayneToken"),params=new URLSearchParams(location.search);
@@ -27,7 +27,7 @@ function money(n){return"₦"+Number(n||0).toLocaleString("en-NG")}
 function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
 const orderPlatformIcons={facebook:["facebook","1877F2","f"],instagram:["instagram","E4405F","◎"],tiktok:["tiktok","000000","♪"],"tiktok ads":["tiktok","000000","♪"],youtube:["youtube","FF0000","▶"],twitter:["x","000000","X"],x:["x","000000","X"],discord:["discord","5865F2","D"],telegram:["telegram","26A5E4","➤"],whatsapp:["whatsapp","25D366","W"],linkedin:["linkedin","0A66C2","in"],snapchat:["snapchat","FFFC00","S"],reddit:["reddit","FF4500","R"],pinterest:["pinterest","BD081C","P"],quora:["quora","B92B27","Q"],github:["github","181717","G"],spotify:["spotify","1ED760","S"],grindr:["grindr","FEC016","G"],bumble:["bumble","FFC629","B"],badoo:["badoo","783BF9","B"],threads:["threads","000000","@"],twitch:["twitch","9146FF","T"],"private internet access":["privateinternetaccess","1E811F","PIA"],pia:["privateinternetaccess","1E811F","PIA"],expressvpn:["expressvpn","DA3940","E"],"express vpn":["expressvpn","DA3940","E"],"proton vpn":["protonvpn","6D4AFF","P"],protonvpn:["protonvpn","6D4AFF","P"],vpn:["protonvpn","6D4AFF","V"]};
 function orderPlatformKey(value){const key=String(value||"").trim().toLowerCase();if(["twitter / x","x.com"].includes(key))return"x";return key}
-function orderPlatformIcon(platform,fallback="★"){const entry=orderPlatformIcons[orderPlatformKey(platform)];if(!entry)return`<span class="order-icon-fallback">${esc(fallback)}</span>`;return`<img src="https://cdn.simpleicons.org/${entry[0]}/${entry[1]}" alt="${esc(platform)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="order-icon-fallback" style="--brand:#${entry[1]}" hidden>${esc(entry[2])}</span>`}
+function orderPlatformIcon(platform,fallback="★"){const entry=orderPlatformIcons[orderPlatformKey(platform)];if(!entry)return`<span class="order-icon-fallback">${esc(fallback)}</span>`;return`<img loading="lazy" decoding="async" src="https://cdn.simpleicons.org/${entry[0]}/${entry[1]}" alt="${esc(platform)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="order-icon-fallback" style="--brand:#${entry[1]}" hidden>${esc(entry[2])}</span>`}
 function show(t,type="error"){message.textContent=t;message.className="message "+type;message.style.display="block"}
 if(params.get("walletPurchase")==="success"){show("Wallet payment completed successfully.","success");window.waynePopup?.("Your wallet payment completed successfully and your order is ready.","success","Purchase successful");history.replaceState({},"","orders.html")}
 async function retryPayment(orderId,button){
