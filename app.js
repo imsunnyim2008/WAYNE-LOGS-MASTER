@@ -89,6 +89,7 @@ function setNavLoggedOut() {
   registerLink.hidden = false;
   adminLink.hidden = true;
   document.getElementById("logoutNav")?.remove();
+  document.getElementById("accountActions")?.classList.add("session-ready");
 }
 
 function setNavLoggedIn(user) {
@@ -110,6 +111,7 @@ function setNavLoggedIn(user) {
     });
     cartButton.before(logout);
   }
+  document.getElementById("accountActions")?.classList.add("session-ready");
 }
 
 async function validateSession() {
