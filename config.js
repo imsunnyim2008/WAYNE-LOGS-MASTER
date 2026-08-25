@@ -75,7 +75,7 @@ window.WAYNE_API_URL = ["localhost","127.0.0.1"].includes(location.hostname)
 if (!document.querySelector('link[href="premium-pages.css"]')) {
   const premiumTheme = document.createElement("link");
   premiumTheme.rel = "stylesheet";
-  premiumTheme.href = "premium-pages.css?v=20260825-appleui1";
+  premiumTheme.href = "premium-pages.css?v=20260825-appleui2";
   document.head.appendChild(premiumTheme);
 }
 
