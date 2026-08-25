@@ -80,27 +80,29 @@ window.WAYNE_API_URL = ["localhost","127.0.0.1"].includes(location.hostname)
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 
-// Move customer navigation outside blurred headers on phones so fixed positioning
-// uses the screen itself instead of the header as its containing block.
-(function installWayneMobileDock(){
-  const records=new Map(),query=matchMedia('(max-width:760px)');
-  const update=()=>{
-    document.querySelectorAll('.simple-actions,.nav-actions,.dash-nav').forEach(dock=>{
-      if(!records.has(dock))records.set(dock,{parent:dock.parentNode,next:dock.nextSibling});
-      const record=records.get(dock);
-      if(query.matches){dock.classList.add('wayne-mobile-dock');if(dock.parentNode!==document.body)document.body.appendChild(dock)}
-      else{dock.classList.remove('wayne-mobile-dock');if(dock.parentNode!==record.parent)record.parent.insertBefore(dock,record.next&&record.next.parentNode===record.parent?record.next:null)}
-    });
+// A dedicated five-tab mobile customer dock. Secondary account actions live in
+// a compact sheet so the main navigation never becomes crowded.
+(function installWayneCustomerDock(){
+  if(/\/(?:admin|login|register|force-change-password)\.html$/i.test(location.pathname))return;
+  const svg=paths=>`<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`,icons={shop:'<path d="M4 9h16l-1 11H5L4 9Z"/><path d="M8 9a4 4 0 0 1 8 0"/>',wallet:'<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/>',orders:'<path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/>',cart:'<path d="M3 4h2l2.2 10h9.8l2-7H6"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',account:'<circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/>',bell:'<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',admin:'<path d="M12 3 4.5 6v5c0 5 3.2 8.4 7.5 10 4.3-1.6 7.5-5 7.5-10V6L12 3Z"/><path d="m9.5 12 1.6 1.6 3.6-4"/>',logout:'<path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10"/>'};
+  const start=()=>{
+    if(document.querySelector('.wayne-customer-dock'))return;
+    const dock=document.createElement('nav');dock.className='wayne-customer-dock';dock.setAttribute('aria-label','Customer navigation');dock.innerHTML=`<a href="index.html">${svg(icons.shop)}<span>Shop</span></a><a href="dashboard.html">${svg(icons.wallet)}<span>Wallet</span></a><a href="orders.html">${svg(icons.orders)}<span>Orders</span></a><button type="button" data-dock-cart>${svg(icons.cart)}<span>Cart</span><i data-dock-cart-count>0</i></button><button type="button" data-dock-account>${svg(icons.account)}<span>Account</span></button>`;document.body.appendChild(dock);
+    const backdrop=document.createElement('div');backdrop.className='wayne-account-backdrop';backdrop.hidden=true;const sheet=document.createElement('section');sheet.className='wayne-account-sheet';sheet.setAttribute('aria-label','Account menu');sheet.innerHTML=`<div><strong>My account</strong><button type="button" data-sheet-close aria-label="Close">×</button></div><a href="profile.html">${svg(icons.account)}<span><b>My Profile</b><small>Account details and wallet balance</small></span></a><a href="notifications.html">${svg(icons.bell)}<span><b>Notifications</b><small>Orders, payments and announcements</small></span><i data-sheet-unread hidden></i></a><a href="admin.html" data-sheet-admin hidden>${svg(icons.admin)}<span><b>Admin Panel</b><small>Manage the WAYNE LOGS store</small></span></a><button type="button" data-sheet-logout>${svg(icons.logout)}<span><b>Logout</b><small>Securely leave this account</small></span></button>`;backdrop.appendChild(sheet);document.body.appendChild(backdrop);
+    const close=()=>{backdrop.hidden=true;document.body.classList.remove('wayne-account-open')},open=()=>{let user={};try{user=JSON.parse(localStorage.getItem('wayneUser')||'{}')}catch{}sheet.querySelector('[data-sheet-admin]').hidden=user.role!=='admin';backdrop.hidden=false;document.body.classList.add('wayne-account-open')};dock.querySelector('[data-dock-account]').onclick=open;sheet.querySelector('[data-sheet-close]').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close()};
+    dock.querySelector('[data-dock-cart]').onclick=()=>{const original=document.getElementById('cartButton');if(original)original.click();else location.href='index.html#shop'};
+    const updateCart=()=>{let count=0;try{const cart=JSON.parse(localStorage.getItem('wayneCart')||'[]');count=Array.isArray(cart)?Math.min(cart.length,9):0}catch{}dock.querySelector('[data-dock-cart-count]').textContent=count;dock.querySelector('[data-dock-cart-count]').hidden=!count};updateCart();new MutationObserver(updateCart).observe(document.body,{childList:true,subtree:true,characterData:true});
+    sheet.querySelector('[data-sheet-logout]').onclick=async()=>{const approved=await window.wayneConfirm('Do you want to securely log out of WAYNE LOGS?',{title:'Log out now?',confirmText:'Log out'});if(!approved)return;localStorage.removeItem('wayneToken');localStorage.removeItem('wayneUser');location.href='index.html'};
+    const token=localStorage.getItem('wayneToken');if(token)fetch(window.WAYNE_API_URL+'/api/notifications/my',{headers:{Authorization:'Bearer '+token}}).then(r=>r.json()).then(data=>{const unread=Number(data.unread||0),badge=sheet.querySelector('[data-sheet-unread]');badge.textContent=unread>99?'99+':unread;badge.hidden=!unread}).catch(()=>{});
   };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update);else update();
-  query.addEventListener?.('change',update);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 
 // Keep every customer and admin page on the same premium visual system.
 if (!document.querySelector('link[href="premium-pages.css"]')) {
   const premiumTheme = document.createElement("link");
   premiumTheme.rel = "stylesheet";
-  premiumTheme.href = "premium-pages.css?v=20260825-layoutfix1";
+  premiumTheme.href = "premium-pages.css?v=20260825-customerdock2";
   document.head.appendChild(premiumTheme);
 }
 
