@@ -23,8 +23,8 @@ exports.register=async(req,res)=>{
     const role=process.env.ADMIN_EMAIL&&email.toLowerCase()===process.env.ADMIN_EMAIL.toLowerCase()?"admin":"user";
     const u=await User.create({firstName,lastName,email,phone,password:hash,role,referredBy:referrer?referrer._id:null});
     createdUser=u;
-    u.referralCode=await referralService.ensureReferralCode(u);
-    u.wayneId=await wayneIdService.ensureWayneId(u);
+    try{u.referralCode=await referralService.ensureReferralCode(u)}catch(error){console.error("Referral ID creation error:",error)}
+    try{u.wayneId=await wayneIdService.ensureWayneId(u)}catch(error){console.error("WAYNE ID creation error:",error)}
     if(referrer)await Referral.create({referrer:referrer._id,referredUser:u._id,code:enteredCode});
     res.status(201).json({success:true,token:token(u),user:safe(u)});
   }catch(e){if(createdUser?._id)await User.deleteOne({_id:createdUser._id}).catch(()=>{});res.status(500).json({message:"Could not register."});}
@@ -37,14 +37,14 @@ exports.login=async(req,res)=>{
     const u=await User.findOne({email:(email||"").toLowerCase()});
     if(!u||!(await bcrypt.compare(password||"",u.password))){const active=record&&record.until>now?record:{count:0,until:now+WINDOW};active.count++;attempts.set(key,active);return res.status(401).json({message:"Invalid email or password."})}
     if(!u.isActive) return res.status(403).json({message:"Account disabled."});
-    u.referralCode=await referralService.ensureReferralCode(u);
-    u.wayneId=await wayneIdService.ensureWayneId(u);
+    try{u.referralCode=await referralService.ensureReferralCode(u)}catch(error){console.error("Referral ID login error:",error)}
+    try{u.wayneId=await wayneIdService.ensureWayneId(u)}catch(error){console.error("WAYNE ID login error:",error)}
     if(u.mustChangePassword){const consumed=await User.findOneAndUpdate({_id:u._id,mustChangePassword:true,temporaryPasswordUsedAt:null},{$set:{temporaryPasswordUsedAt:new Date()}},{new:true});if(!consumed)return res.status(403).json({message:"This temporary password was already used. Ask the administrator for a new one."});u.temporaryPasswordUsedAt=consumed.temporaryPasswordUsedAt}
     attempts.delete(key);
     res.json({success:true,token:token(u),user:safe(u)});
   }catch(e){console.error("Login error:",e);res.status(500).json({message:"Could not login."});}
 };
-exports.me=async(req,res)=>{try{req.user.referralCode=await referralService.ensureReferralCode(req.user);req.user.wayneId=await wayneIdService.ensureWayneId(req.user);res.json({success:true,user:safe(req.user)})}catch(e){res.status(500).json({message:"Could not load profile."})}};
+exports.me=async(req,res)=>{try{try{req.user.referralCode=await referralService.ensureReferralCode(req.user)}catch(error){console.error("Referral ID profile error:",error)}try{req.user.wayneId=await wayneIdService.ensureWayneId(req.user)}catch(error){console.error("WAYNE ID profile error:",error)}res.json({success:true,user:safe(req.user)})}catch(e){res.status(500).json({message:"Could not load profile."})}};
 exports.adminUsers=async(req,res)=>{
   try{const users=await User.find().select("-password").sort({createdAt:-1});res.json({success:true,users});}
   catch(e){res.status(500).json({message:"Could not load users."});}
