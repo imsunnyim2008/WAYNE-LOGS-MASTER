@@ -1,4 +1,5 @@
 const crypto=require("crypto");
+const bcrypt=require("bcryptjs");
 const mongoose=require("mongoose");
 const Order=require("../models/Order");
 const Product=require("../models/Product");
@@ -10,6 +11,7 @@ const emailService=require("../services/emailService");
 const notifications=require("../services/notificationService");
 const referralService=require("../services/referralService");
 const BASE="https://api.paystack.co";
+const refundAttempts=new Map();
 
 async function ps(path,opts={}){
   if(!process.env.PAYSTACK_SECRET_KEY){
@@ -292,6 +294,7 @@ exports.adminStatus=async(req,res)=>{
     const o=await Order.findById(req.params.id);
     if(!o)return res.status(404).json({message:"Order not found."});
     const s=req.body.status;
+    if(s==="refunded")return res.status(400).json({message:"Use the protected Refund Centre to refund a paid wallet order."});
     if(!["pending","processing","completed","cancelled","refunded"].includes(s)){
       return res.status(400).json({message:"Invalid status."});
     }
@@ -304,6 +307,31 @@ exports.adminStatus=async(req,res)=>{
   }catch(e){
     res.status(500).json({message:"Could not update order."});
   }
+};
+
+exports.adminRefund=async(req,res)=>{
+  const reason=String(req.body.reason||"").trim().slice(0,250),adminPassword=String(req.body.adminPassword||"");
+  if(reason.length<4)return res.status(400).json({message:"Enter a clear reason for this refund."});
+  const attemptKey=String(req.user._id),now=Date.now(),attempt=refundAttempts.get(attemptKey);
+  if(attempt&&attempt.until>now&&attempt.count>=5)return res.status(429).json({message:"Too many incorrect password attempts. Refunds are locked for 15 minutes."});
+  const admin=await User.findById(req.user._id).select("+password");
+  if(!admin||!(await bcrypt.compare(adminPassword,admin.password))){const active=attempt&&attempt.until>now?attempt:{count:0,until:now+15*60*1000};active.count++;refundAttempts.set(attemptKey,active);return res.status(403).json({message:"Your admin password is incorrect. Nothing was refunded."})}
+  refundAttempts.delete(attemptKey);
+  const session=await mongoose.startSession();let result;
+  try{await session.withTransaction(async()=>{
+    const order=await Order.findOne({_id:req.params.id,paymentStatus:"paid",paymentMethod:"wallet"}).session(session);
+    if(!order)throw Object.assign(new Error("Only a paid wallet order can be refunded here."),{status:409});
+    const reference=`RFD-${order._id}`,existing=await WalletTransaction.findOne({reference}).session(session);
+    if(existing)throw Object.assign(new Error("This order has already been refunded."),{status:409});
+    const amountKobo=Math.round(Number(order.totalAmount)*100),user=await User.findByIdAndUpdate(order.user,{$inc:{walletBalanceKobo:amountKobo}},{new:true,session});
+    if(!user)throw Object.assign(new Error("Customer account was not found."),{status:404});
+    const [transaction]=await WalletTransaction.create([{user:user._id,type:"adjustment",status:"completed",amountKobo,currency:order.currency||"NGN",reference,provider:"order_refund",order:order._id,description:`Order refund: ${reason}`,balanceAfterKobo:user.walletBalanceKobo,verifiedAt:new Date(),reviewedBy:req.user._id,reviewNote:reason}],{session});
+    order.paymentStatus="refunded";order.status="refunded";await order.save({session});result={order,transaction,user};
+  });
+  await notifications.create({user:result.user._id,type:"wallet",title:"Order refunded",message:`₦${(result.transaction.amountKobo/100).toLocaleString("en-NG")} was returned to your wallet for ${result.order.productName}.`,link:"orders.html",key:`refund:${result.order._id}`}).catch(()=>{});
+  res.json({success:true,order:result.order,transaction:result.transaction,balanceKobo:result.user.walletBalanceKobo});
+  }catch(error){res.status(error.status||500).json({message:error.status?error.message:"Could not refund this order."})}
+  finally{await session.endSession()}
 };
 
 exports.webhook=async(req,res)=>{

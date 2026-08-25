@@ -1,0 +1,10 @@
+WAYNE LOGS PREMIUM ADMIN OVERVIEW
+
+The Overview is now a working command centre.
+
+- Quick-action buttons open Products, Inventory, Payments, Orders, Support, Password Help, Audit Log and Settings.
+- Needs Attention displays live counts for manual payments, low stock, unresolved support and orders still in progress.
+- The four main statistics are clickable.
+- Planned ideas are clearly marked and display an information popup when tapped.
+
+No new Render environment keys are required for this update.

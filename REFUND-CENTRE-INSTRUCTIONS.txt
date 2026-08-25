@@ -1,0 +1,18 @@
+WAYNE LOGS — PROTECTED REFUND CENTRE
+
+Eligible orders:
+- Payment method is WAYNE LOGS wallet
+- Payment status is paid
+- Order has not already been refunded
+
+Safety protections:
+- Current admin password is required
+- A refund reason is required
+- Five incorrect passwords trigger a 15-minute refund lock
+- The database credits the wallet and marks the order refunded together
+- A second refund for the same order is blocked
+- The customer receives a notification
+- The admin audit log permanently records the refund
+
+Important: Delivered digital inventory is not automatically returned to stock.
+No new Render environment keys are required.

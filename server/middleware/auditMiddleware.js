@@ -2,7 +2,7 @@ const crypto=require("crypto");
 const AuditLog=require("../models/AuditLog");
 const clean=(v,n=180)=>String(v||"").trim().slice(0,n);
 function details(req){
-  const method=req.method,path=req.originalUrl.split("?")[0],b=req.body||{},parts=path.split("/").filter(Boolean),tail=parts.at(-1),id=clean(["review","restock","status","replies"].includes(tail)?parts.at(-2):tail);
+  const method=req.method,path=req.originalUrl.split("?")[0],b=req.body||{},parts=path.split("/").filter(Boolean),tail=parts.at(-1),id=clean(["review","restock","status","replies","refund"].includes(tail)?parts.at(-2):tail);
   if(path.includes("/wallet/admin/transactions/")&&path.endsWith("/review"))return{action:b.decision==="approve"?"payment.approved":"payment.rejected",entity:"wallet",target:id,summary:`Manual payment ${b.decision==="approve"?"approved":"rejected"}.`,metadata:{decision:clean(b.decision,20),note:clean(b.note,200)}};
   if(path.endsWith("/wallet/admin/credit"))return{action:"wallet.credited",entity:"wallet",target:clean(b.email),summary:`Customer wallet credited with ₦${Number(b.amount||0).toLocaleString("en-NG")}.`,metadata:{email:clean(b.email),amount:Number(b.amount||0),reason:clean(b.reason,200)}};
   if(path.endsWith("/wallet/admin/clear"))return{action:"wallet.cleared",entity:"wallet",target:clean(b.email),summary:"Customer wallet balance cleared.",metadata:{email:clean(b.email),reason:clean(b.reason,200)}};
@@ -11,6 +11,7 @@ function details(req){
   if(/^\/api\/products\/[^/]+$/.test(path)&&method==="PUT")return{action:"product.updated",entity:"product",target:id,summary:`Product updated: ${clean(b.name)||id}.`,metadata:{platform:clean(b.platform),price:Number(b.price||0),inventoryCount:Array.isArray(b.inventoryItems)?b.inventoryItems.length:0}};
   if(/^\/api\/products\/[^/]+$/.test(path)&&method==="DELETE")return{action:"product.deleted",entity:"product",target:id,summary:"Product and its inventory deleted.",metadata:{}};
   if(path.includes("/orders/admin/")&&path.endsWith("/status"))return{action:"order.status_changed",entity:"order",target:id,summary:`Order status changed to ${clean(b.status,30)}.`,metadata:{status:clean(b.status,30)}};
+  if(path.includes("/orders/admin/")&&path.endsWith("/refund"))return{action:"order.refunded",entity:"order",target:id,summary:"Paid wallet order refunded to the customer's wallet.",metadata:{reason:clean(b.reason,250)}};
   if(path==="/api/settings/admin")return{action:"settings.updated",entity:"settings",target:"main",summary:"Announcement or Telegram settings updated.",metadata:{announcementEnabled:b.announcementEnabled===true}};
   if(path.includes("/support/admin/")&&path.endsWith("/replies"))return{action:"support.replied",entity:"support",target:id,summary:"Administrator replied to a support ticket.",metadata:{resolved:b.resolve===true}};
   if(path.includes("/support/admin/")&&path.endsWith("/status"))return{action:"support.status_changed",entity:"support",target:id,summary:`Support status changed to ${clean(b.status,30)}.`,metadata:{status:clean(b.status,30)}};
