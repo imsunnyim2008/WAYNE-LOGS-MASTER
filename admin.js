@@ -36,6 +36,9 @@ const platformPresets=[
  {name:"MeetMe",slug:"",color1:"#16A8E2",color2:"#087FC4",icon:"♟",type:"social"},
  {name:"Badoo",slug:"badoo",color1:"#783BF9",color2:"#FF5A8B",icon:"B",type:"social"},
  {name:"Dating Apps",slug:"",color1:"#E83E8C",color2:"#9B51E0",icon:"♥",type:"social"},
+ {name:"Private Internet Access",slug:"privateinternetaccess",color1:"#1E811F",color2:"#125B16",icon:"PIA",type:"vpn"},
+ {name:"ExpressVPN",slug:"expressvpn",color1:"#DA3940",color2:"#A51F2B",icon:"E",type:"vpn"},
+ {name:"Proton VPN",slug:"protonvpn",color1:"#6D4AFF",color2:"#372580",icon:"P",type:"vpn"},
  {name:"VPN",slug:"protonvpn",color1:"#6D4AFF",color2:"#372580",icon:"✓",type:"vpn"}
 ];
 function presetKey(value){const key=String(value||"").trim().toLowerCase();return ["twitter","twitter / x","x.com"].includes(key)?"x":key}

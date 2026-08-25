@@ -1,0 +1,12 @@
+WAYNE LOGS — REAL ORDER ICONS AND VPN PROVIDERS
+
+My Orders now chooses the real platform logo from the saved product platform instead of displaying the old letter or star.
+
+Supported mappings include Facebook, Instagram, TikTok, YouTube, X, WhatsApp, Telegram, Discord, LinkedIn, Snapchat, Reddit, Pinterest, Quora, GitHub, Spotify, dating platforms and VPN providers.
+
+New admin VPN choices:
+- Private Internet Access (PIA)
+- ExpressVPN
+- Proton VPN
+
+Create a product by selecting the VPN provider. The existing guided delivery boxes are available for legitimate subscription codes or customer instructions. No new environment keys are required.
