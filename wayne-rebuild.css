@@ -36,3 +36,26 @@ body{background:#f3f7fb!important}body:before{background:radial-gradient(circle 
 .premium-store .simple-product{min-height:315px!important;padding:0!important}.premium-store .simple-product-top{padding:18px 18px 12px!important}.premium-store .simple-product-body{flex:0 1 auto!important;gap:12px!important;padding:0 18px 18px!important}.premium-store .simple-buy-info{margin-bottom:0!important}.premium-store .simple-price-row{margin-top:2px!important}
 @media(max-width:760px){.premium-store .simple-product{min-height:0!important}.premium-store .simple-product-top{padding:16px 16px 10px!important}.premium-store .simple-product-body{padding:0 16px 16px!important}.premium-store .simple-price-row{gap:9px!important}}
 
+/* Store containment + permanent brand repair */
+.premium-store .simple-header{overflow:visible!important}
+.premium-store .simple-nav{max-width:100%!important;overflow:visible!important}
+.premium-store .simple-brand{display:flex!important;align-items:center!important;flex:0 0 auto!important;white-space:nowrap!important}
+.premium-store .simple-logo{display:block!important;width:52px!important;height:44px!important;flex:0 0 52px!important;font-size:0!important;background:#fff url('/assets/wayne-bat-logo.jpg') center/contain no-repeat!important}
+.premium-store .simple-shop>.simple-wrap{width:min(1160px,calc(100% - 40px))!important;max-width:1160px!important;margin-inline:auto!important}
+.premium-store .simple-shop .simple-section-title,
+.premium-store .simple-shop .platform-filters,
+.premium-store .simple-shop .simple-toolbar,
+.premium-store .simple-shop .simple-products{width:100%!important;max-width:100%!important;margin-left:0!important;margin-right:0!important}
+.premium-store .simple-shop .platform-filters{display:flex!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;padding-bottom:2px!important}
+.premium-store .simple-shop .platform-filters::-webkit-scrollbar{display:none!important}
+.premium-store .simple-shop .platform-pill{flex:0 0 auto!important;min-height:58px!important;padding:12px 18px!important}
+.premium-store .simple-shop .simple-toolbar{display:grid!important;grid-template-columns:minmax(0,1fr) 220px!important;margin-top:14px!important}
+.premium-store .simple-shop .simple-search{min-width:0!important;width:100%!important}
+.premium-store .simple-shop .simple-select{width:100%!important;min-width:0!important}
+@media(max-width:760px){
+  .premium-store .simple-logo{width:46px!important;height:40px!important;flex-basis:46px!important}
+  .premium-store .simple-shop>.simple-wrap{width:calc(100% - 24px)!important}
+  .premium-store .simple-shop .simple-toolbar{grid-template-columns:1fr!important}
+  .premium-store .simple-shop .simple-section-title h2{font-size:38px!important}
+}
+
