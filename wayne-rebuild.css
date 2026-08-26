@@ -40,7 +40,8 @@ body{background:#f3f7fb!important}body:before{background:radial-gradient(circle 
 .premium-store .simple-header{overflow:visible!important}
 .premium-store .simple-nav{max-width:100%!important;overflow:visible!important}
 .premium-store .simple-brand{display:flex!important;align-items:center!important;flex:0 0 auto!important;white-space:nowrap!important}
-.premium-store .simple-logo{display:block!important;width:52px!important;height:44px!important;flex:0 0 52px!important;font-size:0!important;background:#fff url('/assets/wayne-bat-logo.jpg') center/contain no-repeat!important}
+.simple-logo,.brand-mark,.dash-logo{display:block!important;font-size:0!important;color:transparent!important;background-color:#fff!important;background-image:url('/assets/wayne-bat-logo.jpg')!important;background-position:center!important;background-size:contain!important;background-repeat:no-repeat!important}
+.premium-store .simple-logo{width:52px!important;height:44px!important;flex:0 0 52px!important}
 .premium-store .simple-shop>.simple-wrap{width:min(1160px,calc(100% - 40px))!important;max-width:1160px!important;margin-inline:auto!important}
 .premium-store .simple-shop .simple-section-title,
 .premium-store .simple-shop .platform-filters,
