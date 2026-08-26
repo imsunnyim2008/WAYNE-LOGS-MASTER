@@ -1,69 +1,109 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>My Orders | WAYNE LOGS</title><link rel="icon" type="image/png" href="/assets/wayne-bat-logo.jpg"><link rel="apple-touch-icon" href="/assets/wayne-bat-logo.jpg"><meta name="theme-color" content="#0f2d53">
-<link rel="stylesheet" href="styles.css?v=20260823-delivery1">
-<style>
-.order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.order-actions button,.order-actions a{display:inline-flex;text-decoration:none}
-.order-help{padding:14px;border-radius:14px;background:rgba(124,92,255,.08);border:1px solid rgba(124,92,255,.18);color:var(--muted);margin-bottom:18px}
-.order-card{position:relative}.order-product-line{display:flex;gap:11px;align-items:center}.order-icon{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;background:#f4f8fb;border:1px solid #dce7ef;box-shadow:0 7px 16px rgba(24,69,110,.08);font-size:21px;flex:0 0 auto}.order-icon img{width:31px;height:31px;object-fit:contain}.order-icon-fallback{font-weight:950;color:var(--brand,#1265c4);font-family:Arial,sans-serif}
-</style>
-<link rel="stylesheet" href="premium-pages.css?v=20260825-optimized2"><link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6"></head><body>
-<nav class="nav"><div class="container nav-inner"><a class="brand" href="index.html"><span class="brand-mark">W</span><span>WAYNE LOGS</span></a><div class="nav-actions"><a class="ghost-btn" href="index.html">Shop</a><a class="ghost-btn" href="dashboard.html">Wallet</a><a class="ghost-btn" href="profile.html">Profile</a><button class="ghost-btn" id="logout">Logout</button></div></div></nav>
-<main class="section"><div class="container">
-<div class="section-head"><div><h2>My Orders</h2><p>Payment and delivery status for everything you buy.</p></div></div>
-<div class="order-help">If a payment did not open or was interrupted, use <strong>Pay Now</strong> on the pending order. You do not need to create the order again.</div>
-<div id="message" class="message"></div>
-<div id="ordersList" class="order-list"><div class="empty">Loading orders...</div></div>
-</div></main>
-<script src="config.js?v=20260825-logoutfix1"></script>
-<script>
-const API_URL=localStorage.getItem("wayneApiUrl")||window.WAYNE_API_URL||"http://localhost:5000";
-const token=localStorage.getItem("wayneToken"),params=new URLSearchParams(location.search);
-const logout=document.getElementById("logout"),message=document.getElementById("message"),ordersList=document.getElementById("ordersList");
-if(!token)location.replace("login.html");
-logout.onclick=()=>{localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.href="login.html"};
-function money(n){return"₦"+Number(n||0).toLocaleString("en-NG")}
-function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
-const orderPlatformIcons={facebook:["facebook","1877F2","f"],instagram:["instagram","E4405F","◎"],tiktok:["tiktok","000000","♪"],"tiktok ads":["tiktok","000000","♪"],youtube:["youtube","FF0000","▶"],twitter:["x","000000","X"],x:["x","000000","X"],discord:["discord","5865F2","D"],telegram:["telegram","26A5E4","➤"],whatsapp:["whatsapp","25D366","W"],linkedin:["linkedin","0A66C2","in"],snapchat:["snapchat","FFFC00","S"],reddit:["reddit","FF4500","R"],pinterest:["pinterest","BD081C","P"],quora:["quora","B92B27","Q"],github:["github","181717","G"],spotify:["spotify","1ED760","S"],grindr:["grindr","FEC016","G"],bumble:["bumble","FFC629","B"],badoo:["badoo","783BF9","B"],threads:["threads","000000","@"],twitch:["twitch","9146FF","T"],"private internet access":["privateinternetaccess","1E811F","PIA"],pia:["privateinternetaccess","1E811F","PIA"],expressvpn:["expressvpn","DA3940","E"],"express vpn":["expressvpn","DA3940","E"],"proton vpn":["protonvpn","6D4AFF","P"],protonvpn:["protonvpn","6D4AFF","P"],vpn:["protonvpn","6D4AFF","V"]};
-function orderPlatformKey(value){const key=String(value||"").trim().toLowerCase();if(["twitter / x","x.com"].includes(key))return"x";return key}
-function orderPlatformIcon(platform,fallback="★"){const entry=orderPlatformIcons[orderPlatformKey(platform)];if(!entry)return`<span class="order-icon-fallback">${esc(fallback)}</span>`;return`<img loading="lazy" decoding="async" src="https://cdn.simpleicons.org/${entry[0]}/${entry[1]}" alt="${esc(platform)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="order-icon-fallback" style="--brand:#${entry[1]}" hidden>${esc(entry[2])}</span>`}
-function show(t,type="error"){message.textContent=t;message.className="message "+type;message.style.display="block"}
-if(params.get("walletPurchase")==="success"){show("Wallet payment completed successfully.","success");window.waynePopup?.("Your wallet payment completed successfully and your order is ready.","success","Purchase successful");history.replaceState({},"","orders.html")}
-async function retryPayment(orderId,button){
- button.disabled=true;button.textContent="Paying from wallet...";
- try{
-  const r=await fetch(API_URL+`/api/orders/${encodeURIComponent(orderId)}/wallet/pay`,{method:"POST",headers:{Authorization:"Bearer "+token}});
-  const d=await r.json();if(!r.ok)throw new Error(d.message||"Wallet payment could not be completed");
-  show("Wallet payment completed successfully.","success");await load();
- }catch(e){show(e.message);button.disabled=false;button.textContent="Pay from Wallet"}
-}
-async function load(){
- try{
-  const r=await fetch(API_URL+"/api/orders/my",{headers:{Authorization:"Bearer "+token}});
-  const d=await r.json();if(!r.ok)throw new Error(d.message||"Could not load orders");
-  ordersList.innerHTML=d.orders.length?d.orders.map(o=>`
-   <div class="order-card">
-    <div class="order-top">
-     <div class="order-product-line">
-      <div class="order-icon">${orderPlatformIcon(o.platform,o.productIcon||"★")}</div>
-      <div><div class="order-name">${esc(o.productName)}</div><div class="order-meta">${esc(o.platform||"Digital")}<br>${new Date(o.createdAt).toLocaleString()}</div></div>
-     </div>
-     <div class="order-price">${money(o.totalAmount)}</div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>My Orders | WAYNE LOGS</title>
+  <link rel="icon" type="image/png" href="/assets/wayne-bat-logo.jpg">
+  <link rel="apple-touch-icon" href="/assets/wayne-bat-logo.jpg">
+  <meta name="theme-color" content="#0f2d53">
+  <link rel="stylesheet" href="styles.css?v=20260823-delivery1">
+  <link rel="stylesheet" href="premium-pages.css?v=20260825-optimized2">
+  <link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6">
+  <link rel="stylesheet" href="marketplace-pages.css?v=20260827-orders1">
+</head>
+<body class="market-orders">
+  <header class="market-page-header">
+    <div class="market-page-header-inner">
+      <button class="market-menu-btn" id="marketMenuBtn" type="button" aria-label="Open menu">☰</button>
+      <a class="market-brand" href="index.html"><img src="assets/wayne-bat-logo.jpg" alt="WAYNE LOGS"><span>WAYNE LOGS</span></a>
+      <div class="market-header-actions">
+        <a class="market-icon-btn" href="dashboard.html" title="Wallet">₦</a>
+        <a class="market-icon-btn" href="notifications.html" title="Notifications">♢</a>
+        <a class="market-icon-btn" href="index.html" title="Shop">▦</a>
+      </div>
     </div>
-    <div class="badges"><span class="badge ${esc(o.paymentStatus)}">Payment: ${o.paymentStatus==="paid"?"Successful":esc(o.paymentStatus)}</span><span class="badge ${esc(o.status)}">Order: ${o.status==="completed"?"Successful":esc(o.status)}</span></div>
-    ${o.deliveryContent?`<div class="delivery"><h3>🔓 Your Purchased Login Details</h3><div class="delivery-content">${esc(o.deliveryContent)}</div><button class="ghost-btn copy-delivery" type="button">Copy Login Details</button><small>Keep these details private. They were assigned only to your order.</small></div>`:`<div class="locked">🔒 Your login details will appear here immediately after a successful wallet purchase.</div>`}
-    <div class="order-actions">
-      ${o.paymentStatus==="pending"?`<button class="primary-btn" type="button" data-pay="${esc(o._id)}">Pay from Wallet</button>`:""}
-      <a class="ghost-btn" href="support.html?order=${esc(o._id)}">Get Support</a>
-      <a class="ghost-btn" href="index.html#shop">Back to Shop</a>
-    </div>
-   </div>`).join(""):`<div class="empty">No orders yet. <a href="index.html#shop" style="color:var(--blue)">Go to the shop</a>.</div>`;
-  ordersList.querySelectorAll("[data-pay]").forEach(btn=>btn.addEventListener("click",()=>retryPayment(btn.dataset.pay,btn)));
-  ordersList.querySelectorAll(".copy-delivery").forEach(btn=>btn.addEventListener("click",async()=>{const text=btn.parentElement.querySelector(".delivery-content")?.textContent||"";try{await navigator.clipboard.writeText(text)}catch{const area=document.createElement("textarea");area.value=text;document.body.appendChild(area);area.select();document.execCommand("copy");area.remove()}window.waynePopup?.("Login details copied successfully.","success");btn.textContent="Copied!";setTimeout(()=>btn.textContent="Copy Login Details",1800)}));
- }catch(e){show(e.message)}
-}
-load();
-</script>
-</body></html>
+  </header>
 
+  <div class="market-side-overlay" id="marketSideOverlay"></div>
+  <aside class="market-side-panel" id="marketSidePanel" aria-label="Customer menu">
+    <div class="market-side-head">
+      <img src="assets/wayne-bat-logo.jpg" alt="" style="width:42px;height:42px;border-radius:12px;object-fit:cover">
+      <strong>WAYNE LOGS</strong>
+      <button class="market-side-close" id="marketSideClose" type="button">×</button>
+    </div>
+    <div class="market-side-label">MAIN</div>
+    <nav class="market-side-links">
+      <a href="index.html"><b>⌂</b> Home</a>
+      <a href="profile.html"><b>●</b> Profile</a>
+    </nav>
+    <div class="market-side-label">SHOP</div>
+    <nav class="market-side-links">
+      <a href="index.html#shop"><b>▰</b> All Products</a>
+      <a class="active" href="orders.html"><b>▣</b> My Orders</a>
+      <a href="dashboard.html"><b>＋</b> Add Funds</a>
+      <a href="dashboard.html#transactions"><b>↶</b> Transactions</a>
+      <a href="index.html#categories"><b>▦</b> Categories</a>
+      <a href="support.html"><b>?</b> Support</a>
+    </nav>
+    <div class="market-side-account">
+      <strong id="menuUser">Customer Account</strong>
+      <a href="dashboard.html">Wallet / Top Up →</a>
+      <a href="#" id="logout">Logout</a>
+    </div>
+  </aside>
+
+  <main class="market-orders-main">
+    <div id="message" class="message"></div>
+    <div id="ordersView"><div class="market-orders-empty">Loading orders...</div></div>
+  </main>
+
+  <script src="config.js?v=20260825-logoutfix1"></script>
+  <script>
+  const API_URL=localStorage.getItem("wayneApiUrl")||window.WAYNE_API_URL||"https://wayne-logs-master-api.onrender.com";
+  const token=localStorage.getItem("wayneToken"),params=new URLSearchParams(location.search),view=document.getElementById("ordersView"),message=document.getElementById("message");
+  if(!token)location.replace("login.html");
+  const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d.innerHTML};
+  const money=n=>"₦"+Number(n||0).toLocaleString("en-NG",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const platformIcons={facebook:["facebook","1877F2","f"],instagram:["instagram","E4405F","◎"],tiktok:["tiktok","000000","♪"],"tiktok ads":["tiktok","000000","♪"],youtube:["youtube","FF0000","▶"],twitter:["x","000000","X"],x:["x","000000","X"],discord:["discord","5865F2","D"],telegram:["telegram","26A5E4","➤"],whatsapp:["whatsapp","25D366","W"],linkedin:["linkedin","0A66C2","in"],snapchat:["snapchat","FFFC00","S"],reddit:["reddit","FF4500","R"],pinterest:["pinterest","BD081C","P"],quora:["quora","B92B27","Q"],github:["github","181717","G"],spotify:["spotify","1ED760","S"],"private internet access":["privateinternetaccess","1E811F","PIA"],pia:["privateinternetaccess","1E811F","PIA"],expressvpn:["expressvpn","DA3940","E"],"express vpn":["expressvpn","DA3940","E"],"proton vpn":["protonvpn","6D4AFF","P"],protonvpn:["protonvpn","6D4AFF","P"],vpn:["protonvpn","6D4AFF","VPN"]};
+  function pkey(v){const k=String(v||"").trim().toLowerCase();return["twitter / x","x.com","twitter"].includes(k)?"x":k}
+  function icon(platform,fallback="★"){const e=platformIcons[pkey(platform)];if(!e)return`<span>${esc(fallback)}</span>`;return`<img src="https://cdn.simpleicons.org/${e[0]}/${e[1]}" alt="${esc(platform)}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span hidden>${esc(e[2])}</span>`}
+  function show(text,type="error"){message.textContent=text;message.className="message "+type;message.style.display="block"}
+  function shortId(o){return"#WL-"+String(o?._id||"").slice(-6).toUpperCase()}
+  function relative(date){const seconds=Math.max(1,Math.floor((Date.now()-new Date(date).getTime())/1000));if(seconds<60)return seconds+" sec ago";const m=Math.floor(seconds/60);if(m<60)return m+" min ago";const h=Math.floor(m/60);if(h<24)return h+" hr"+(h===1?"":"s")+" ago";const d=Math.floor(h/24);if(d<30)return d+" day"+(d===1?"":"s")+" ago";return new Date(date).toLocaleDateString()}
+  function statusText(o){if(o.paymentStatus==="paid"&&o.status==="completed")return"Completed";if(o.status==="processing")return"Processing";if(o.status==="cancelled")return"Cancelled";if(o.paymentStatus==="failed")return"Failed";if(o.paymentStatus==="refunded"||o.status==="refunded")return"Refunded";return"Pending"}
+  function statusClass(o){return statusText(o).toLowerCase()}
+  let orders=[];
+
+  function openMenu(){document.getElementById("marketSidePanel").classList.add("open");document.getElementById("marketSideOverlay").classList.add("show");document.body.style.overflow="hidden"}
+  function closeMenu(){document.getElementById("marketSidePanel").classList.remove("open");document.getElementById("marketSideOverlay").classList.remove("show");document.body.style.overflow=""}
+  document.getElementById("marketMenuBtn").onclick=openMenu;document.getElementById("marketSideClose").onclick=closeMenu;document.getElementById("marketSideOverlay").onclick=closeMenu;
+  document.getElementById("logout").onclick=e=>{e.preventDefault();localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.href="login.html"};
+  try{const u=JSON.parse(localStorage.getItem("wayneUser")||"null");if(u?.firstName)document.getElementById("menuUser").textContent=u.firstName+(u.lastName?" "+u.lastName:"")}catch{}
+
+  function renderList(){
+    history.replaceState({},"","orders.html");
+    view.innerHTML=`<div class="market-orders-title"><h1>My Orders</h1><p>${orders.length} order${orders.length===1?"":"s"} total</p></div>`+(orders.length?`<div class="market-orders-card">${orders.map(o=>`<div class="market-order-row" data-order="${esc(o._id)}" role="button" tabindex="0"><div class="market-order-icon">${icon(o.platform,o.productIcon||"★")}</div><div class="market-order-copy"><strong>${esc(o.productName)}</strong><small>${shortId(o)} · ${relative(o.createdAt)}${Number(o.quantity)>1?` · Qty: ${Number(o.quantity)}`:""}</small></div><div class="market-order-right"><b>${money(o.totalAmount)}</b><span class="market-status ${statusClass(o)}">${esc(statusText(o))}</span></div><span class="market-order-arrow">›</span></div>`).join("")}</div>`:'<div class="market-orders-card"><div class="market-orders-empty">No orders yet.<br><a href="index.html#shop" style="color:#0893d0;font-weight:900">Go to the shop →</a></div></div>');
+  }
+  function renderDetail(o){
+    if(!o){renderList();return}
+    history.pushState({order:o._id},"",`orders.html?order=${encodeURIComponent(o._id)}`);
+    const ref=o.paymentReference||("ORD_"+String(o._id).slice(-10).toUpperCase());
+    view.innerHTML=`<a class="market-back-link" href="orders.html" id="backOrders">← Back to Orders</a><div class="market-order-detail"><div class="market-order-detail-head"><div class="market-receipt-icon">▤</div><div><h2>Order ${shortId(o)}</h2><small>${new Date(o.createdAt).toLocaleString()}</small></div><span class="market-status ${statusClass(o)}">${esc(statusText(o))}</span></div><div class="market-order-detail-body"><div class="market-detail-product"><div class="market-order-icon">${icon(o.platform,o.productIcon||"★")}</div><div><strong>${esc(o.productName)}</strong><small>Qty: ${Number(o.quantity||1)} · Ref: ${esc(ref)}</small></div></div><div class="market-price-box"><div class="market-price-line"><span>Subtotal</span><span>${money(o.totalAmount)}</span></div><div class="market-price-line total"><span>Total Paid</span><strong>${o.paymentStatus==="paid"?money(o.totalAmount):"—"}</strong></div></div>${o.deliveryContent?`<div class="market-delivery-title">DELIVERY DETAILS</div><div class="market-delivery-box"><button class="market-copy-btn" id="copyDelivery" type="button">Copy</button>${esc(o.deliveryContent)}</div>`:`<div class="market-delivery-title">DELIVERY DETAILS</div><div class="market-locked">${o.paymentStatus==="paid"?"Your order is being processed. Delivery details will appear here when ready.":"Delivery details appear here after successful payment and completion."}</div>`}<div class="market-detail-actions">${o.paymentStatus==="pending"?`<button class="market-pay-btn" id="retryWallet" type="button">Pay from Wallet</button>`:""}<a class="market-all-orders-btn" href="orders.html" id="allOrders">☷ &nbsp; All Orders</a><a class="market-all-orders-btn" href="support.html?order=${esc(o._id)}">Get Support</a></div></div></div>`;
+    document.getElementById("backOrders").onclick=e=>{e.preventDefault();renderList()};document.getElementById("allOrders").onclick=e=>{e.preventDefault();renderList()};
+    document.getElementById("copyDelivery")?.addEventListener("click",async e=>{const text=o.deliveryContent||"";try{await navigator.clipboard.writeText(text)}catch{const area=document.createElement("textarea");area.value=text;document.body.appendChild(area);area.select();document.execCommand("copy");area.remove()}e.currentTarget.textContent="Copied!";setTimeout(()=>e.currentTarget.textContent="Copy",1600)});
+    document.getElementById("retryWallet")?.addEventListener("click",e=>retryPayment(o._id,e.currentTarget));
+  }
+  async function retryPayment(id,button){button.disabled=true;button.textContent="Paying...";try{const r=await fetch(API_URL+`/api/orders/${encodeURIComponent(id)}/wallet/pay`,{method:"POST",headers:{Authorization:"Bearer "+token}}),d=await r.json();if(!r.ok)throw new Error(d.message||"Wallet payment could not be completed");show("Wallet payment completed successfully.","success");await load(id)}catch(err){show(err.message);button.disabled=false;button.textContent="Pay from Wallet"}}
+  view.addEventListener("click",e=>{const row=e.target.closest("[data-order]");if(row){const o=orders.find(x=>String(x._id)===String(row.dataset.order));renderDetail(o)}});
+  view.addEventListener("keydown",e=>{if(!["Enter"," "].includes(e.key))return;const row=e.target.closest("[data-order]");if(row){e.preventDefault();const o=orders.find(x=>String(x._id)===String(row.dataset.order));renderDetail(o)}});
+  window.addEventListener("popstate",()=>{const id=new URLSearchParams(location.search).get("order");const o=orders.find(x=>String(x._id)===String(id));id&&o?renderDetail(o):renderList()});
+
+  async function load(preferredId){
+    try{const r=await fetch(API_URL+"/api/orders/my",{headers:{Authorization:"Bearer "+token}}),d=await r.json();if(!r.ok)throw new Error(d.message||"Could not load orders");orders=Array.isArray(d.orders)?d.orders:[];const requested=preferredId||params.get("order");const selected=orders.find(o=>String(o._id)===String(requested));selected?renderDetail(selected):renderList()}catch(err){show(err.message);view.innerHTML='<div class="market-orders-card"><div class="market-orders-empty">Could not load your orders.</div></div>'}
+  }
+  if(params.get("walletPurchase")==="success")show("Wallet payment completed successfully.","success");
+  load();
+  </script>
+</body>
+</html>
