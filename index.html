@@ -2,166 +2,128 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WAYNE LOGS — Shop Social Services & VPN</title><link rel="icon" type="image/png" href="/assets/wayne-bat-logo.jpg"><link rel="apple-touch-icon" href="/assets/wayne-bat-logo.jpg"><meta name="theme-color" content="#0f2d53">
-  <meta name="description" content="Shop legitimate social-media digital services and VPN subscriptions.">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WAYNE LOGS — Digital Marketplace</title>
+  <link rel="icon" type="image/png" href="/assets/wayne-bat-logo.jpg">
+  <link rel="apple-touch-icon" href="/assets/wayne-bat-logo.jpg">
+  <meta name="theme-color" content="#0f2d53">
+  <meta name="description" content="WAYNE LOGS digital marketplace for social services, subscriptions and VPN products.">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="store-simple.css">
-<link rel="stylesheet" href="premium-pages.css?v=20260825-optimized2"><link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6"></head>
-<body class="simple-store premium-store">
-  <header class="simple-header">
-    <div class="simple-wrap simple-nav">
-      <a class="simple-brand" href="index.html">
-        <span class="simple-logo">W</span>
+  <link rel="stylesheet" href="premium-pages.css?v=20260825-optimized2">
+  <link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6">
+  <link rel="stylesheet" href="marketplace-pages.css?v=20260827-home1">
+</head>
+<body class="simple-store premium-store market-home">
+
+  <header class="market-page-header">
+    <div class="market-page-header-inner">
+      <button class="market-menu-btn" id="marketMenuBtn" type="button" aria-label="Open menu">☰</button>
+      <a class="market-brand" href="index.html">
+        <img src="assets/wayne-bat-logo.jpg" alt="WAYNE LOGS">
         <span>WAYNE LOGS</span>
       </a>
-
-      <nav class="simple-links">
-        <a href="#shop">Shop</a>
-        <a href="orders.html">My Orders</a>
-        <a href="dashboard.html">Wallet</a>
-        <a href="support.html">Support</a>
-      </nav>
-
-      <div class="simple-actions" id="accountActions">
-        <a class="simple-btn secondary" id="accountLink" href="login.html">Login</a>
-        <a class="simple-btn secondary" id="registerLink" href="register.html">Create Account</a>
-        <a class="simple-btn secondary" id="adminLink" href="admin.html" hidden>Admin</a>
-        <button class="simple-btn cart-button" id="cartButton" type="button">
-          Cart <span class="simple-count" data-cart-count>0</span>
-        </button>
+      <div class="market-header-actions">
+        <a class="market-icon-btn" href="dashboard.html" title="Wallet">₦</a>
+        <a class="market-icon-btn" href="notifications.html" title="Notifications">♢</a>
+        <button class="market-icon-btn market-cart-shortcut" id="cartButton" type="button" title="Cart">▦<em data-cart-count>0</em></button>
       </div>
     </div>
   </header>
 
-  <div class="premium-ticker"><div class="simple-wrap"><span>✨ Premium digital services</span><i></i><span>⚡ Fast order processing</span><i></i><span>🔒 Secure wallet checkout</span></div></div>
-
-  <main>
-    <section class="simple-hero">
-      <div class="simple-wrap simple-hero-grid">
-        <div>
-          <span class="simple-kicker">YOUR DIGITAL SERVICES MARKETPLACE</span>
-          <h1>Premium Social Media Services & VPN</h1>
-          <p>
-            Everything you need in one polished store. Choose a platform, review the details, and pay safely from your WAYNE LOGS wallet.
-          </p>
-          <div class="simple-hero-actions">
-            <a class="simple-btn primary large" href="#shop">Shop Now</a>
-            <a class="simple-btn secondary large" href="dashboard.html">＋ Add Money</a>
-          </div>
-        </div>
-
-        <aside class="simple-how premium-visual">
-          <div class="orbit-logo big">W</div>
-          <div class="orbit-logo facebook">f</div><div class="orbit-logo instagram">◎</div><div class="orbit-logo tiktok">♪</div><div class="orbit-logo youtube">▶</div><div class="orbit-logo vpn">✓</div>
-          <strong>All your favorite platforms</strong><small>One secure wallet. One simple dashboard.</small>
-        </aside>
-      </div>
-    </section>
-
-    <section class="platform-showcase" aria-label="Product categories"><div class="simple-wrap">
-      <div class="category-heading"><div><span class="simple-kicker">BROWSE CATEGORIES</span><h2>Find your platform</h2><p>Tap any category to see its available products and remaining stock.</p></div><span class="category-live">● Live stock</span></div>
-      <div class="platform-logo-grid" id="categoryBrowser">
-        <button class="category-all" data-jump-platform="all"><span class="category-icon">▦</span><b>All Products</b><small data-category-count="all">0 items</small></button>
-        <button data-jump-platform="YouTube"><img src="https://cdn.simpleicons.org/youtube/FF0000" alt=""><b>YouTube</b><small data-category-count="youtube">0 items</small></button>
-        <button data-jump-platform="Facebook"><img src="https://cdn.simpleicons.org/facebook/1877F2" alt=""><b>Facebook</b><small data-category-count="facebook">0 items</small></button>
-        <button data-jump-platform="Instagram"><img src="https://cdn.simpleicons.org/instagram/E4405F" alt=""><b>Instagram</b><small data-category-count="instagram">0 items</small></button>
-        <button data-jump-platform="X"><img src="https://cdn.simpleicons.org/x/000000" alt=""><b>Twitter / X</b><small data-category-count="x">0 items</small></button>
-        <button data-jump-platform="TikTok"><img src="https://cdn.simpleicons.org/tiktok/000000" alt=""><b>TikTok</b><small data-category-count="tiktok">0 items</small></button>
-        <button data-jump-platform="TikTok Ads"><img src="https://cdn.simpleicons.org/tiktok/000000" alt=""><b>TikTok Ads</b><small data-category-count="tiktok ads">0 items</small></button>
-        <button data-jump-platform="Snapchat"><img src="https://cdn.simpleicons.org/snapchat/FFFC00" alt=""><b>Snapchat</b><small data-category-count="snapchat">0 items</small></button>
-        <button data-jump-platform="Reddit"><img src="https://cdn.simpleicons.org/reddit/FF4500" alt=""><b>Reddit</b><small data-category-count="reddit">0 items</small></button>
-        <button data-jump-platform="Discord"><img src="https://cdn.simpleicons.org/discord/5865F2" alt=""><b>Discord</b><small data-category-count="discord">0 items</small></button>
-        <button data-jump-platform="WhatsApp"><img src="https://cdn.simpleicons.org/whatsapp/25D366" alt=""><b>WhatsApp</b><small data-category-count="whatsapp">0 items</small></button>
-        <button data-jump-platform="Telegram"><img src="https://cdn.simpleicons.org/telegram/26A5E4" alt=""><b>Telegram</b><small data-category-count="telegram">0 items</small></button>
-        <button data-jump-platform="LinkedIn"><span class="category-icon brand-linkedin">in</span><b>LinkedIn</b><small data-category-count="linkedin">0 items</small></button>
-        <button data-jump-platform="Pinterest"><img src="https://cdn.simpleicons.org/pinterest/BD081C" alt=""><b>Pinterest</b><small data-category-count="pinterest">0 items</small></button>
-        <button data-jump-platform="Quora"><img src="https://cdn.simpleicons.org/quora/B92B27" alt=""><b>Quora</b><small data-category-count="quora">0 items</small></button>
-        <button data-jump-platform="GitHub"><img src="https://cdn.simpleicons.org/github/181717" alt=""><b>GitHub</b><small data-category-count="github">0 items</small></button>
-        <button data-jump-platform="Spotify"><img src="https://cdn.simpleicons.org/spotify/1ED760" alt=""><b>Spotify</b><small data-category-count="spotify">0 items</small></button>
-        <button data-jump-platform="Taimi"><span class="category-icon dating">♥</span><b>Taimi Dating</b><small data-category-count="taimi">0 items</small></button>
-        <button data-jump-platform="Grindr"><span class="category-icon brand-grindr">♜</span><b>Grindr Dating</b><small data-category-count="grindr">0 items</small></button>
-        <button data-jump-platform="Bumble"><span class="category-icon brand-bumble">⬡</span><b>Bumble Dating</b><small data-category-count="bumble">0 items</small></button>
-        <button data-jump-platform="MeetMe"><span class="category-icon people">♟</span><b>MeetMe Dating</b><small data-category-count="meetme">0 items</small></button>
-        <button data-jump-platform="Badoo"><img src="https://cdn.simpleicons.org/badoo/783BF9" alt=""><b>Badoo Dating</b><small data-category-count="badoo">0 items</small></button>
-        <button data-jump-platform="Dating Apps"><span class="category-icon dating">♥</span><b>Dating Apps</b><small data-category-count="dating apps">0 items</small></button>
-        <button data-jump-platform="Private Internet Access"><img src="https://cdn.simpleicons.org/privateinternetaccess/1E811F" alt=""><b>PIA VPN</b><small data-category-count="private internet access">0 items</small></button>
-        <button data-jump-platform="ExpressVPN"><img src="https://cdn.simpleicons.org/expressvpn/DA3940" alt=""><b>ExpressVPN</b><small data-category-count="expressvpn">0 items</small></button>
-        <button data-jump-platform="Proton VPN"><img src="https://cdn.simpleicons.org/protonvpn/6D4AFF" alt=""><b>Proton VPN</b><small data-category-count="proton vpn">0 items</small></button>
-        <button data-jump-platform="VPN"><img src="https://cdn.simpleicons.org/protonvpn/6D4AFF" alt=""><b>Other VPN</b><small data-category-count="vpn">0 items</small></button>
-      </div>
-    </div></section>
-
-    <section class="simple-shop" id="shop">
-      <div class="simple-wrap">
-        <div class="simple-section-title">
-          <div>
-            <span class="simple-kicker">STORE</span>
-            <h2>Explore our services</h2>
-            <p>Choose a platform or search for exactly what you need.</p>
-          </div>
-        </div>
-
-        <div class="platform-filters" id="platformFilters">
-          <button class="platform-pill active" type="button" data-platform="all">All</button>
-          <button class="platform-pill" type="button" data-platform="social">Social</button>
-          <button class="platform-pill" type="button" data-platform="vpn">VPN</button>
-        </div>
-
-        <div class="simple-toolbar">
-          <label class="simple-search">
-            <span>⌕</span>
-            <input id="searchInput" type="search" placeholder="Search Instagram, VPN, YouTube...">
-          </label>
-          <select id="filterSelect" class="simple-select" aria-label="Filter product type">
-            <option value="all">All products</option>
-            <option value="social">Social services</option>
-            <option value="vpn">VPN</option>
-          </select>
-        </div>
-
-        <div class="simple-products" id="productGrid">
-          <div class="simple-empty">Loading products...</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="simple-trust">
-      <div class="simple-wrap simple-trust-grid">
-        <article><span>✓</span><div><strong>Clear pricing</strong><small>Price is shown before checkout.</small></div></article>
-        <article><span>✓</span><div><strong>Account orders</strong><small>Every purchase is connected to your account.</small></div></article>
-        <article><span>✓</span><div><strong>Verified payment</strong><small>Delivery unlocks only after payment verification.</small></div></article>
-      </div>
-    </section>
-  </main>
-
-  <footer class="simple-footer">
-    <div class="simple-wrap">
+  <div class="market-side-overlay" id="marketSideOverlay"></div>
+  <aside class="market-side-panel" id="marketSidePanel" aria-label="Customer menu">
+    <div class="market-side-head">
+      <img src="assets/wayne-bat-logo.jpg" alt="" style="width:42px;height:42px;border-radius:12px;object-fit:cover">
       <strong>WAYNE LOGS</strong>
-      <span>Social digital services and VPN subscriptions.</span>
+      <button class="market-side-close" id="marketSideClose" type="button">×</button>
     </div>
-  </footer>
+    <div class="market-side-label">MAIN</div>
+    <nav class="market-side-links">
+      <a class="active" href="index.html"><b>⌂</b> Home</a>
+      <a href="profile.html"><b>●</b> Profile</a>
+    </nav>
+    <div class="market-side-label">SHOP</div>
+    <nav class="market-side-links">
+      <a href="#shop" data-close-menu><b>▰</b> All Products</a>
+      <a href="orders.html"><b>▣</b> My Orders</a>
+      <a href="dashboard.html"><b>＋</b> Add Funds</a>
+      <a href="dashboard.html#transactions"><b>↶</b> Transactions</a>
+      <a href="#categories" data-close-menu><b>▦</b> Categories</a>
+      <a href="support.html"><b>?</b> Support</a>
+    </nav>
+    <div class="market-side-account" id="sideAccountBox">
+      <strong>Wallet Balance</strong>
+      <div id="sideWalletBalance" style="font-size:25px;font-weight:950;margin:8px 0">₦0.00</div>
+      <a href="dashboard.html">Top Up →</a>
+    </div>
+  </aside>
+
+  <div class="market-hidden-actions" id="accountActions">
+    <a id="accountLink" href="login.html">Login</a>
+    <a id="registerLink" href="register.html">Create Account</a>
+    <a id="adminLink" href="admin.html" hidden>Admin</a>
+  </div>
+
+  <div class="market-announcement">
+    <div class="market-announcement-track">
+      <span>🎉 Welcome to WAYNE LOGS</span><i></i>
+      <span>🔥 Fresh products added regularly</span><i></i>
+      <span>⚡ Wallet checkout is fast and secure</span>
+    </div>
+  </div>
+
+  <section class="market-home-hero">
+    <div class="market-home-hero-inner">
+      <div>
+        <h1>Premium Digital Marketplace</h1>
+        <p>Browse social services, subscriptions and VPN products. See the price, stock and product details before you buy.</p>
+        <a class="market-shop-now" href="#shop">⚡ Shop Now</a>
+      </div>
+      <div class="market-hero-art">▦</div>
+    </div>
+  </section>
+
+  <main class="market-home-main" id="shop">
+    <label class="market-search-wrap">
+      <span>⌕</span>
+      <input id="searchInput" type="search" placeholder="Search products or categories...">
+    </label>
+
+    <div class="market-popular" id="popularCategories">
+      <span>Popular:</span>
+      <button type="button" data-jump-platform="Instagram">Instagram</button>
+      <button type="button" data-jump-platform="TikTok">TikTok</button>
+      <button type="button" data-jump-platform="YouTube">YouTube</button>
+      <button type="button" data-jump-platform="X">Twitter / X</button>
+      <button type="button" data-jump-platform="Facebook">Facebook</button>
+      <button type="button" data-jump-platform="VPN">VPN</button>
+    </div>
+
+    <div id="categories"></div>
+    <div id="productGrid"><div class="market-empty">Loading products...</div></div>
+
+    <div class="market-filter-engine" aria-hidden="true">
+      <div id="platformFilters">
+        <button data-platform="all">All</button>
+        <button data-platform="social">Social</button>
+        <button data-platform="vpn">VPN</button>
+      </div>
+      <select id="filterSelect"><option value="all">All products</option><option value="social">Social</option><option value="vpn">VPN</option></select>
+    </div>
+  </main>
 
   <div class="simple-backdrop" id="overlay"></div>
 
   <aside class="simple-drawer" id="cartDrawer" aria-label="Shopping cart">
     <div class="simple-panel-head">
-      <div>
-        <small>YOUR CART</small>
-        <h2>Ready to buy?</h2>
-      </div>
+      <div><small>YOUR CART</small><h2>Ready to buy?</h2></div>
       <button class="simple-close" id="closeCartBtn" type="button">×</button>
     </div>
-
     <div id="cartItems"></div>
-
-    <div class="simple-total">
-      <span>Total</span>
-      <strong id="cartTotal">₦0</strong>
-    </div>
-
+    <div class="simple-total"><span>Total</span><strong id="cartTotal">₦0</strong></div>
     <button class="simple-btn primary full" id="checkoutBtn" type="button">Continue to Checkout</button>
-    <p class="simple-note">Checkout handles one product at a time to keep the purchase simple.</p>
+    <p class="simple-note">Checkout handles one product at a time.</p>
   </aside>
 
   <div class="simple-modal" id="productModal" aria-hidden="true">
@@ -171,18 +133,12 @@
       <span class="simple-kicker" id="modalPlatform"></span>
       <h2 id="modalTitle">Product</h2>
       <p class="simple-modal-desc" id="modalDesc"></p>
-
       <div class="simple-details">
         <div><span>Price</span><strong id="modalPrice">₦0</strong></div>
         <div><span>Delivery</span><strong id="modalDelivery">After payment</strong></div>
         <div><span>Availability</span><strong id="modalStock">Available</strong></div>
       </div>
-
-      <div class="simple-what">
-        <strong>What you're buying</strong>
-        <p id="modalWhat"></p>
-      </div>
-
+      <div class="simple-what"><strong>What you're buying</strong><p id="modalWhat"></p></div>
       <div class="simple-modal-actions">
         <button class="simple-btn secondary full" id="modalAdd" type="button">Add to Cart</button>
         <button class="simple-btn primary full" id="modalBuy" type="button">Buy Now</button>
@@ -195,30 +151,17 @@
       <button class="simple-close floating" id="closeCheckoutBtn" type="button">×</button>
       <span class="simple-kicker">CHECKOUT</span>
       <h2>Check your order</h2>
-      <p>Make sure this is what you want before going to payment.</p>
-
+      <p>Make sure this is what you want before paying from your wallet.</p>
       <div class="checkout-product" id="checkoutProduct"></div>
-
-      <div class="checkout-row">
-        <span>Account</span>
-        <strong id="checkoutEmail">—</strong>
-      </div>
-      <div class="checkout-row total">
-        <span>Total</span>
-        <strong id="checkoutTotal">₦0</strong>
-      </div>
-
+      <div class="checkout-row"><span>Account</span><strong id="checkoutEmail">—</strong></div>
+      <div class="checkout-row total"><span>Total</span><strong id="checkoutTotal">₦0</strong></div>
       <div id="checkoutMessage" class="simple-message"></div>
-
-      <button class="simple-btn primary full pay-button" id="payButton" type="button">
-        Pay with Wallet Balance
-      </button>
-      <p class="simple-note">Wallet purchases are deducted securely by the server. Add money first if your balance is too low.</p>
+      <button class="simple-btn primary full pay-button" id="payButton" type="button">Pay with Wallet Balance</button>
+      <p class="simple-note">Wallet purchases are deducted securely by the server.</p>
     </div>
   </div>
 
   <script src="config.js?v=20260825-logoutfix1"></script>
-  <script src="app.js?v=20260825-optimized2"></script>
+  <script src="app.js?v=20260827-market-home1"></script>
 </body>
 </html>
-
