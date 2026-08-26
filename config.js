@@ -120,3 +120,80 @@ async function loadWayneNotificationBell(){
   }catch{}
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadWayneNotificationBell);else loadWayneNotificationBell();
+
+// Owner-requested navigation: wallet shortcut on home, admin shortcut for admins, and Back on every inner page.
+(function installWayneRequestedNavigation(){
+  const style=document.createElement("style");
+  style.textContent=`
+    .wayne-global-back-wrap{width:min(1160px,calc(100% - 28px));margin:14px auto 0;position:relative;z-index:30}
+    .wayne-global-back{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:9px 14px;border:1px solid #cfe0ec;border-radius:13px;background:rgba(255,255,255,.94);color:#0b78b6;text-decoration:none;font-weight:900;box-shadow:0 7px 18px rgba(23,70,108,.07);cursor:pointer}
+    .wayne-global-back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    #marketWalletBtn,#marketAdminShortcut{text-decoration:none}
+    #marketAdminShortcut{color:#0b78b6}
+    @media(max-width:760px){.wayne-global-back-wrap{width:calc(100% - 24px);margin-top:10px}.wayne-global-back{min-height:39px;padding:8px 12px;font-size:13px}}
+  `;
+  document.head.appendChild(style);
+
+  const walletSvg='<svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 14h2"/></svg>';
+  const adminSvg='<svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5c0 5 3.2 8.4 7.5 10 4.3-1.6 7.5-5 7.5-10V6L12 3Z"/><path d="m9.5 12 1.6 1.6 3.6-4"/></svg>';
+  const backSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>';
+
+  function storedUser(){try{return JSON.parse(localStorage.getItem("wayneUser")||"{}")||{}}catch{return {}}}
+
+  function enhanceHomeHeader(){
+    const themeButton=document.getElementById("marketThemeBtn");
+    if(themeButton){
+      themeButton.id="marketWalletBtn";
+      themeButton.setAttribute("aria-label","Wallet");
+      themeButton.setAttribute("title","Wallet");
+      themeButton.innerHTML=walletSvg;
+      themeButton.onclick=()=>{location.href="dashboard.html"};
+    }
+    const actions=document.querySelector(".market-header-actions");
+    if(!actions)return;
+    const user=storedUser();
+    const isAdmin=Boolean(localStorage.getItem("wayneToken"))&&String(user.role||"").toLowerCase()==="admin";
+    let admin=document.getElementById("marketAdminShortcut");
+    if(isAdmin&&!admin){
+      admin=document.createElement("a");
+      admin.id="marketAdminShortcut";
+      admin.className="market-icon-btn";
+      admin.href="admin.html";
+      admin.setAttribute("aria-label","Admin Panel");
+      admin.setAttribute("title","Admin Panel");
+      admin.innerHTML=adminSvg;
+      actions.appendChild(admin);
+    }
+    if(admin)admin.hidden=!isAdmin;
+  }
+
+  function addBackButton(){
+    const path=location.pathname.toLowerCase();
+    const isHome=path==="/"||path.endsWith("/index.html")||path==="";
+    if(isHome)return;
+    const walletBack=document.querySelector(".wayne-wallet-back");
+    if(walletBack){
+      const label=walletBack.querySelector("span");if(label)label.textContent="Back";
+      walletBack.onclick=e=>{e.preventDefault();if(history.length>1)history.back();else location.href="index.html"};
+      return;
+    }
+    if(document.querySelector(".wayne-global-back-wrap"))return;
+    const wrap=document.createElement("div");wrap.className="wayne-global-back-wrap";
+    const back=document.createElement("a");back.className="wayne-global-back";back.href="index.html";back.innerHTML=backSvg+'<span>Back</span>';
+    back.onclick=e=>{e.preventDefault();if(history.length>1)history.back();else location.href="index.html"};
+    wrap.appendChild(back);
+    const header=document.querySelector(".market-page-header,.simple-header,.dash-header,.nav,.admin-top,.auth-card");
+    if(header&&header.parentNode)header.parentNode.insertBefore(wrap,header.nextSibling);else document.body.insertBefore(wrap,document.body.firstChild);
+  }
+
+  function enforceCleanup(){
+    document.querySelectorAll(".wayne-customer-dock,.wayne-account-backdrop").forEach(el=>el.remove());
+    if(/\/dashboard\.html$/i.test(location.pathname))document.querySelectorAll(".dash-wrap > .platforms").forEach(el=>el.remove());
+  }
+
+  const start=()=>{
+    enforceCleanup();enhanceHomeHeader();addBackButton();
+    new MutationObserver(()=>{enforceCleanup();enhanceHomeHeader();}).observe(document.body,{childList:true,subtree:true});
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
+})();
