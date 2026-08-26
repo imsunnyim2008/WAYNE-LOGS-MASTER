@@ -21,6 +21,7 @@ async function ps(path,opts={}){
   }
   const r=await fetch(BASE+path,{
     ...opts,
+    signal:opts.signal||AbortSignal.timeout(Math.max(5000,Number(process.env.PAYMENT_PROVIDER_TIMEOUT_MS||15000))),
     headers:{
       Authorization:"Bearer "+process.env.PAYSTACK_SECRET_KEY,
       "Content-Type":"application/json",
@@ -235,7 +236,7 @@ exports.verify=async(req,res)=>{
 
 exports.mine=async(req,res)=>{
   try{
-    const orders=await Order.find({user:req.user._id}).select("+deliveryContent +inventoryItem").sort({createdAt:-1});
+    const orders=await Order.find({user:req.user._id}).select("+deliveryContent +inventoryItem").sort({createdAt:-1}).limit(250);
     const out=[];
     for(const o of orders){
       // Repair an older paid inventory order if it was created as manual delivery.
@@ -254,6 +255,7 @@ exports.mine=async(req,res)=>{
 };
 
 exports.payWithWallet=async(req,res)=>{
+  if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({message:"Invalid order ID."});
   const session=await mongoose.startSession();
   try{
     let result;
@@ -290,7 +292,7 @@ exports.payWithWallet=async(req,res)=>{
 
 exports.adminAll=async(req,res)=>{
   try{
-    const orders=await Order.find().populate("user","firstName lastName email phone").sort({createdAt:-1});
+    const orders=await Order.find().populate("user","firstName lastName email phone").sort({createdAt:-1}).limit(1000);
     res.json({success:true,orders});
   }catch(e){
     res.status(500).json({message:"Could not load orders."});
@@ -299,6 +301,7 @@ exports.adminAll=async(req,res)=>{
 
 exports.adminStatus=async(req,res)=>{
   try{
+    if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({message:"Invalid order ID."});
     const o=await Order.findById(req.params.id);
     if(!o)return res.status(404).json({message:"Order not found."});
     const s=req.body.status;
@@ -319,6 +322,7 @@ exports.adminStatus=async(req,res)=>{
 };
 
 exports.adminRefund=async(req,res)=>{
+  if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({message:"Invalid order ID."});
   const reason=String(req.body.reason||"").trim().slice(0,250),adminPassword=String(req.body.adminPassword||"");
   if(reason.length<4)return res.status(400).json({message:"Enter a clear reason for this refund."});
   const attemptKey=String(req.user._id),now=Date.now(),attempt=refundAttempts.get(attemptKey);
@@ -377,3 +381,4 @@ exports.webhook=async(req,res)=>{
     res.sendStatus(500);
   }
 };
+

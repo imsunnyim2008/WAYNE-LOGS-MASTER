@@ -3,7 +3,13 @@ const cors=require("cors");
 const dotenv=require("dotenv");
 const morgan=require("morgan");
 const mongoose=require("mongoose");
+const crypto=require("crypto");
 dotenv.config();
+const requiredConfig=["MONGO_URI","JWT_SECRET"];
+const missingConfig=requiredConfig.filter(key=>!String(process.env[key]||"").trim());
+if(missingConfig.length)throw new Error(`Missing required environment variable${missingConfig.length===1?"":"s"}: ${missingConfig.join(", ")}`);
+if(String(process.env.JWT_SECRET).length<32)console.warn("WARNING: JWT_SECRET should contain at least 32 random characters.");
+if(!process.env.INVENTORY_ENCRYPTION_KEY)console.warn("WARNING: INVENTORY_ENCRYPTION_KEY is not set; inventory encryption currently depends on JWT_SECRET remaining unchanged.");
 const app=express();
 const authRoutes=require("./routes/authRoutes");
 const productRoutes=require("./routes/productRoutes");
@@ -16,10 +22,12 @@ const referralRoutes=require("./routes/referralRoutes");
 const auditRoutes=require("./routes/auditRoutes");
 const securityRoutes=require("./routes/securityRoutes");
 const auditMiddleware=require("./middleware/auditMiddleware");
+const maintenance=require("./services/maintenanceService");
 const{webhook:walletWebhook}=require("./controllers/walletController");
 app.disable("x-powered-by");
 app.set("trust proxy",1);
-app.use((req,res,next)=>{res.setHeader("X-Content-Type-Options","nosniff");res.setHeader("X-Frame-Options","DENY");res.setHeader("Referrer-Policy","no-referrer");res.setHeader("Permissions-Policy","camera=(), microphone=(), geolocation=()");res.setHeader("Cross-Origin-Resource-Policy","same-site");next()});
+const runtime={startedAt:new Date(),requests:0};
+app.use((req,res,next)=>{runtime.requests+=1;const requestId=String(req.headers["x-request-id"]||crypto.randomUUID()).slice(0,100);req.requestId=requestId;res.setHeader("X-Request-ID",requestId);res.setHeader("X-Content-Type-Options","nosniff");res.setHeader("X-Frame-Options","DENY");res.setHeader("Referrer-Policy","no-referrer");res.setHeader("Permissions-Policy","camera=(), microphone=(), geolocation=()");res.setHeader("Cross-Origin-Resource-Policy","same-site");if(process.env.NODE_ENV==="production")res.setHeader("Strict-Transport-Security","max-age=31536000; includeSubDomains");if(req.path.startsWith("/api/")&&(req.method!=="GET"||req.headers.authorization))res.setHeader("Cache-Control","no-store");next()});
 const allowedOrigins=new Set([process.env.FRONTEND_URL,"https://waynelogs.com","https://www.waynelogs.com","http://localhost:5500","http://127.0.0.1:5500"].concat(String(process.env.ALLOWED_ORIGINS||"").split(",")).map(v=>String(v||"").trim().replace(/\/$/,"")).filter(Boolean));
 app.use(cors({origin(origin,callback){if(!origin||allowedOrigins.has(String(origin).replace(/\/$/,"")))return callback(null,true);return callback(new Error("Origin not allowed"))},credentials:false,methods:["GET","POST","PUT","PATCH","DELETE","OPTIONS"],allowedHeaders:["Content-Type","Authorization"]}));
 app.use(morgan("dev"));
@@ -29,10 +37,13 @@ app.use(express.urlencoded({extended:true,limit:"2mb"}));
 app.use(auditMiddleware);
 function createRateLimiter({windowMs,max,message}){
   const attempts=new Map(),cleanup=setInterval(()=>{const now=Date.now();for(const[key,value]of attempts)if(value.resetAt<=now)attempts.delete(key)},Math.min(windowMs,300000));cleanup.unref?.();
-  return(req,res,next)=>{const now=Date.now(),key=String(req.ip||req.socket?.remoteAddress||"unknown"),current=attempts.get(key);if(!current||current.resetAt<=now){attempts.set(key,{count:1,resetAt:now+windowMs});return next()}if(current.count>=max){res.setHeader("Retry-After",Math.max(1,Math.ceil((current.resetAt-now)/1000)));return res.status(429).json({message})}current.count+=1;next()};
+  return(req,res,next)=>{const now=Date.now(),key=String(req.ip||req.socket?.remoteAddress||"unknown"),current=attempts.get(key);if(attempts.size>10000)for(const[id,value]of attempts)if(value.resetAt<=now)attempts.delete(id);if(!current||current.resetAt<=now){attempts.set(key,{count:1,resetAt:now+windowMs});res.setHeader("RateLimit-Limit",String(max));res.setHeader("RateLimit-Remaining",String(max-1));return next()}if(current.count>=max){res.setHeader("Retry-After",Math.max(1,Math.ceil((current.resetAt-now)/1000)));res.setHeader("RateLimit-Remaining","0");return res.status(429).json({message})}current.count+=1;res.setHeader("RateLimit-Limit",String(max));res.setHeader("RateLimit-Remaining",String(Math.max(0,max-current.count)));next()};
 }
 app.use("/api/auth/login",createRateLimiter({windowMs:15*60*1000,max:20,message:"Too many login attempts. Please wait a few minutes and try again."}));
 app.use("/api/auth/register",createRateLimiter({windowMs:60*60*1000,max:10,message:"Too many account-creation attempts. Please try again later."}));
+app.use("/api/wallet/transfers",createRateLimiter({windowMs:10*60*1000,max:20,message:"Too many wallet-transfer attempts. Please wait and try again."}));
+app.use("/api/wallet/topups",createRateLimiter({windowMs:10*60*1000,max:30,message:"Too many top-up attempts. Please wait and try again."}));
+app.use("/api/orders",createRateLimiter({windowMs:60*1000,max:90,message:"Too many order requests. Please wait one minute and try again."}));
 app.use("/api/auth",authRoutes);
 app.use("/api/products",productRoutes);
 app.use("/api/orders",orderRoutes);
@@ -45,9 +56,19 @@ app.use("/api/audit",auditRoutes);
 app.use("/api/security",securityRoutes);
 app.get("/",(req,res)=>res.json({success:true,message:"WAYNE LOGS MASTER API"}));
 app.get("/api/test",(req,res)=>res.json({success:true,message:"Backend online"}));
+app.get("/health/live",(req,res)=>res.json({status:"ok",service:"wayne-logs-api",uptimeSeconds:Math.floor(process.uptime()),timestamp:new Date().toISOString()}));
+app.get("/health/ready",async(req,res)=>{const connected=mongoose.connection.readyState===1;let database=connected;try{if(connected)await mongoose.connection.db.admin().ping();else database=false}catch{database=false}res.status(database?200:503).json({status:database?"ready":"not_ready",database:database?"connected":"unavailable",uptimeSeconds:Math.floor(process.uptime()),timestamp:new Date().toISOString()})});
+app.get("/api/health",(req,res)=>res.status(mongoose.connection.readyState===1?200:503).json({success:mongoose.connection.readyState===1,status:mongoose.connection.readyState===1?"ready":"not_ready",startedAt:runtime.startedAt,requests:runtime.requests,version:process.env.RENDER_GIT_COMMIT||process.env.APP_VERSION||"unknown"}));
 app.use("/api",(req,res)=>res.status(404).json({message:"API route not found."}));
-app.use((error,req,res,next)=>{if(res.headersSent)return next(error);const blocked=error?.message==="Origin not allowed",status=blocked?403:Number(error?.status||error?.statusCode)||500;if(status>=500)console.error("Request failed:",error?.message||error);res.status(status).json({message:blocked?"This website origin is not allowed.":status>=500?"The server could not complete this request.":error.message||"Request failed."})});
+app.use((error,req,res,next)=>{if(res.headersSent)return next(error);const invalidJson=error instanceof SyntaxError&&error.status===400&&"body" in error,blocked=error?.message==="Origin not allowed",status=invalidJson?400:blocked?403:Number(error?.status||error?.statusCode)||500;if(status>=500)console.error(`[${req.requestId||"no-request-id"}] Request failed:`,error?.message||error);res.status(status).json({message:invalidJson?"The request contains invalid JSON.":blocked?"This website origin is not allowed.":status>=500?"The server could not complete this request.":error.message||"Request failed.",requestId:req.requestId})});
 const PORT=process.env.PORT||5000;
-mongoose.connect(process.env.MONGO_URI)
-  .then(()=>{console.log("MongoDB connected");app.listen(PORT,()=>console.log("WAYNE LOGS API running on "+PORT));})
+let httpServer,maintenanceTimer,shuttingDown=false;
+mongoose.connection.on("disconnected",()=>console.error("MongoDB disconnected"));
+mongoose.connection.on("reconnected",()=>console.log("MongoDB reconnected"));
+mongoose.connect(process.env.MONGO_URI,{serverSelectionTimeoutMS:15000,connectTimeoutMS:15000,maxPoolSize:Number(process.env.MONGO_POOL_SIZE||20),minPoolSize:1})
+  .then(async()=>{console.log("MongoDB connected");await maintenance.reconcileInventoryStock().catch(error=>{maintenance.recordError(error);console.error("Initial stock reconciliation failed:",error.message)});maintenanceTimer=setInterval(()=>maintenance.reconcileInventoryStock().catch(error=>{maintenance.recordError(error);console.error("Scheduled stock reconciliation failed:",error.message)}),5*60*1000);maintenanceTimer.unref?.();httpServer=app.listen(PORT,"0.0.0.0",()=>console.log("WAYNE LOGS API running on "+PORT));httpServer.requestTimeout=Number(process.env.REQUEST_TIMEOUT_MS||30000);httpServer.headersTimeout=Math.max(httpServer.requestTimeout+5000,35000);httpServer.keepAliveTimeout=5000;})
   .catch(e=>{console.error("MongoDB connection failed:",e.message);process.exit(1);});
+async function shutdown(signal){if(shuttingDown)return;shuttingDown=true;console.log(`${signal} received; shutting down safely.`);if(maintenanceTimer)clearInterval(maintenanceTimer);const force=setTimeout(()=>process.exit(1),10000);force.unref?.();if(httpServer)await new Promise(resolve=>httpServer.close(resolve));await mongoose.connection.close(false).catch(()=>{});clearTimeout(force);process.exit(0)}
+process.on("SIGTERM",()=>shutdown("SIGTERM"));
+process.on("SIGINT",()=>shutdown("SIGINT"));
+

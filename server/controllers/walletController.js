@@ -17,7 +17,7 @@ async function credit(reference,v){
   });if(transaction?.status==="completed")await notifications.create({user:transaction.user,type:"wallet",title:"Wallet funded",message:`₦${(transaction.amountKobo/100).toLocaleString("en-NG")} was added to your wallet.`,link:"dashboard.html",key:`wallet:${transaction.reference}`}).catch(()=>{});return transaction}finally{await session.endSession()}
 }
 exports.summary=async(req,res)=>{try{const user=await User.findById(req.user._id).select("walletBalanceKobo wayneId");if(!user)return res.status(404).json({message:"Account not found."});try{user.wayneId=await wayneIdService.ensureWayneId(user)}catch(error){console.error("WAYNE ID wallet error:",error)}res.json({success:true,wallet:{balanceKobo:user.walletBalanceKobo||0,wayneId:user.wayneId||"",currency:"NGN",withdrawalsEnabled:false,providers:{manualBank:true,kora:!!process.env.KORA_SECRET_KEY}}})}catch(error){res.status(500).json({message:"Could not load the wallet."})}};
-exports.history=async(req,res)=>{const transactions=await WalletTransaction.find({user:req.user._id}).sort({createdAt:-1}).limit(200);res.json({success:true,transactions})};
+exports.history=async(req,res)=>{try{const transactions=await WalletTransaction.find({user:req.user._id}).sort({createdAt:-1}).limit(250);res.json({success:true,transactions})}catch(error){res.status(500).json({message:"Could not load wallet transactions."})}};
 exports.lookupTransferRecipient=async(req,res)=>{try{
   const wayneId=normalizeWayneId(req.params.wayneId);
   if(!/^WL-[A-F0-9]{10}$/.test(wayneId))return res.status(400).json({message:"Enter a valid WAYNE ID."});
@@ -77,16 +77,21 @@ exports.initialize=async(req,res)=>{try{
   catch(error){transaction.status="failed";await transaction.save();throw error}
 }catch(error){res.status(503).json({message:error.message||"Could not start wallet top-up."})}};
 exports.submitManual=async(req,res)=>{try{
-  const customerReference=String(req.body.customerReference||"").trim().slice(0,100);
+  const customerReference=String(req.body.customerReference||"").trim().toUpperCase().replace(/\s+/g," ").slice(0,100);
   if(customerReference.length<4)return res.status(400).json({message:"Enter the transfer reference from your bank."});
-  const transaction=await WalletTransaction.findOneAndUpdate({reference:req.params.reference,user:req.user._id,type:"deposit",provider:"manual_bank",status:"pending"},{$set:{status:"submitted",customerReference,submittedAt:new Date()}},{new:true});
+  const current=await WalletTransaction.findOne({reference:req.params.reference,user:req.user._id,type:"deposit",provider:"manual_bank",status:"pending"});
+  if(!current)return res.status(409).json({message:"This top-up cannot be submitted again."});
+  const duplicate=await WalletTransaction.findOne({_id:{$ne:current._id},provider:"manual_bank",customerReference,status:{$in:["submitted","completed"]}}).select("_id");
+  if(duplicate)return res.status(409).json({message:"This bank reference was already submitted. Enter the unique reference for this transfer."});
+  const transaction=await WalletTransaction.findOneAndUpdate({_id:current._id,status:"pending"},{$set:{status:"submitted",customerReference,submittedAt:new Date()}},{new:true});
   if(!transaction)return res.status(409).json({message:"This top-up cannot be submitted again."});
   res.json({success:true,transaction});
 }catch(error){res.status(500).json({message:"Could not submit transfer details."})}};
 exports.verify=async(req,res)=>{try{const transaction=await WalletTransaction.findOne({reference:req.body.reference,user:req.user._id,type:"deposit"});if(!transaction)return res.status(404).json({message:"Top-up not found."});if(transaction.status==="completed")return res.json({success:true,transaction});if(transaction.provider!=="kora")return res.status(400).json({message:"This payment requires manual review."});const result=await provider.verifyTopup(transaction.providerReference||transaction.reference,transaction.provider);res.json({success:true,transaction:await credit(transaction.reference,result)})}catch(error){res.status(400).json({message:"Top-up has not been verified. Your wallet was not credited."})}};
 exports.webhook=async(req,res)=>{try{const name=String(req.params.provider||"").toLowerCase();if(!Buffer.isBuffer(req.body)||!provider.verifyWebhook(name,req.body,req.headers))return res.sendStatus(401);const event=provider.parseWebhook(name,req.body);if(!event||!event.successful)return res.sendStatus(200);const transaction=await WalletTransaction.findOne({$or:[{reference:event.reference},{providerReference:event.reference}],type:"deposit"});if(transaction)await credit(transaction.reference,event);res.sendStatus(200)}catch(error){res.sendStatus(500)}};
-exports.adminAll=async(req,res)=>{const transactions=await WalletTransaction.find().populate("user","firstName lastName email walletBalanceKobo").populate("order","productName totalAmount").sort({createdAt:-1}).limit(500);res.json({success:true,transactions})};
+exports.adminAll=async(req,res)=>{try{const transactions=await WalletTransaction.find().populate("user","firstName lastName email walletBalanceKobo").populate("order","productName totalAmount").sort({createdAt:-1}).limit(1000);res.json({success:true,transactions})}catch(error){res.status(500).json({message:"Could not load wallet transactions."})}};
 exports.adminReview=async(req,res)=>{
+  if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({message:"Invalid top-up ID."});
   const decision=req.body.decision;
   if(!["approve","reject"].includes(decision))return res.status(400).json({message:"Invalid decision."});
   const session=await mongoose.startSession();let transaction;
@@ -153,3 +158,4 @@ exports.adminClear=async(req,res)=>{
   }catch(error){res.status(error.status||500).json({message:error.status?error.message:"Could not clear the wallet balance."})}
   finally{await session.endSession()}
 };
+

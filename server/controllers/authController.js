@@ -12,16 +12,20 @@ const safe=u=>({id:u._id,wayneId:u.wayneId||"",firstName:u.firstName,lastName:u.
 exports.register=async(req,res)=>{
   let createdUser=null;
   try{
-    const{firstName,lastName,email,phone,password}=req.body;
+    const firstName=String(req.body.firstName||"").trim().slice(0,60),lastName=String(req.body.lastName||"").trim().slice(0,60),email=String(req.body.email||"").trim().toLowerCase().slice(0,254),phone=String(req.body.phone||"").trim().slice(0,30),password=String(req.body.password||"");
     const enteredCode=String(req.body.referralCode||"").trim().toUpperCase();
     if(!firstName||!lastName||!email||!phone||!password) return res.status(400).json({message:"All fields are required."});
-    if(await User.findOne({email:email.toLowerCase()})) return res.status(409).json({message:"Email already registered."});
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter a valid email address."});
+    if(String(phone).replace(/\D/g,"").length<7)return res.status(400).json({message:"Enter a valid phone number."});
+    if(password.length<8||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/\d/.test(password))return res.status(400).json({message:"Use at least 8 characters with uppercase, lowercase and a number."});
+    if(await User.findOne({email})) return res.status(409).json({message:"Email already registered."});
     const referrer=enteredCode?await User.findOne({referralCode:enteredCode,isActive:true}):null;
     if(enteredCode&&!referrer)return res.status(400).json({message:"That referral code is not valid."});
     if(referrer&&String(referrer.phone).replace(/\D/g,"")===String(phone).replace(/\D/g,""))return res.status(400).json({message:"A referral cannot use the same phone number."});
     const hash=await bcrypt.hash(password,12);
-    const role=process.env.ADMIN_EMAIL&&email.toLowerCase()===process.env.ADMIN_EMAIL.toLowerCase()?"admin":"user";
-    const u=await User.create({firstName,lastName,email,phone,password:hash,role,referredBy:referrer?referrer._id:null});
+    // Public registration can never create an administrator. Admin accounts are
+    // created only through the protected seed/recovery process.
+    const u=await User.create({firstName,lastName,email,phone,password:hash,role:"user",referredBy:referrer?referrer._id:null});
     createdUser=u;
     try{u.referralCode=await referralService.ensureReferralCode(u)}catch(error){console.error("Referral ID creation error:",error)}
     try{u.wayneId=await wayneIdService.ensureWayneId(u)}catch(error){console.error("WAYNE ID creation error:",error)}
@@ -46,7 +50,7 @@ exports.login=async(req,res)=>{
 };
 exports.me=async(req,res)=>{try{try{req.user.referralCode=await referralService.ensureReferralCode(req.user)}catch(error){console.error("Referral ID profile error:",error)}try{req.user.wayneId=await wayneIdService.ensureWayneId(req.user)}catch(error){console.error("WAYNE ID profile error:",error)}res.json({success:true,user:safe(req.user)})}catch(e){res.status(500).json({message:"Could not load profile."})}};
 exports.adminUsers=async(req,res)=>{
-  try{const users=await User.find().select("-password").sort({createdAt:-1});res.json({success:true,users});}
+  try{const users=await User.find().select("-password").sort({createdAt:-1}).limit(1000);res.json({success:true,users});}
   catch(e){res.status(500).json({message:"Could not load users."});}
 };
 const assistanceAttempts=new Map();
@@ -62,3 +66,4 @@ exports.changeTemporaryPassword=async(req,res)=>{try{
   res.set("Cache-Control","no-store");
   if(!req.user.mustChangePassword)return res.status(400).json({message:"This account does not require a password change."});const password=String(req.body.password||"");if(password.length<8||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/\d/.test(password))return res.status(400).json({message:"Use at least 8 characters with uppercase, lowercase and a number."});const user=await User.findById(req.user._id);if(!user||!user.mustChangePassword)return res.status(400).json({message:"Password change is no longer required."});if(await bcrypt.compare(password,user.password))return res.status(400).json({message:"Your new password cannot be the temporary password."});user.password=await bcrypt.hash(password,12);user.mustChangePassword=false;user.temporaryPasswordUsedAt=null;user.sessionVersion=Number(user.sessionVersion||0)+1;await user.save();res.json({success:true,token:token(user),user:safe(user),message:"Your private password was created successfully."});
 }catch(e){res.status(500).json({message:"Could not change the password."})}};
+

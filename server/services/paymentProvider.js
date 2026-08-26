@@ -1,15 +1,17 @@
 const crypto=require("crypto");
+const PROVIDER_TIMEOUT_MS=Math.max(5000,Number(process.env.PAYMENT_PROVIDER_TIMEOUT_MS||15000));
+const withTimeout=options=>({...options,signal:options.signal||AbortSignal.timeout(PROVIDER_TIMEOUT_MS)});
 const providerName=()=>String(process.env.WALLET_PROVIDER||"manual_bank").trim().toLowerCase();
 const successful=status=>["success","successful","paid","completed"].includes(String(status||"").toLowerCase());
 const nairaToKobo=value=>Math.round(Number(value)*100);
 async function requestJson(url,options={},valid){
-  const response=await fetch(url,options),body=await response.json().catch(()=>({}));
+  const response=await fetch(url,withTimeout(options)),body=await response.json().catch(()=>({}));
   if(!response.ok||(valid&&!valid(body)))throw new Error(body.message||body.error||"Payment provider rejected the request.");
   return body;
 }
 async function paystack(path,options={}){
   if(!process.env.PAYSTACK_SECRET_KEY)throw new Error("PAYSTACK_SECRET_KEY is not configured.");
-  const response=await fetch("https://api.paystack.co"+path,{...options,headers:{Authorization:"Bearer "+process.env.PAYSTACK_SECRET_KEY,"Content-Type":"application/json",...(options.headers||{})}}),body=await response.json().catch(()=>({}));
+  const response=await fetch("https://api.paystack.co"+path,withTimeout({...options,headers:{Authorization:"Bearer "+process.env.PAYSTACK_SECRET_KEY,"Content-Type":"application/json",...(options.headers||{})}})),body=await response.json().catch(()=>({}));
   if(!response.ok||body.status!==true)throw new Error(body.message||"Payment provider rejected the request.");
   return body.data;
 }
@@ -69,3 +71,4 @@ exports.parseWebhook=(name,raw)=>{
   if(event.event!=="charge.success")return null;
   return {reference:event.data.reference,successful:event.data.status==="success",amountKobo:Number(event.data.amount),currency:event.data.currency};
 };
+

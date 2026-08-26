@@ -20,4 +20,8 @@ const schema = new mongoose.Schema({
   receiptEmailSentAt:{type:Date,default:null},
   deliveredAt:{type:Date,default:null}
 },{timestamps:true});
+schema.index({user:1,createdAt:-1});
+schema.index({paymentStatus:1,status:1,createdAt:-1});
+schema.index({product:1,createdAt:-1});
 module.exports = mongoose.model("Order",schema);
+

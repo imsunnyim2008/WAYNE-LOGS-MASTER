@@ -60,3 +60,9 @@ body{background:#f3f7fb!important}body:before{background:radial-gradient(circle 
   .premium-store .simple-shop .simple-section-title h2{font-size:38px!important}
 }
 
+/* Live stability indicators inside Security Centre */
+.security-stability-stats{margin-top:16px!important}
+.stability-card strong{color:#07875a!important;font-size:25px!important}
+.stability-card.warning{border-color:#efc778!important;background:#fff9ea!important}
+.stability-card.warning strong{color:#c46d00!important}
+

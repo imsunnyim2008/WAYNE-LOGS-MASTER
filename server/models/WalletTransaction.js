@@ -11,4 +11,7 @@ const schema=new mongoose.Schema({
   reviewedBy:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null}, reviewNote:{type:String,default:""},
   counterparty:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null}
 },{timestamps:true});
+schema.index({user:1,createdAt:-1});
+schema.index({provider:1,status:1,createdAt:-1});
 module.exports=mongoose.model("WalletTransaction",schema);
+

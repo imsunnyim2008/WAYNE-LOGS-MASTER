@@ -17,4 +17,7 @@ const schema = new mongoose.Schema({
   privateDelivery:{type:String,default:"",select:false},
   createdBy:{type:mongoose.Schema.Types.ObjectId,ref:"User"}
 },{timestamps:true});
+schema.index({status:1,createdAt:-1});
+schema.index({inventoryManaged:1,stock:1});
 module.exports = mongoose.model("Product",schema);
+
