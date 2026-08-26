@@ -1,163 +1,122 @@
-// WAYNE LOGS API configuration.
-// For local Live Server it uses localhost:5000.
-// For production it expects a Render service named: wayne-logs-master-api
-window.WAYNE_API_URL = ["localhost","127.0.0.1"].includes(location.hostname)
+// WAYNE LOGS shared customer configuration
+window.WAYNE_API_URL = ["localhost", "127.0.0.1"].includes(location.hostname)
   ? "http://localhost:5000"
   : "https://wayne-logs-master-api.onrender.com";
 
-// One premium feedback system for customer and admin actions.
-(function installWayneActionFeedback(){
+// Lightweight shared dialogs used by customer/admin pages.
+(function installWayneDialogs(){
   const style=document.createElement("style");
-  style.textContent=`.wayne-dialog-layer{position:fixed;inset:0;z-index:200000;display:grid;place-items:center;padding:18px;background:radial-gradient(circle at 50% 42%,rgba(35,133,231,.12),transparent 45%),rgba(5,17,35,.46);-webkit-backdrop-filter:blur(14px) saturate(125%);backdrop-filter:blur(14px) saturate(125%);animation:wayneDialogFade .18s ease}.wayne-dialog{position:relative;width:min(360px,calc(100vw - 36px));overflow:hidden;border:1px solid rgba(255,255,255,.72);border-radius:27px;background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(229,244,255,.72));-webkit-backdrop-filter:blur(32px) saturate(180%);backdrop-filter:blur(32px) saturate(180%);color:#0d223d;text-align:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(136,196,238,.2),0 22px 65px rgba(2,31,65,.28),0 3px 12px rgba(12,93,160,.14);animation:wayneDialogIn .3s cubic-bezier(.16,1,.3,1)}.wayne-dialog:before{content:"";position:absolute;inset:0 0 auto;height:54%;pointer-events:none;background:linear-gradient(155deg,rgba(255,255,255,.72),rgba(255,255,255,0) 62%)}.wayne-dialog-copy{position:relative;padding:22px 22px 19px}.wayne-dialog-icon{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 12px;border:1px solid rgba(255,255,255,.92);border-radius:15px;background:linear-gradient(145deg,rgba(239,249,255,.96),rgba(176,222,255,.62));color:#087fc4;font-size:21px;font-weight:950;box-shadow:inset 0 1px 0 #fff,0 8px 22px rgba(16,124,202,.14)}.wayne-dialog.success .wayne-dialog-icon{background:linear-gradient(145deg,#effff8,#c9f3df);color:#09805a}.wayne-dialog.error .wayne-dialog-icon{background:linear-gradient(145deg,#fff5f7,#ffd6de);color:#d23c59}.wayne-dialog h2{margin:0 0 7px;font-size:19px;line-height:1.24;letter-spacing:-.025em}.wayne-dialog p{margin:0 auto;max-width:290px;color:#566d85;font-size:13.5px;line-height:1.45;white-space:pre-wrap}.wayne-dialog-actions{position:relative;display:grid;grid-template-columns:repeat(var(--wayne-actions,1),1fr);gap:1px;padding:1px 8px 8px;border-top:1px solid rgba(125,171,207,.3);background:rgba(255,255,255,.2)}.wayne-dialog-actions button{min-width:0;min-height:47px;padding:8px 10px;border:0;border-radius:16px;background:rgba(255,255,255,.5);color:#087fc4;font-size:14px;font-weight:850;cursor:pointer;transition:transform .16s ease,filter .16s ease,background .16s ease}.wayne-dialog-actions button:hover{background:rgba(255,255,255,.84);transform:translateY(-1px)}.wayne-dialog-actions button:active{transform:scale(.97)}.wayne-dialog-actions .wayne-dialog-primary{color:#fff;background:linear-gradient(135deg,rgba(21,105,218,.96),rgba(0,164,222,.94));box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 7px 18px rgba(11,125,205,.22)}.wayne-dialog-actions .wayne-dialog-primary:hover{background:linear-gradient(135deg,#105fc0,#078dc8)}.wayne-dialog-actions .wayne-dialog-danger{color:#fff;background:linear-gradient(135deg,#ee3155,#bd0c32)}@keyframes wayneDialogFade{from{opacity:0}to{opacity:1}}@keyframes wayneDialogIn{from{opacity:0;transform:scale(.86) translateY(14px);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}@media(max-width:520px){.wayne-dialog{width:min(338px,calc(100vw - 34px));border-radius:25px}.wayne-dialog-copy{padding:20px 18px 17px}.wayne-dialog-icon{width:42px;height:42px;margin-bottom:10px}.wayne-dialog h2{font-size:18px}.wayne-dialog p{font-size:13px}.wayne-dialog-actions button{min-height:46px;font-size:13.5px}}@media(prefers-reduced-motion:reduce){.wayne-dialog-layer,.wayne-dialog{animation:none}.wayne-dialog-actions button{transition:none}}`;
+  style.textContent=`
+  .wayne-dialog-layer{position:fixed;inset:0;z-index:200000;display:grid;place-items:center;padding:18px;background:rgba(5,17,35,.48);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  .wayne-dialog{width:min(360px,calc(100vw - 36px));overflow:hidden;border:1px solid #cfe2ef;border-radius:24px;background:#fff;color:#102844;box-shadow:0 26px 70px rgba(3,35,65,.28);text-align:center}
+  .wayne-dialog-copy{padding:22px}.wayne-dialog-icon{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 12px;border-radius:14px;background:#eaf7fd;color:#0784c4;font-size:20px;font-weight:950}
+  .wayne-dialog.success .wayne-dialog-icon{background:#e8faf3;color:#07875a}.wayne-dialog.error .wayne-dialog-icon{background:#fff0f3;color:#d33855}
+  .wayne-dialog h2{margin:0 0 8px;font-size:19px}.wayne-dialog p{margin:0;color:#647b94;font-size:13.5px;line-height:1.5;white-space:pre-wrap}
+  .wayne-dialog-actions{display:grid;grid-template-columns:repeat(var(--wayne-actions,1),1fr);gap:8px;padding:10px;border-top:1px solid #dce8f1}
+  .wayne-dialog-actions button{min-height:45px;border:1px solid #d5e4ef;border-radius:14px;background:#f6fbfe;color:#153451;font-weight:850;cursor:pointer}
+  .wayne-dialog-actions .primary{border:0;background:linear-gradient(135deg,#086ed8,#09a8df);color:#fff}
+
+  /* The old five-button bottom dock is removed everywhere. */
+  .wayne-customer-dock,.wayne-account-backdrop{display:none!important}
+  @media(max-width:760px){body{padding-bottom:0!important}}
+
+  /* Wallet cleanup requested by owner. */
+  body .dash-wrap>.platforms{display:none!important}
+  .wayne-wallet-back{display:inline-flex;align-items:center;gap:8px;margin:18px 0 2px;padding:10px 14px;border:1px solid #cfe0ec;border-radius:13px;background:#fff;color:#0b78b6;text-decoration:none;font-weight:900;box-shadow:0 7px 18px rgba(23,70,108,.06)}
+  .wayne-wallet-back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  `;
   document.head.appendChild(style);
-  let lastShown=0,queue=Promise.resolve();
-  function openDialog({message,type="info",title,confirm=false,confirmText="Continue",cancelText="Cancel",danger=false}){
-    return new Promise(resolve=>{
-      const layer=document.createElement("div"),dialog=document.createElement("section"),copy=document.createElement("div"),icon=document.createElement("span"),heading=document.createElement("h2"),body=document.createElement("p"),actions=document.createElement("div"),primary=document.createElement("button");
-      layer.className="wayne-dialog-layer";dialog.className="wayne-dialog "+type;copy.className="wayne-dialog-copy";icon.className="wayne-dialog-icon";actions.className="wayne-dialog-actions";actions.style.setProperty("--wayne-actions",confirm?2:1);icon.textContent=type==="error"?"!":type==="success"?"✓":"i";heading.textContent=title||(confirm?"Final confirmation":type==="error"?"Action failed":type==="success"?"Successful":"Notice");body.textContent=String(message||"");primary.className=danger?"wayne-dialog-danger":"wayne-dialog-primary";primary.textContent=confirm?confirmText:"OK";primary.type="button";
-      const finish=value=>{layer.remove();document.removeEventListener("keydown",onKey);resolve(value)},onKey=event=>{if(event.key==="Escape")finish(false);if(event.key==="Enter")finish(true)};document.addEventListener("keydown",onKey);
-      copy.append(icon,heading,body);if(confirm){const cancel=document.createElement("button");cancel.type="button";cancel.textContent=cancelText;cancel.onclick=()=>finish(false);actions.append(cancel)}primary.onclick=()=>finish(true);actions.append(primary);dialog.append(copy,actions);layer.append(dialog);document.body.appendChild(layer);primary.focus();
-    });
-  }
-  function enqueue(options){const result=queue.then(()=>openDialog(options));queue=result.catch(()=>{});return result}
-  function show(message,type="success",title){const text=String(message||"").trim();if(!text)return Promise.resolve();lastShown=Date.now();return enqueue({message:text,type,title})}
-  window.waynePopup=show;
-  window.wayneConfirm=(message,options={})=>enqueue({message:String(message||"Do you want to continue?"),type:"info",title:options.title||"Final confirmation",confirm:true,confirmText:options.confirmText||"Continue",cancelText:options.cancelText||"Cancel",danger:options.danger===true});
-  window.alert=message=>{if(String(message)==="Action cancelled.")return;show(message,/failed|error|incorrect|cannot|could not|invalid|rejected/i.test(String(message))?"error":"success")};
-  function confirmationFor(url,method){if(!["POST","PUT","PATCH","DELETE"].includes(method))return null;if(/\/api\/auth\/(?:login|register)|\/notifications\/(?:read-all|[^/]+\/read)/i.test(url)||(/\/api\/orders\/?(?:\?.*)?$/i.test(url)&&method==="POST"))return null;if(/\/wallet\/admin\/clear/i.test(url))return{title:"Clear entire balance?",message:"This will permanently set the selected customer's wallet balance to ₦0.",confirmText:"Yes, clear it",danger:true};if(/\/wallet\/admin\/credit/i.test(url))return{title:"Credit customer wallet?",message:"Confirm that the customer, amount and reason are correct.",confirmText:"Yes, credit wallet"};if(/\/transactions\/[^/]+\/review/i.test(url))return{title:"Submit payment decision?",message:"Confirm your approval or rejection before changing the customer's wallet.",confirmText:"Yes, continue"};if(/\/orders\/admin\/[^/]+\/refund/i.test(url))return{title:"Refund this order?",message:"The full payment will be returned to the customer's wallet. This cannot be repeated.",confirmText:"Yes, refund",danger:true};if(/\/orders\/[^/]+\/wallet\/pay/i.test(url))return{title:"Complete wallet purchase?",message:"Your wallet will be charged and one inventory item will be assigned to this order.",confirmText:"Pay now"};if(/\/wallet\/topups\/initialize/i.test(url))return{title:"Start wallet funding?",message:"Confirm the amount and payment method before continuing.",confirmText:"Continue"};if(/\/wallet\/topups\/[^/]+\/submit/i.test(url))return{title:"Submit transfer details?",message:"Confirm that you have completed the bank transfer and entered the correct reference.",confirmText:"Yes, submit"};if(/\/products(?:\/|$)/i.test(url))return{title:method==="DELETE"?"Delete this product?":"Save product changes?",message:method==="DELETE"?"This product and its remaining inventory will be removed.":"Confirm that the product and inventory information is correct.",confirmText:method==="DELETE"?"Yes, delete":"Save",danger:method==="DELETE"};if(/\/broadcast/i.test(url))return{title:"Notify every customer?",message:"This message will be published immediately to all active customers.",confirmText:"Publish now"};if(/password-assistance\/reset/i.test(url))return{title:"Create temporary password?",message:"The customer will be logged out everywhere and must change the one-use password after login.",confirmText:"Generate password",danger:true};if(/\/settings\/admin/i.test(url))return{title:"Save customer settings?",message:"Confirm the announcement and Telegram information before publishing the changes.",confirmText:"Save settings"};if(/\/support/i.test(url))return{title:"Send this support action?",message:"Confirm that your message and selected status are correct.",confirmText:"Send"};if(/\/orders\/admin\/[^/]+\/status/i.test(url))return{title:"Change order status?",message:"Confirm this order-status change.",confirmText:"Change status"};return{title:"Continue with this action?",message:"Please confirm before the website saves this change.",confirmText:"Continue"}}
-  document.addEventListener("click",async event=>{const button=event.target.closest("button");if(!button||button.dataset.wayneLogoutApproved==="1"||!/^(?:logout|log out)$/i.test(button.textContent.trim()))return;event.preventDefault();event.stopImmediatePropagation();const approved=await window.wayneConfirm("Do you want to securely log out of WAYNE LOGS?",{title:"Log out now?",confirmText:"Log out"});if(approved){button.dataset.wayneLogoutApproved="1";button.click();delete button.dataset.wayneLogoutApproved}},true);
-  const originalFetch=window.fetch.bind(window);
-  window.fetch=async function(input,options={}){
-    const method=String(options.method||(input&&input.method)||"GET").toUpperCase(),url=String(typeof input==="string"?input:input?.url||""),confirmation=options.wayneConfirmed?null:confirmationFor(url,method);
-    if(confirmation){const approved=await window.wayneConfirm(confirmation.message,confirmation);if(!approved){show("The action was cancelled. Nothing was changed.","info","Cancelled");const error=new Error("Action cancelled.");error.wayneCancelled=true;throw error}}
-    const started=Date.now();let response;
-    try{response=await originalFetch(input,options)}finally{setTimeout(()=>window.wayneRefreshFormReadiness?.(),400)}
-    if(!["POST","PUT","PATCH","DELETE"].includes(method))return response;
-    response.clone().json().then(data=>setTimeout(()=>{if(lastShown>started)return;let message=data?.message||"Action completed successfully.";if(response.ok){if(url.includes("/admin/credit"))message="Customer wallet credited successfully.";else if(url.includes("/admin/clear"))message="Customer balance cleared successfully.";else if(url.includes("/review"))message="Manual payment review completed successfully.";else if(url.includes("/wallet/pay"))message="Purchase completed successfully.";else if(url.includes("/refund"))message="Refund completed successfully.";else if(url.includes("/support"))message="Support action completed successfully.";else if(url.includes("/broadcast"))message="Notification published successfully.";else if(url.includes("/settings"))message="Settings saved successfully.";show(message,"success")}else show(message,"error")},220)).catch(()=>{});return response;
-  };
+
+  const openDialog=({message,type="info",title,confirm=false,confirmText="Continue",cancelText="Cancel"})=>new Promise(resolve=>{
+    const layer=document.createElement("div");
+    layer.className="wayne-dialog-layer";
+    const dialog=document.createElement("section");
+    dialog.className="wayne-dialog "+type;
+    const icon=type==="error"?"!":type==="success"?"✓":"i";
+    dialog.innerHTML=`<div class="wayne-dialog-copy"><div class="wayne-dialog-icon">${icon}</div><h2></h2><p></p></div><div class="wayne-dialog-actions" style="--wayne-actions:${confirm?2:1}"></div>`;
+    dialog.querySelector("h2").textContent=title||(confirm?"Confirm action":type==="error"?"Action failed":type==="success"?"Successful":"Notice");
+    dialog.querySelector("p").textContent=String(message||"");
+    const actions=dialog.querySelector(".wayne-dialog-actions");
+    const finish=value=>{layer.remove();resolve(value)};
+    if(confirm){const cancel=document.createElement("button");cancel.textContent=cancelText;cancel.type="button";cancel.onclick=()=>finish(false);actions.appendChild(cancel)}
+    const okay=document.createElement("button");okay.textContent=confirm?confirmText:"OK";okay.type="button";okay.className="primary";okay.onclick=()=>finish(true);actions.appendChild(okay);
+    layer.onclick=e=>{if(e.target===layer&&!confirm)finish(true)};
+    layer.appendChild(dialog);document.body.appendChild(layer);okay.focus();
+  });
+  window.waynePopup=(message,type="success",title)=>openDialog({message,type,title});
+  window.wayneConfirm=(message,options={})=>openDialog({message,type:"info",title:options.title||"Confirm action",confirm:true,confirmText:options.confirmText||"Continue",cancelText:options.cancelText||"Cancel"});
+  window.wayneRefreshFormReadiness=()=>{};
 })();
 
-// Make form-action readiness visually consistent without affecting navigation buttons.
-(function installWayneFormReadiness(){
-  const install=()=>document.querySelectorAll("form:not(#adminClearForm)").forEach(form=>{
-    if(form.dataset.wayneReadiness==="1")return;form.dataset.wayneReadiness="1";
-    const buttons=[...form.querySelectorAll('button[type="submit"],input[type="submit"],button:not([type])')];if(!buttons.length)return;
-    const update=()=>{const ready=form.checkValidity();buttons.forEach(button=>{if(button.dataset.wayneBusy==="1")return;button.disabled=!ready;button.classList.toggle("wayne-form-ready",ready)})};
-    form._wayneUpdateReadiness=update;form.addEventListener("input",update);form.addEventListener("change",update);form.addEventListener("reset",()=>setTimeout(update));update();
-  });
-  window.wayneRefreshFormReadiness=()=>document.querySelectorAll("form").forEach(form=>form._wayneUpdateReadiness?.());
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install);else install();
-})();
-
-// Soft entrance motion for existing and dynamically loaded interface cards.
-(function installWayneMotion(){
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-  document.documentElement.classList.add("wayne-motion");
-  const selector=".panel,.order-card,.stat-card,.auth-card,.notification-card,.inventory-product-card,.support-ticket,.guided-record-card,.refund-order-card,.security-protection,.admin-platform-option";
-  let observer;
-  const prepare=root=>root.querySelectorAll?.(selector).forEach(element=>{
-    if(element.classList.contains("wayne-reveal"))return;
-    element.classList.add("wayne-reveal");observer.observe(element);
-  });
-  const start=()=>{
-    observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
-      if(entry.isIntersecting){entry.target.classList.add("wayne-visible");observer.unobserve(entry.target)}
-    }),{threshold:.06,rootMargin:"0px 0px -18px"});
-    prepare(document);
-    new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{
-      if(node.nodeType!==1)return;if(node.matches?.(selector)){node.classList.add("wayne-reveal");observer.observe(node)}prepare(node);
-    }))).observe(document.body,{childList:true,subtree:true});
+// Remove any old dock that may have been injected from a cached script and add a real wallet Back button.
+(function installWayneNavigationCleanup(){
+  const cleanup=()=>{
+    document.querySelectorAll(".wayne-customer-dock,.wayne-account-backdrop").forEach(el=>el.remove());
+    if(/\/dashboard\.html$/i.test(location.pathname)){
+      document.querySelectorAll(".dash-wrap > .platforms").forEach(el=>el.remove());
+      const wrap=document.querySelector(".dash-wrap");
+      if(wrap&&!document.querySelector(".wayne-wallet-back")){
+        const back=document.createElement("a");
+        back.className="wayne-wallet-back";
+        back.href="index.html";
+        back.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg><span>Back to Shop</span>';
+        wrap.insertBefore(back,wrap.firstChild);
+      }
+    }
   };
+  const start=()=>{cleanup();new MutationObserver(cleanup).observe(document.body,{childList:true,subtree:true})};
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
 })();
 
-// Accessibility defaults shared by every page.
-(function installWayneAccessibility(){
-  const apply=root=>{
-    root.querySelectorAll?.('.message,.simple-message').forEach(element=>{if(!element.hasAttribute('aria-live'))element.setAttribute('aria-live','polite')});
-    const closeLabels={closeCartBtn:'Close cart',closeProductBtn:'Close product details',closeCheckoutBtn:'Close checkout'};Object.entries(closeLabels).forEach(([id,label])=>{const element=document.getElementById(id);if(element&&!element.hasAttribute('aria-label'))element.setAttribute('aria-label',label)});
-  };
-  const start=()=>{apply(document);new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===1)apply(node)}))).observe(document.body,{childList:true,subtree:true})};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
-})();
-
-// Add a consistent line icon to navigation and common action buttons.
-(function installWayneActionIcons(){
-  const icons={home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10M9 20v-6h6v6"/>',shop:'<path d="M4 9h16l-1 11H5L4 9Z"/><path d="M8 9a4 4 0 0 1 8 0"/>',wallet:'<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/>',orders:'<path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/>',profile:'<circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/>',admin:'<path d="M12 3 4.5 6v5c0 5 3.2 8.4 7.5 10 4.3-1.6 7.5-5 7.5-10V6L12 3Z"/><path d="m9.5 12 1.6 1.6 3.6-4"/>',logout:'<path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10"/>',cart:'<path d="M3 4h2l2.2 10h9.8l2-7H6"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',bell:'<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',support:'<path d="M21 12a8 8 0 0 1-8 8H7l-4 2 1.4-4.2A9 9 0 1 1 21 12Z"/>',add:'<path d="M12 5v14M5 12h14"/>',save:'<path d="M5 3h12l3 3v15H4V3h1Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',refresh:'<path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 11M5.5 15A7 7 0 0 0 18 17.5l2-4.5"/>',send:'<path d="m3 11 18-8-8 18-2-8-8-2Z"/><path d="m11 13 5-5"/>',download:'<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',delete:'<path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14"/>',check:'<path d="m5 12 4 4L19 6"/>',copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1A8 8 0 0 0 15 6l-.3-3h-4L10 6a8 8 0 0 0-1.5 1.1l-2.4-1-2 3.4L6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1A8 8 0 0 0 10 18l.5 3h4l.5-3a8 8 0 0 0 1.5-1.1l2.4 1 2-3.4L19 13a7 7 0 0 0 0-1Z"/>'};
-  const choose=element=>{const text=(element.textContent||"").toLowerCase(),href=(element.getAttribute?.("href")||"").toLowerCase();if(/notification|bell/.test(text+href))return"bell";if(/logout|log out/.test(text))return"logout";if(/admin/.test(text+href))return"admin";if(/profile|account/.test(text+href)&&!/create/.test(text))return"profile";if(/create|add|credit|fund/.test(text))return"add";if(/cart/.test(text+href))return"cart";if(/wallet|balance/.test(text+href))return"wallet";if(/order/.test(text+href))return"orders";if(/support|telegram|reply/.test(text+href))return"support";if(/shop|store|home|overview/.test(text+href))return href.includes("index")||/shop|store/.test(text)?"shop":"home";if(/refresh|reload|run security/.test(text))return"refresh";if(/search|find/.test(text))return"search";if(/save|apply|update/.test(text))return"save";if(/send|publish/.test(text))return"send";if(/download|export/.test(text))return"download";if(/delete|remove|clear/.test(text))return"delete";if(/approve|complete|confirm/.test(text))return"check";if(/copy/.test(text))return"copy";if(/setting/.test(text+href))return"settings";return null};
-  const decorate=root=>root.querySelectorAll?.('.simple-actions a,.simple-actions button,.nav-actions a,.nav-actions button,.dash-nav a,.dash-nav button,main button:not(.wayne-dialog-actions button):not(.inventory-product-card)').forEach(element=>{if(element.querySelector(':scope > .wayne-nav-icon,:scope > .wayne-action-icon'))return;const key=choose(element);if(!key)return;const nav=!!element.closest('.simple-actions,.nav-actions,.dash-nav'),span=document.createElement('span');span.className=nav?'wayne-nav-icon':'wayne-action-icon';span.setAttribute('aria-hidden','true');span.innerHTML=`<svg viewBox="0 0 24 24">${icons[key]}</svg>`;element.prepend(span)});
-  const start=()=>{decorate(document);new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===1){if(node.matches?.('button,a'))decorate(node.parentElement);decorate(node)}}))).observe(document.body,{childList:true,subtree:true})};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
-})();
-
-// A dedicated five-tab mobile customer dock. Secondary account actions live in
-// a compact sheet so the main navigation never becomes crowded.
-(function installWayneCustomerDock(){
-  if(/\/(?:admin|login|register|force-change-password)\.html$/i.test(location.pathname))return;
-  const svg=paths=>`<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`,icons={shop:'<path d="M4 9h16l-1 11H5L4 9Z"/><path d="M8 9a4 4 0 0 1 8 0"/>',wallet:'<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/>',orders:'<path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/>',cart:'<path d="M3 4h2l2.2 10h9.8l2-7H6"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',account:'<circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/>',bell:'<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',admin:'<path d="M12 3 4.5 6v5c0 5 3.2 8.4 7.5 10 4.3-1.6 7.5-5 7.5-10V6L12 3Z"/><path d="m9.5 12 1.6 1.6 3.6-4"/>',telegram:'<path d="m3 11 18-8-8 18-2-8-8-2Z"/><path d="m11 13 5-5"/>',login:'<path d="M14 5h5v14h-5M10 8l-4 4 4 4M6 12h12"/>',logout:'<path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10"/>'};
-  const start=()=>{
-    if(document.querySelector('.wayne-customer-dock'))return;
-    const dock=document.createElement('nav');dock.className='wayne-customer-dock';dock.setAttribute('aria-label','Customer navigation');dock.innerHTML=`<a href="index.html">${svg(icons.shop)}<span>Shop</span></a><a href="dashboard.html">${svg(icons.wallet)}<span>Wallet</span></a><a href="orders.html">${svg(icons.orders)}<span>Orders</span></a><button type="button" data-dock-cart>${svg(icons.cart)}<span>Cart</span><i data-dock-cart-count>0</i></button><button type="button" data-dock-account>${svg(icons.account)}<span>Account</span></button>`;document.body.appendChild(dock);
-    const backdrop=document.createElement('div');backdrop.className='wayne-account-backdrop';backdrop.hidden=true;const sheet=document.createElement('section');sheet.className='wayne-account-sheet';sheet.setAttribute('aria-label','Account menu');sheet.innerHTML=`<div><strong>My account</strong><button type="button" data-sheet-close aria-label="Close">×</button></div><a href="login.html" data-guest-only>${svg(icons.login)}<span><b>Login</b><small>Access your WAYNE LOGS account</small></span></a><a href="register.html" data-guest-only>${svg(icons.account)}<span><b>Create Account</b><small>Register to purchase and track orders</small></span></a><a href="profile.html" data-auth-only>${svg(icons.account)}<span><b>My Profile</b><small>Account details and wallet balance</small></span></a><a href="notifications.html" data-auth-only>${svg(icons.bell)}<span><b>Notifications</b><small>Orders, payments and announcements</small></span><i data-sheet-unread hidden></i></a><a href="#" data-sheet-telegram hidden>${svg(icons.telegram)}<span><b>Telegram Support</b><small>Chat securely with the administrator</small></span></a><a href="admin.html" data-sheet-admin hidden>${svg(icons.admin)}<span><b>Admin Panel</b><small>Manage the WAYNE LOGS store</small></span></a><button type="button" data-sheet-logout data-auth-only>${svg(icons.logout)}<span><b>Logout</b><small>Securely leave this account</small></span></button>`;backdrop.appendChild(sheet);document.body.appendChild(backdrop);
-    const close=()=>{backdrop.hidden=true;document.body.classList.remove('wayne-account-open')},open=()=>{let user={};try{user=JSON.parse(localStorage.getItem('wayneUser')||'{}')}catch{}const signedIn=Boolean(localStorage.getItem('wayneToken'));sheet.querySelectorAll('[data-auth-only]').forEach(e=>e.hidden=!signedIn);sheet.querySelectorAll('[data-guest-only]').forEach(e=>e.hidden=signedIn);sheet.querySelector('[data-sheet-admin]').hidden=!signedIn||user.role!=='admin';backdrop.hidden=false;document.body.classList.add('wayne-account-open')};dock.querySelector('[data-dock-account]').onclick=open;sheet.querySelector('[data-sheet-close]').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close()};
-    dock.querySelector('[data-dock-cart]').onclick=()=>{const original=document.getElementById('cartButton');if(original)original.click();else location.href='index.html#shop'};
-    const updateCart=()=>{let count=0;try{const cart=JSON.parse(localStorage.getItem('wayneCart')||'[]');count=Array.isArray(cart)?Math.min(cart.length,9):0}catch{}const badge=dock.querySelector('[data-dock-cart-count]'),text=String(count);if(badge.textContent!==text)badge.textContent=text;if(badge.hidden===Boolean(count))badge.hidden=!count};updateCart();window.addEventListener('wayne:cart-change',updateCart);window.addEventListener('storage',event=>{if(event.key==='wayneCart')updateCart()});
-    const mobileLogout=sheet.querySelector('[data-sheet-logout]');mobileLogout.onclick=event=>{event.preventDefault();event.stopPropagation();localStorage.removeItem('wayneToken');localStorage.removeItem('wayneUser');localStorage.removeItem('wayneCart');close();window.location.replace('login.html')};
-    const token=localStorage.getItem('wayneToken');if(token)fetch(window.WAYNE_API_URL+'/api/notifications/my',{headers:{Authorization:'Bearer '+token}}).then(r=>r.json()).then(data=>{const unread=Number(data.unread||0),badge=sheet.querySelector('[data-sheet-unread]');badge.textContent=unread>99?'99+':unread;badge.hidden=!unread}).catch(()=>{});
-  };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
-})();
-
-// Keep every customer and admin page on the same premium visual system.
-if (!document.querySelector('link[href^="premium-pages.css"]')) {
-  const premiumTheme = document.createElement("link");
-  premiumTheme.rel = "stylesheet";
-  premiumTheme.href = "premium-pages.css?v=20260825-optimized2";
-  document.head.appendChild(premiumTheme);
+// Keep the premium theme available on pages that do not explicitly load it.
+if(!document.querySelector('link[href^="premium-pages.css"]')){
+  const theme=document.createElement("link");theme.rel="stylesheet";theme.href="premium-pages.css?v=20260825-optimized2";document.head.appendChild(theme);
 }
 
-// Public announcement popup and Telegram contact button.
-// Content comes from the protected Admin Settings page; customer pages only read it.
-async function loadWaynePublicSettings() {
-  if (location.pathname.toLowerCase().endsWith("/admin.html")) return;
-  try {
-    const response = await fetch(window.WAYNE_API_URL + "/api/settings/public");
-    const data = await response.json();
-    if (!response.ok || !data.settings) return;
-    const settings = data.settings;
-    const style = document.createElement("style");
-    style.textContent = `.wayne-telegram{position:fixed;right:22px;bottom:22px;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#229ed9,#087fbd);color:#fff;text-decoration:none;box-shadow:0 14px 35px rgba(16,126,183,.35);z-index:9998;font-size:28px;border:4px solid rgba(255,255,255,.85)}.wayne-telegram:hover{transform:translateY(-2px)}.wayne-announcement-backdrop{position:fixed;inset:0;background:rgba(5,18,40,.66);backdrop-filter:blur(5px);display:grid;place-items:center;padding:20px;z-index:9999}.wayne-announcement{width:min(520px,100%);background:#fff;color:#10233d;border-radius:25px;padding:30px;box-shadow:0 30px 90px rgba(0,0,0,.3);position:relative}.wayne-announcement-badge{display:inline-block;background:#e7f6fd;color:#087fbd;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:900}.wayne-announcement h2{margin:16px 0 8px;font-size:30px}.wayne-announcement p{color:#61758d;white-space:pre-wrap;line-height:1.65}.wayne-announcement-close{position:absolute;right:16px;top:16px;border:0;background:#edf3f8;color:#28445e;width:38px;height:38px;border-radius:12px;font-size:22px;cursor:pointer}.wayne-announcement-actions{display:flex;gap:10px;margin-top:22px}.wayne-announcement-actions button,.wayne-announcement-actions a{flex:1;text-align:center;border:0;border-radius:13px;padding:13px;font-weight:900;text-decoration:none;cursor:pointer}.wayne-announcement-ok{background:#eef4f8;color:#28445e}.wayne-announcement-chat{background:linear-gradient(135deg,#229ed9,#087fbd);color:#fff}@media(max-width:600px){.wayne-telegram{width:55px;height:55px;right:15px;bottom:15px}.wayne-announcement{padding:25px 20px}.wayne-announcement h2{font-size:25px}}`;
+// Public announcement + Telegram support button.
+async function loadWaynePublicSettings(){
+  if(location.pathname.toLowerCase().endsWith("/admin.html"))return;
+  try{
+    const response=await fetch(window.WAYNE_API_URL+"/api/settings/public");
+    const data=await response.json();
+    if(!response.ok||!data.settings)return;
+    const settings=data.settings;
+    const style=document.createElement("style");
+    style.textContent=`.wayne-telegram{position:fixed;right:18px;bottom:18px;width:55px;height:55px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#229ed9,#087fbd);color:#fff;text-decoration:none;box-shadow:0 14px 35px rgba(16,126,183,.3);z-index:9998;font-size:24px;border:3px solid rgba(255,255,255,.9)}.wayne-announcement-backdrop{position:fixed;inset:0;background:rgba(5,18,40,.66);backdrop-filter:blur(5px);display:grid;place-items:center;padding:20px;z-index:9999}.wayne-announcement{width:min(520px,100%);background:#fff;color:#10233d;border-radius:24px;padding:27px;box-shadow:0 30px 90px rgba(0,0,0,.3);position:relative}.wayne-announcement-badge{display:inline-block;background:#e7f6fd;color:#087fbd;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:900}.wayne-announcement h2{margin:16px 0 8px;font-size:28px}.wayne-announcement p{color:#61758d;white-space:pre-wrap;line-height:1.6}.wayne-announcement-close{position:absolute;right:16px;top:16px;border:0;background:#edf3f8;color:#28445e;width:38px;height:38px;border-radius:12px;font-size:22px;cursor:pointer}.wayne-announcement-actions{display:flex;gap:10px;margin-top:22px}.wayne-announcement-actions button,.wayne-announcement-actions a{flex:1;text-align:center;border:0;border-radius:13px;padding:13px;font-weight:900;text-decoration:none;cursor:pointer}.wayne-announcement-ok{background:#eef4f8;color:#28445e}.wayne-announcement-chat{background:linear-gradient(135deg,#229ed9,#087fbd);color:#fff}`;
     document.head.appendChild(style);
-
-    if (settings.telegramUrl) {
-      const telegram = document.createElement("a");
-      telegram.className = "wayne-telegram";
-      telegram.href = settings.telegramUrl;
-      telegram.target = "_blank";
-      telegram.rel = "noopener noreferrer";
-      telegram.setAttribute("aria-label", "Contact us on Telegram");
-      telegram.title = "Contact us on Telegram";
-      telegram.textContent = "➤";
-      document.body.appendChild(telegram);
-      const mobileTelegram=document.querySelector('[data-sheet-telegram]');if(mobileTelegram){mobileTelegram.href=settings.telegramUrl;mobileTelegram.target='_blank';mobileTelegram.rel='noopener noreferrer';mobileTelegram.hidden=false}
+    if(settings.telegramUrl&&!document.querySelector(".wayne-telegram")){
+      const telegram=document.createElement("a");telegram.className="wayne-telegram";telegram.href=settings.telegramUrl;telegram.target="_blank";telegram.rel="noopener noreferrer";telegram.setAttribute("aria-label","Contact us on Telegram");telegram.textContent="➤";document.body.appendChild(telegram);
     }
-
-    const seenKey = "wayneAnnouncementSeen:" + String(settings.version || 0);
-    if (!settings.announcementEnabled || !settings.announcementMessage || sessionStorage.getItem(seenKey)) return;
-    const backdrop = document.createElement("div"), card = document.createElement("section"), close = document.createElement("button"), badge = document.createElement("span"), title = document.createElement("h2"), message = document.createElement("p"), actions = document.createElement("div"), okay = document.createElement("button");
-    backdrop.className = "wayne-announcement-backdrop"; card.className = "wayne-announcement"; close.className = "wayne-announcement-close"; badge.className = "wayne-announcement-badge"; actions.className = "wayne-announcement-actions"; okay.className = "wayne-announcement-ok";
-    close.textContent = "×"; close.setAttribute("aria-label", "Close announcement"); badge.textContent = "ANNOUNCEMENT"; title.textContent = settings.announcementTitle || "WAYNE LOGS"; message.textContent = settings.announcementMessage; okay.textContent = "Got it";
-    const dismiss = () => { sessionStorage.setItem(seenKey, "1"); backdrop.remove(); };
-    close.onclick = dismiss; okay.onclick = dismiss; backdrop.onclick = event => { if (event.target === backdrop) dismiss(); };
-    actions.appendChild(okay);
-    if (settings.telegramUrl) { const chat = document.createElement("a"); chat.className = "wayne-announcement-chat"; chat.href = settings.telegramUrl; chat.target = "_blank"; chat.rel = "noopener noreferrer"; chat.textContent = "Chat on Telegram"; actions.appendChild(chat); }
-    card.append(close, badge, title, message, actions); backdrop.appendChild(card); document.body.appendChild(backdrop);
-  } catch (error) {}
+    const seenKey="wayneAnnouncementSeen:"+String(settings.version||0);
+    if(!settings.announcementEnabled||!settings.announcementMessage||sessionStorage.getItem(seenKey))return;
+    const backdrop=document.createElement("div");backdrop.className="wayne-announcement-backdrop";
+    const card=document.createElement("section");card.className="wayne-announcement";
+    const close=document.createElement("button");close.className="wayne-announcement-close";close.textContent="×";
+    const badge=document.createElement("span");badge.className="wayne-announcement-badge";badge.textContent="ANNOUNCEMENT";
+    const title=document.createElement("h2");title.textContent=settings.announcementTitle||"WAYNE LOGS";
+    const message=document.createElement("p");message.textContent=settings.announcementMessage;
+    const actions=document.createElement("div");actions.className="wayne-announcement-actions";
+    const okay=document.createElement("button");okay.className="wayne-announcement-ok";okay.textContent="Got it";
+    const dismiss=()=>{sessionStorage.setItem(seenKey,"1");backdrop.remove()};close.onclick=dismiss;okay.onclick=dismiss;backdrop.onclick=e=>{if(e.target===backdrop)dismiss()};actions.appendChild(okay);
+    if(settings.telegramUrl){const chat=document.createElement("a");chat.className="wayne-announcement-chat";chat.href=settings.telegramUrl;chat.target="_blank";chat.rel="noopener noreferrer";chat.textContent="Chat on Telegram";actions.appendChild(chat)}
+    card.append(close,badge,title,message,actions);backdrop.appendChild(card);document.body.appendChild(backdrop);
+  }catch{}
 }
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", loadWaynePublicSettings); else loadWaynePublicSettings();
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadWaynePublicSettings);else loadWaynePublicSettings();
 
+// Notification shortcut for signed-in customer pages.
 async function loadWayneNotificationBell(){
-  const token=localStorage.getItem("wayneToken");if(!token||location.pathname.toLowerCase().endsWith("/admin.html")||location.pathname.toLowerCase().endsWith("/notifications.html"))return;
-  try{const r=await fetch(window.WAYNE_API_URL+"/api/notifications/my",{headers:{Authorization:"Bearer "+token}}),d=await r.json();if(!r.ok)return;const host=document.querySelector(".simple-actions,.dash-nav,.nav-actions");if(!host)return;const a=document.createElement("a");a.href="notifications.html";a.className=host.classList.contains("simple-actions")?"simple-btn secondary notification-bell":"ghost-btn notification-bell";a.setAttribute("aria-label",`${d.unread||0} unread notifications`);a.title="Notifications";a.innerHTML=d.unread?`<span class="notification-badge">${d.unread>99?"99+":d.unread}</span>`:"";host.insertBefore(a,host.lastElementChild);const s=document.createElement("style");s.textContent='.notification-bell{position:relative;text-decoration:none;display:inline-flex!important;align-items:center;justify-content:center}.notification-badge{position:absolute;right:-5px;top:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#ef3f62;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:950}';document.head.appendChild(s)}catch(e){}
+  const token=localStorage.getItem("wayneToken");
+  if(!token||location.pathname.toLowerCase().endsWith("/admin.html")||location.pathname.toLowerCase().endsWith("/notifications.html"))return;
+  try{
+    const response=await fetch(window.WAYNE_API_URL+"/api/notifications/my",{headers:{Authorization:"Bearer "+token}});
+    const data=await response.json();if(!response.ok)return;
+    const host=document.querySelector(".simple-actions,.dash-nav,.nav-actions");if(!host)return;
+    if(host.querySelector('a[href="notifications.html"]'))return;
+    const link=document.createElement("a");link.href="notifications.html";link.className=host.classList.contains("simple-actions")?"simple-btn secondary notification-bell":"ghost-btn notification-bell";link.title="Notifications";link.textContent="Notifications";
+    if(data.unread){const badge=document.createElement("span");badge.className="notification-badge";badge.textContent=data.unread>99?"99+":data.unread;link.appendChild(badge)}
+    host.insertBefore(link,host.lastElementChild);
+    const style=document.createElement("style");style.textContent='.notification-bell{position:relative;text-decoration:none;display:inline-flex!important;align-items:center;justify-content:center}.notification-badge{position:absolute;right:-5px;top:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#ef3f62;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:950}';document.head.appendChild(style);
+  }catch{}
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadWayneNotificationBell);else loadWayneNotificationBell();
