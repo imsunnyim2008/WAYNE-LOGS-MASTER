@@ -164,7 +164,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     .wayne-global-back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
     #marketWalletBtn,#marketAdminShortcut{text-decoration:none}
     #marketAdminShortcut{color:#0b78b6}
-    @media(max-width:760px){.wayne-global-back-wrap{width:calc(100% - 24px);margin-top:10px}.wayne-global-back{min-height:39px;padding:8px 12px;font-size:13px}}
+    @media(max-width:760px){.wayne-global-back-wrap{width:calc(100% - 24px);margin-top:8px}.wayne-global-back{width:36px;height:36px;min-height:36px;padding:0;justify-content:center;border-radius:11px}.wayne-global-back svg{width:16px;height:16px}.wayne-global-back span{display:none}}
   `;
   document.head.appendChild(style);
 
