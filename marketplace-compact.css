@@ -147,3 +147,20 @@ body.market-orders .wayne-telegram{bottom:18px!important;right:16px!important}
   .market-order-row{grid-template-columns:44px minmax(0,1fr) 82px 10px!important;padding:10px 11px!important;gap:8px!important}.market-order-icon{width:42px!important;height:42px!important}.market-order-right b{font-size:14px!important}
   .market-side-panel{width:74vw!important;max-width:300px!important}
 }
+
+
+/* Keep every announcement readable on narrow and wide screens. */
+.market-announcement-track{
+  flex-shrink:0;
+  animation:marketAnnouncementTicker 22s linear infinite;
+  will-change:transform;
+}
+.market-announcement:hover .market-announcement-track{animation-play-state:paused}
+@keyframes marketAnnouncementTicker{
+  from{transform:translateX(0)}
+  to{transform:translateX(calc(-50% - 14px))}
+}
+@media(prefers-reduced-motion:reduce){
+  .market-announcement{overflow-x:auto!important}
+  .market-announcement-track{animation:none}
+}
