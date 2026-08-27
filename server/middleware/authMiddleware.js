@@ -12,4 +12,5 @@ exports.protect = async (req,res,next) => {
     req.user=user; next();
   }catch(e){ return res.status(401).json({success:false,message:"Invalid or expired login token."}); }
 };
-exports.adminOnly = (req,res,next) => req.user?.role==="admin" ? next() : res.status(403).json({success:false,message:"Admin access only."});
+const permissionFor=req=>{const p=req.originalUrl.toLowerCase();if(p.includes("/products"))return"products";if(p.includes("/orders"))return"orders";if(p.includes("/wallet"))return"payments";if(p.includes("/support")||p.includes("/notifications"))return"communications";if(p.includes("/settings")||p.includes("/admin-config/store"))return"settings";if(p.includes("/audit")||p.includes("/security"))return"security";return"customers"};
+exports.adminOnly=(req,res,next)=>{if(req.user?.role==="admin")return next();if(req.user?.role==="staff"&&(req.user.staffPermissions||[]).includes(permissionFor(req)))return next();return res.status(403).json({success:false,message:"You do not have permission for this admin area."})};
