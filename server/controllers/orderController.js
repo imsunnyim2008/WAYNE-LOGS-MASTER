@@ -1,7 +1,7 @@
 const crypto=require("crypto");
 const bcrypt=require("bcryptjs");
 const mongoose=require("mongoose");
-const Order=require("../models/Order");
+const Order=require("../models/Order"),SiteSetting=require("../models/SiteSetting");
 const Product=require("../models/Product");
 const User=require("../models/User");
 const WalletTransaction=require("../models/WalletTransaction");
@@ -255,6 +255,8 @@ exports.mine=async(req,res)=>{
 };
 
 exports.payWithWallet=async(req,res)=>{
+  const storeSettings=await SiteSetting.findOne({key:"main"}).lean();
+  if(storeSettings&&(storeSettings.storeOpen===false||storeSettings.purchasesEnabled===false))return res.status(503).json({message:"Store purchases are temporarily paused."});
   if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({message:"Invalid order ID."});
   const session=await mongoose.startSession();
   try{
