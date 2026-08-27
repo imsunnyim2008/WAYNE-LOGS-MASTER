@@ -6,38 +6,6 @@ window.WAYNE_API_URL = ["localhost", "127.0.0.1"].includes(location.hostname)
 
 
 
-// Shared loading indicator for requests, forms and internal navigation.
-(function installWayneLoader(){
-  const style=document.createElement("style");
-  style.textContent=`
-  .wayne-loader-layer{position:fixed;inset:0;z-index:250000;display:grid;place-items:center;padding:20px;background:rgba(5,20,38,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
-  .wayne-loader-layer.show{opacity:1;visibility:visible;pointer-events:auto}
-  .wayne-loader-card{min-width:145px;padding:21px 24px 18px;border:1px solid rgba(255,255,255,.86);border-radius:22px;background:rgba(249,253,255,.96);color:#0f2d53;text-align:center;box-shadow:0 24px 65px rgba(3,35,67,.27)}
-  .wayne-loader-spinner{position:relative;width:52px;height:52px;margin:0 auto 12px;border:4px solid #d7edf8;border-top-color:#0788ca;border-right-color:#16a36f;border-radius:50%;animation:wayneLoaderSpin .78s linear infinite}
-  .wayne-loader-spinner:after{content:"W";position:absolute;inset:5px;display:grid;place-items:center;border-radius:50%;background:#eef9fe;color:#0b78b6;font-size:13px;font-weight:950;animation:wayneLoaderCounterSpin .78s linear infinite}
-  .wayne-loader-card strong{display:block;font-size:14px}.wayne-loader-card small{display:block;margin-top:3px;color:#698098;font-size:11px}
-  html.wayne-dark-mode .wayne-loader-card{border-color:#31506c;background:rgba(11,29,47,.97);color:#eef7ff}html.wayne-dark-mode .wayne-loader-card small{color:#9cb1c8}
-  @keyframes wayneLoaderSpin{to{transform:rotate(360deg)}}@keyframes wayneLoaderCounterSpin{to{transform:rotate(-360deg)}}
-  @media(prefers-reduced-motion:reduce){.wayne-loader-spinner,.wayne-loader-spinner:after{animation-duration:1.6s}}
-  `;
-  document.head.appendChild(style);
-  let layer=null,pending=0,timer=0;
-  const ensure=()=>{if(layer||!document.body)return layer;layer=document.createElement("div");layer.className="wayne-loader-layer";layer.setAttribute("role","status");layer.setAttribute("aria-live","polite");layer.innerHTML='<div class="wayne-loader-card"><div class="wayne-loader-spinner" aria-hidden="true"></div><strong>Loading…</strong><small>Please wait a moment</small></div>';document.body.appendChild(layer);return layer};
-  const show=(label="Loading…")=>{const node=ensure();if(!node)return;node.querySelector("strong").textContent=label;node.classList.add("show");document.body.setAttribute("aria-busy","true")};
-  const hide=()=>{clearTimeout(timer);timer=0;if(layer)layer.classList.remove("show");document.body?.removeAttribute("aria-busy")};
-  const begin=(label="Loading…")=>{pending+=1;clearTimeout(timer);timer=setTimeout(()=>{if(pending>0)show(label)},220)};
-  const end=()=>{pending=Math.max(0,pending-1);if(pending===0)hide()};
-  window.wayneLoading={show:label=>{pending+=1;show(label)},hide:end,begin,end};
-  const nativeFetch=window.fetch.bind(window);
-  window.fetch=async function(...args){begin("Loading…");try{return await nativeFetch(...args)}finally{end()}};
-  const installEvents=()=>{
-    ensure();
-    document.addEventListener("click",event=>{const link=event.target.closest("a[href]");if(!link||event.defaultPrevented||link.target==="_blank"||link.hasAttribute("download"))return;const href=link.getAttribute("href")||"";if(!href||href.startsWith("#")||href.startsWith("javascript:"))return;try{const url=new URL(link.href,location.href);if(url.origin===location.origin&&url.href!==location.href)show("Opening…")}catch{}},true);
-  };
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installEvents);else installEvents();
-  window.addEventListener("pageshow",()=>{pending=0;hide()});
-})();
-
 // Shared appearance setting used by every customer page.
 (function installWayneAppearance(){
   const style=document.createElement("style");
