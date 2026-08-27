@@ -8,7 +8,7 @@ const wayneIdService=require("../services/wayneIdService");
 const token=u=>jwt.sign({id:u._id,role:u.role,sv:Number(u.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:u.role==="admin"?"2h":"7d"});
 const attempts=new Map(),WINDOW=15*60*1000,MAX_ATTEMPTS=5;
 function attemptKey(req,email){return String(req.ip||req.socket?.remoteAddress||"")+"|"+String(email||"").toLowerCase()}
-const safe=u=>({id:u._id,wayneId:u.wayneId||"",firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,createdAt:u.createdAt});
+const safe=u=>({id:u._id,wayneId:u.wayneId||"",firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,notificationPreferences:u.notificationPreferences||{orderUpdates:true,walletAlerts:true,productAnnouncements:true,promotions:false},createdAt:u.createdAt});
 exports.register=async(req,res)=>{
   let createdUser=null;
   try{
@@ -67,3 +67,25 @@ exports.changeTemporaryPassword=async(req,res)=>{try{
   if(!req.user.mustChangePassword)return res.status(400).json({message:"This account does not require a password change."});const password=String(req.body.password||"");if(password.length<8||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/\d/.test(password))return res.status(400).json({message:"Use at least 8 characters with uppercase, lowercase and a number."});const user=await User.findById(req.user._id);if(!user||!user.mustChangePassword)return res.status(400).json({message:"Password change is no longer required."});if(await bcrypt.compare(password,user.password))return res.status(400).json({message:"Your new password cannot be the temporary password."});user.password=await bcrypt.hash(password,12);user.mustChangePassword=false;user.temporaryPasswordUsedAt=null;user.sessionVersion=Number(user.sessionVersion||0)+1;await user.save();res.json({success:true,token:token(user),user:safe(user),message:"Your private password was created successfully."});
 }catch(e){res.status(500).json({message:"Could not change the password."})}};
 
+
+exports.updateProfile=async(req,res)=>{try{
+  const firstName=String(req.body.firstName||"").trim().slice(0,60),lastName=String(req.body.lastName||"").trim().slice(0,60),phone=String(req.body.phone||"").trim().slice(0,30),email=String(req.body.email||"").trim().toLowerCase().slice(0,254),currentPassword=String(req.body.currentPassword||"");
+  if(!firstName||!lastName||!phone||!email)return res.status(400).json({message:"Name, email and phone number are required."});
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter a valid email address."});
+  if(phone.replace(/\D/g,"").length<7)return res.status(400).json({message:"Enter a valid phone number."});
+  const user=await User.findById(req.user._id);if(!user)return res.status(404).json({message:"Account not found."});
+  if(email!==user.email){if(!currentPassword||!(await bcrypt.compare(currentPassword,user.password)))return res.status(403).json({message:"Enter your current password to change your email."});const exists=await User.findOne({email,_id:{$ne:user._id}});if(exists)return res.status(409).json({message:"That email address is already in use."})}
+  user.firstName=firstName;user.lastName=lastName;user.phone=phone;user.email=email;await user.save();res.json({success:true,user:safe(user),message:"Account details updated."});
+}catch(e){res.status(500).json({message:"Could not update account details."})}};
+exports.changePassword=async(req,res)=>{try{
+  res.set("Cache-Control","no-store");const currentPassword=String(req.body.currentPassword||""),password=String(req.body.password||"");
+  if(password.length<8||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/[0-9]/.test(password))return res.status(400).json({message:"Use at least 8 characters with uppercase, lowercase and a number."});
+  const user=await User.findById(req.user._id);if(!user||!(await bcrypt.compare(currentPassword,user.password)))return res.status(403).json({message:"Your current password is incorrect."});
+  if(await bcrypt.compare(password,user.password))return res.status(400).json({message:"Choose a password you have not just used."});
+  user.password=await bcrypt.hash(password,12);user.mustChangePassword=false;user.temporaryPasswordUsedAt=null;user.sessionVersion=Number(user.sessionVersion||0)+1;await user.save();res.json({success:true,token:token(user),user:safe(user),message:"Password changed successfully."});
+}catch(e){res.status(500).json({message:"Could not change password."})}};
+exports.logoutAll=async(req,res)=>{try{await User.updateOne({_id:req.user._id},{$inc:{sessionVersion:1}});res.json({success:true,message:"All devices have been logged out."})}catch(e){res.status(500).json({message:"Could not end account sessions."})}};
+exports.updatePreferences=async(req,res)=>{try{
+  const input=req.body||{},preferences={orderUpdates:input.orderUpdates!==false,walletAlerts:input.walletAlerts!==false,productAnnouncements:input.productAnnouncements!==false,promotions:input.promotions===true};
+  const user=await User.findByIdAndUpdate(req.user._id,{$set:{notificationPreferences:preferences}},{new:true});res.json({success:true,preferences:user.notificationPreferences,message:"Notification preferences saved."});
+}catch(e){res.status(500).json({message:"Could not save notification preferences."})}};
