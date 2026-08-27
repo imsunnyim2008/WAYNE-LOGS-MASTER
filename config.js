@@ -32,7 +32,6 @@ window.WAYNE_API_URL = ["localhost", "127.0.0.1"].includes(location.hostname)
   window.fetch=async function(...args){begin("Loading…");try{return await nativeFetch(...args)}finally{end()}};
   const installEvents=()=>{
     ensure();
-    document.addEventListener("submit",event=>{if(!event.defaultPrevented)begin("Processing…")},true);
     document.addEventListener("click",event=>{const link=event.target.closest("a[href]");if(!link||event.defaultPrevented||link.target==="_blank"||link.hasAttribute("download"))return;const href=link.getAttribute("href")||"";if(!href||href.startsWith("#")||href.startsWith("javascript:"))return;try{const url=new URL(link.href,location.href);if(url.origin===location.origin&&url.href!==location.href)show("Opening…")}catch{}},true);
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installEvents);else installEvents();
