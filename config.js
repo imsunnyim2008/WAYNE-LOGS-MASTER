@@ -26,16 +26,16 @@ window.WAYNE_API_URL = ["localhost", "127.0.0.1"].includes(location.hostname)
   html.wayne-dark-mode .settings-page{--set-bg:#071422;--set-card:#0d2135;--set-text:#eef7ff;--set-muted:#9cb1c8;--set-line:#28445e;--set-soft:#102f48}
   `;
   document.head.appendChild(style);
-  const isDark=value=>value==="dark"||(value==="system"&&matchMedia("(prefers-color-scheme:dark)").matches);
+  const isDark=value=>value==="dark";
   window.wayneApplyAppearance=value=>{
-    const chosen=["light","dark","system"].includes(value)?value:"system";
+    const chosen=value==="dark"?"dark":"light";
     localStorage.setItem("wayneAppearance",chosen);
     document.documentElement.classList.toggle("wayne-dark-mode",isDark(chosen));
     document.body?.classList.toggle("settings-dark",isDark(chosen));
     return chosen;
   };
-  window.wayneApplyAppearance(localStorage.getItem("wayneAppearance")||"system");
-  matchMedia("(prefers-color-scheme:dark)").addEventListener?.("change",()=>{if((localStorage.getItem("wayneAppearance")||"system")==="system")window.wayneApplyAppearance("system")});
+  const savedAppearance=localStorage.getItem("wayneAppearance");
+  window.wayneApplyAppearance(savedAppearance==="dark"?"dark":"light");
 })();
 
 // Lightweight shared dialogs used by customer/admin pages.
@@ -298,6 +298,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   }
   function toast(message,type="info",options={}){
     const kind=["success","error","warning","info"].includes(type)?type:"info";
+    if(typeof window.waynePopup==="function"){window.waynePopup(message,kind,options.title);return null}
     const host=ensureStack();
     const item=document.createElement("div");
     item.className=`wayne-toast ${kind}`;
@@ -382,4 +383,35 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     }catch{}
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",showPending,{once:true});else showPending();
+})();
+
+
+/* WAYNE_ACTION_POPUP_V2 */
+(()=>{
+  const style=document.createElement("style");
+  style.textContent=`
+    .wayne-dialog-layer{background:rgba(43,45,86,.36)!important;padding:20px!important}
+    .wayne-dialog{width:min(440px,calc(100vw - 28px))!important;border:1px solid rgba(119,105,255,.2)!important;border-radius:30px!important;background:#fff!important;color:#21213b!important;box-shadow:0 35px 90px rgba(38,42,83,.28)!important}
+    .wayne-dialog-copy{padding:34px 28px 26px!important}
+    .wayne-dialog-icon{width:76px!important;height:76px!important;margin:0 auto 24px!important;border-radius:50%!important;background:#f0edff!important;color:#796cff!important;border:2px solid #d9d2ff!important;box-shadow:inset 0 0 0 7px #faf9ff!important;font-size:31px!important}
+    .wayne-dialog.success .wayne-dialog-icon{background:#eafaf1!important;color:#159552!important;border-color:#bdebd0!important;box-shadow:inset 0 0 0 7px #f8fffb!important}
+    .wayne-dialog.error .wayne-dialog-icon{background:#fff0f2!important;color:#db3653!important;border-color:#ffcbd4!important;box-shadow:inset 0 0 0 7px #fffafb!important}
+    .wayne-dialog h2{margin:0 0 12px!important;font-size:25px!important;line-height:1.15!important;color:#21213b!important}
+    .wayne-dialog p{max-width:330px;margin:0 auto!important;color:#67677f!important;font-size:16px!important;line-height:1.55!important}
+    .wayne-dialog-actions{display:grid!important;gap:10px!important;padding:0 28px 30px!important;border:0!important}
+    .wayne-dialog-actions button{min-height:56px!important;border-radius:15px!important;font-size:16px!important;font-weight:900!important}
+    .wayne-dialog-actions .primary{background:linear-gradient(135deg,#7768ff,#8b78ff)!important;box-shadow:0 12px 25px rgba(119,104,255,.25)!important}
+    @media(max-width:600px){.wayne-dialog{border-radius:24px!important}.wayne-dialog-copy{padding:29px 22px 22px!important}.wayne-dialog-icon{width:68px!important;height:68px!important;margin-bottom:20px!important}.wayne-dialog h2{font-size:22px!important}.wayne-dialog p{font-size:15px!important}.wayne-dialog-actions{padding:0 20px 22px!important}.wayne-dialog-actions button{min-height:52px!important}}
+  `;
+  document.head.appendChild(style);
+  if(typeof window.waynePopup==="function"){
+    const popup=window.waynePopup;
+    let lastSignature="",lastAt=0;
+    window.waynePopup=(message,type="success",title)=>{
+      const signature=[type,title||"",String(message||"")].join("|"),now=Date.now();
+      if(signature===lastSignature&&now-lastAt<1600)return Promise.resolve(true);
+      lastSignature=signature;lastAt=now;
+      return popup(message,type,title);
+    };
+  }
 })();
