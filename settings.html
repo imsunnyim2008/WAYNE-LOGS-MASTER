@@ -8,13 +8,16 @@
 <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="premium-pages.css?v=20260825-optimized2"><link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6">
 <style>
 :root{--set-bg:#f4f8fc;--set-card:#fff;--set-text:#0f2d53;--set-muted:#617995;--set-line:#d9e6f2;--set-blue:#0783c0;--set-soft:#eaf8fe}
-body.settings-page{background:var(--set-bg);color:var(--set-text)}
+body.settings-page{background:var(--set-bg)!important;color:var(--set-text)!important}
 .settings-wrap{width:min(920px,calc(100% - 28px));margin:34px auto 70px}
 .settings-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:24px}
 .settings-head h1{font-size:36px;margin:5px 0 7px}.settings-head p{margin:0;color:var(--set-muted)}
 .settings-kicker{color:var(--set-blue);font-weight:900;font-size:12px;letter-spacing:.14em}
-.settings-grid{display:grid;gap:18px}.settings-card{background:var(--set-card);border:1px solid var(--set-line);border-radius:22px;padding:24px;box-shadow:0 10px 30px rgba(15,45,83,.06)}
-.settings-card h2{font-size:21px;margin:0 0 5px}.settings-card>p{color:var(--set-muted);margin:0 0 20px}
+.settings-grid{display:flex!important;flex-direction:column!important;gap:26px!important}
+.settings-card{position:relative!important;display:block!important;overflow:hidden!important;margin:0!important;background:var(--set-card)!important;border:1px solid var(--set-line)!important;border-radius:22px!important;padding:26px!important;box-shadow:0 12px 34px rgba(15,45,83,.09)!important}
+.settings-card:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#1767d6,#08a8df)}
+.settings-card form{display:block!important;margin-top:18px!important}
+.settings-card h2{font-size:21px!important;margin:4px 0 7px!important}.settings-card>p{color:var(--set-muted)!important;margin:0 0 20px!important}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:7px}.field.full{grid-column:1/-1}.field label{font-weight:800;font-size:13px}
 .field input,.field select{width:100%;height:48px;border:1px solid var(--set-line);border-radius:12px;padding:0 14px;background:var(--set-card);color:var(--set-text);font:inherit;outline:none}.field input:focus,.field select:focus{border-color:#53b7e4;box-shadow:0 0 0 3px rgba(83,183,228,.16)}
 .field small{color:var(--set-muted)}.settings-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
@@ -60,7 +63,7 @@ body.settings-dark{--set-bg:#071422;--set-card:#0d2135;--set-text:#eef7ff;--set-
 
 <section class="settings-card"><h2>Account Management</h2><p>Need help with your account or want it removed?</p><div class="settings-actions"><a class="set-btn set-secondary" style="display:inline-flex;align-items:center;text-decoration:none" href="support.html">Contact Support</a><a class="set-btn set-danger" style="display:inline-flex;align-items:center;text-decoration:none" href="support.html?topic=delete-account">Request Account Deletion</a></div><div class="security-note">For your protection, account deletion is reviewed before wallet and order records are removed.</div></section>
 </div></main>
-<script src="config.js?v=20260825-logoutfix1"></script>
+<script src="config.js?v=20260827-theme1"></script>
 <script>
 const API_URL=window.WAYNE_API_URL||localStorage.getItem("wayneApiUrl")||"http://localhost:5000",$=id=>document.getElementById(id);let token=localStorage.getItem("wayneToken");if(!token)location.replace("login.html");let originalEmail="";
 function message(text,type="ok"){const box=$("pageMessage");box.textContent=text;box.className="set-message show "+type;box.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>box.className="set-message",4500)}
@@ -70,7 +73,6 @@ $("profileForm").onsubmit=async e=>{e.preventDefault();try{const body={firstName
 $("passwordForm").onsubmit=async e=>{e.preventDefault();if($("newPassword").value!==$("confirmPassword").value)return message("The new passwords do not match.","error");try{const d=await api("/api/auth/password",{method:"POST",body:JSON.stringify({currentPassword:$("currentPassword").value,password:$("newPassword").value})});token=d.token;localStorage.setItem("wayneToken",d.token);localStorage.setItem("wayneUser",JSON.stringify(d.user));e.target.reset();message(d.message)}catch(e){message(e.message,"error")}};
 $("preferencesForm").onsubmit=async e=>{e.preventDefault();try{const body={orderUpdates:$("orderUpdates").checked,walletAlerts:$("walletAlerts").checked,productAnnouncements:$("productAnnouncements").checked,promotions:$("promotions").checked};const d=await api("/api/auth/preferences",{method:"PATCH",body:JSON.stringify(body)});message(d.message)}catch(e){message(e.message,"error")}};
 $("logoutAll").onclick=async()=>{if(!confirm("Log out this account from every device?"))return;try{await api("/api/auth/logout-all",{method:"POST"});localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.replace("login.html")}catch(e){message(e.message,"error")}};
-function applyTheme(value){const dark=value==="dark"||(value==="system"&&matchMedia("(prefers-color-scheme:dark)").matches);document.body.classList.toggle("settings-dark",dark)}
-const savedTheme=localStorage.getItem("wayneAppearance")||"system";$("appearance").value=savedTheme;applyTheme(savedTheme);$("appearance").onchange=e=>{localStorage.setItem("wayneAppearance",e.target.value);applyTheme(e.target.value);message("Appearance saved on this device.")};matchMedia("(prefers-color-scheme:dark)").addEventListener?.("change",()=>{if($("appearance").value==="system")applyTheme("system")});
+const savedTheme=localStorage.getItem("wayneAppearance")||"system";$("appearance").value=savedTheme;window.wayneApplyAppearance?.(savedTheme);$("appearance").onchange=e=>{window.wayneApplyAppearance?.(e.target.value);message("Appearance saved across WAYNE LOGS.")};
 $("logout").onclick=()=>{localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.href="login.html"};load();
 </script></body></html>
