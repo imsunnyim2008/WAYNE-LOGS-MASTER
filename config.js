@@ -254,3 +254,132 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
 })();
+
+
+/* WAYNE_GLOBAL_TOASTS_V1 */
+(function wayneGlobalToastsInstaller(){
+  if(window.__wayneToastsReady)return;
+  window.__wayneToastsReady=true;
+
+  const toastStyle=document.createElement("style");
+  toastStyle.id="wayne-toast-styles";
+  toastStyle.textContent=`
+    .wayne-toast-stack{position:fixed;top:max(16px,env(safe-area-inset-top));right:16px;z-index:2147483000;width:min(390px,calc(100vw - 32px));display:grid;gap:10px;pointer-events:none}
+    .wayne-toast{--toast:#087fca;position:relative;pointer-events:auto;display:grid;grid-template-columns:40px 1fr 30px;align-items:center;gap:10px;padding:13px 12px;border:1px solid color-mix(in srgb,var(--toast) 30%,white);border-radius:16px;background:rgba(255,255,255,.97);color:#102b4e;box-shadow:0 18px 45px rgba(15,45,83,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:wayneToastIn .28s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+    .wayne-toast:before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--toast)}
+    .wayne-toast.success{--toast:#16a34a}.wayne-toast.error{--toast:#dc2626}.wayne-toast.warning{--toast:#d97706}.wayne-toast.info{--toast:#087fca}
+    .wayne-toast-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--toast) 13%,white);color:var(--toast);font-size:20px;font-weight:950}
+    .wayne-toast-copy{min-width:0}.wayne-toast-title{display:block;font-size:14px;font-weight:950;line-height:1.15;margin-bottom:3px}.wayne-toast-message{display:block;font-size:13px;line-height:1.35;color:#5d718a;overflow-wrap:anywhere}
+    .wayne-toast-close{width:30px;height:30px;border:0;border-radius:9px;background:transparent;color:#6b7f96;font-size:20px;line-height:1;cursor:pointer}
+    .wayne-toast.hiding{animation:wayneToastOut .22s ease forwards}
+    @keyframes wayneToastIn{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
+    @keyframes wayneToastOut{to{opacity:0;transform:translateY(-10px) scale(.97)}}
+    @media(max-width:600px){.wayne-toast-stack{left:12px;right:12px;top:max(12px,env(safe-area-inset-top));width:auto}.wayne-toast{border-radius:14px;padding:12px 10px;grid-template-columns:38px 1fr 28px}}
+    html.wayne-dark-mode .wayne-toast{background:rgba(12,31,55,.97);color:#f3f8ff;border-color:color-mix(in srgb,var(--toast) 45%,#1d3b60)}
+    html.wayne-dark-mode .wayne-toast-message{color:#b8c8db}
+  `;
+  document.head.appendChild(toastStyle);
+
+  let stack;
+  function ensureStack(){
+    if(stack&&stack.isConnected)return stack;
+    stack=document.createElement("div");
+    stack.className="wayne-toast-stack";
+    stack.setAttribute("aria-live","polite");
+    stack.setAttribute("aria-atomic","false");
+    document.body.appendChild(stack);
+    return stack;
+  }
+  const titles={success:"Success",error:"Something went wrong",warning:"Please check",info:"Update"};
+  const icons={success:"✓",error:"!",warning:"!",info:"i"};
+  function cleanMessage(value,fallback){
+    const clean=String(value||"").replace(/\s+/g," ").trim();
+    return clean||fallback;
+  }
+  function toast(message,type="info",options={}){
+    const kind=["success","error","warning","info"].includes(type)?type:"info";
+    const host=ensureStack();
+    const item=document.createElement("div");
+    item.className=`wayne-toast ${kind}`;
+    item.setAttribute("role",kind==="error"?"alert":"status");
+    const icon=document.createElement("span");icon.className="wayne-toast-icon";icon.textContent=icons[kind];
+    const copy=document.createElement("span");copy.className="wayne-toast-copy";
+    const title=document.createElement("strong");title.className="wayne-toast-title";title.textContent=options.title||titles[kind];
+    const body=document.createElement("span");body.className="wayne-toast-message";body.textContent=cleanMessage(message,kind==="success"?"Completed successfully.":"Please try again.");
+    copy.append(title,body);
+    const close=document.createElement("button");close.type="button";close.className="wayne-toast-close";close.setAttribute("aria-label","Close notification");close.textContent="×";
+    item.append(icon,copy,close);host.appendChild(item);
+    while(host.children.length>4)host.firstElementChild?.remove();
+    let timer;
+    const remove=()=>{clearTimeout(timer);if(!item.isConnected)return;item.classList.add("hiding");setTimeout(()=>item.remove(),230)};
+    close.addEventListener("click",remove);
+    timer=setTimeout(remove,Number(options.duration)||4600);
+    return item;
+  }
+  window.wayneToast=toast;
+  window.showToast=window.showToast||toast;
+
+  function actionMessage(url,method,ok,data){
+    const supplied=data&&typeof data==="object"&&(data.message||data.error);
+    if(supplied)return cleanMessage(supplied,ok?"Completed successfully.":"The request failed.");
+    const path=String(url||"").toLowerCase();
+    if(!ok){
+      if(path.includes("/auth/login"))return"Login failed. Check your details and try again.";
+      if(path.includes("/auth/register"))return"Account creation failed. Please check your details.";
+      if(path.includes("/wallet"))return"Wallet action failed. Please try again.";
+      if(path.includes("/orders"))return"Order action failed. Please try again.";
+      return"Your action could not be completed. Please try again.";
+    }
+    if(path.includes("/auth/login"))return"Login successful.";
+    if(path.includes("/auth/register"))return"Account created successfully.";
+    if(path.includes("/wallet")&&path.includes("/pay"))return"Wallet payment completed successfully.";
+    if(path.includes("/wallet"))return"Wallet updated successfully.";
+    if(path.includes("/orders"))return method==="DELETE"?"Order removed successfully.":"Order completed successfully.";
+    if(path.includes("/products"))return method==="DELETE"?"Product deleted successfully.":"Product saved successfully.";
+    if(path.includes("/support"))return"Support message sent successfully.";
+    if(path.includes("/notification"))return"Notification sent successfully.";
+    if(path.includes("/settings")||path.includes("/config"))return"Settings saved successfully.";
+    if(path.includes("/profile")||path.includes("/auth/me"))return"Profile updated successfully.";
+    return"Action completed successfully.";
+  }
+
+  const originalFetch=window.fetch.bind(window);
+  window.fetch=async function(input,init){
+    const method=String(init?.method||(typeof Request!=="undefined"&&input instanceof Request?input.method:"GET")||"GET").toUpperCase();
+    const url=typeof input==="string"?input:(input?.url||"");
+    try{
+      const response=await originalFetch(input,init);
+      if(!["GET","HEAD","OPTIONS"].includes(method)){
+        let data=null;
+        try{data=await response.clone().json()}catch{}
+        const type=response.ok?"success":"error";
+        const message=actionMessage(url,method,response.ok,data);
+        toast(message,type);
+        if(response.ok){
+          const pending={id:`${Date.now()}_${Math.random()}`,message,type,createdAt:Date.now()};
+          try{sessionStorage.setItem("waynePendingToast",JSON.stringify(pending))}catch{}
+          setTimeout(()=>{try{const saved=JSON.parse(sessionStorage.getItem("waynePendingToast")||"null");if(saved?.id===pending.id)sessionStorage.removeItem("waynePendingToast")}catch{}},7000);
+        }
+      }
+      return response;
+    }catch(error){
+      if(!["GET","HEAD","OPTIONS"].includes(method))toast("Connection failed. Check your network and try again.","error");
+      throw error;
+    }
+  };
+
+  const nativeAlert=window.alert.bind(window);
+  window.alert=function(message){
+    toast(message,/fail|error|wrong|unable|invalid/i.test(String(message))?"error":"info",{duration:5600});
+  };
+  window.wayneNativeAlert=nativeAlert;
+
+  function showPending(){
+    try{
+      const pending=JSON.parse(sessionStorage.getItem("waynePendingToast")||"null");
+      sessionStorage.removeItem("waynePendingToast");
+      if(pending&&Date.now()-Number(pending.createdAt||0)<15000)toast(pending.message,pending.type||"success");
+    }catch{}
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",showPending,{once:true});else showPending();
+})();
