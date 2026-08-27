@@ -164,3 +164,21 @@ body.market-orders .wayne-telegram{bottom:18px!important;right:16px!important}
   .market-announcement{overflow-x:auto!important}
   .market-announcement-track{animation:none}
 }
+
+
+/* Clear destructive action at the bottom of the customer menu. */
+.market-side-account .market-side-logout{
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-height:42px;
+  margin-top:12px!important;
+  border:1px solid #fecaca;
+  border-radius:12px;
+  background:#fff1f2;
+  color:#dc2626!important;
+  font-weight:850;
+  text-decoration:none;
+}
+.market-side-account .market-side-logout:hover{background:#ffe4e6}
