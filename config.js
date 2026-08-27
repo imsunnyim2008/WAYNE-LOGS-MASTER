@@ -3,6 +3,40 @@ window.WAYNE_API_URL = ["localhost", "127.0.0.1"].includes(location.hostname)
   ? "http://localhost:5000"
   : "https://wayne-logs-master-api.onrender.com";
 
+
+
+// Shared appearance setting used by every customer page.
+(function installWayneAppearance(){
+  const style=document.createElement("style");
+  style.textContent=`
+  html.wayne-dark-mode,html.wayne-dark-mode body{background:#071422!important;color:#eef7ff!important;color-scheme:dark}
+  html.wayne-dark-mode body:before{background:radial-gradient(circle at 80% 0,rgba(15,124,181,.15),transparent 28%),radial-gradient(circle at 0 45%,rgba(20,70,130,.14),transparent 24%)!important}
+  html.wayne-dark-mode :where(.nav,.simple-header,.dash-header,.market-page-header,.admin-top){background:#0b1d2f!important;border-color:#24405a!important;color:#eef7ff!important}
+  html.wayne-dark-mode :where(.panel,.settings-card,.order-card,.notification-card,.simple-product,.profile-details,.profile-identity,.referral-card,.profile-shortcuts,.support-ticket,.history-card,.table-wrap){background:#0d2135!important;border-color:#28445e!important;color:#eef7ff!important;box-shadow:0 12px 30px rgba(0,0,0,.2)!important}
+  html.wayne-dark-mode :where(h1,h2,h3,h4,strong,.brand,.market-brand,.market-category-heading){color:#eef7ff!important}
+  html.wayne-dark-mode :where(p,small,.settings-card>p,.settings-head p,.pref-row small){color:#9cb1c8!important}
+  html.wayne-dark-mode :where(input,select,textarea){background:#10283e!important;border-color:#31506c!important;color:#eef7ff!important;box-shadow:none!important}
+  html.wayne-dark-mode :where(.ghost-btn,.market-icon-btn,.market-menu-btn,.wayne-global-back){background:#10283e!important;border-color:#31506c!important;color:#bde8ff!important}
+  html.wayne-dark-mode :where(.market-side-panel,.simple-drawer,.simple-modal-card){background:#0b1d2f!important;color:#eef7ff!important}
+  html.wayne-dark-mode .market-side-links a{color:#a9bdd1!important}
+  html.wayne-dark-mode .market-side-links a.active{background:#123b57!important;color:#78d3ff!important}
+  html.wayne-dark-mode .market-side-account{background:#10283e!important;border-color:#31506c!important}
+  html.wayne-dark-mode :where(.market-announcement,.market-search-wrap,.market-popular button,.market-product-list){background:#0d2135!important;border-color:#28445e!important;color:#bde8ff!important}
+  html.wayne-dark-mode .settings-page{--set-bg:#071422;--set-card:#0d2135;--set-text:#eef7ff;--set-muted:#9cb1c8;--set-line:#28445e;--set-soft:#102f48}
+  `;
+  document.head.appendChild(style);
+  const isDark=value=>value==="dark"||(value==="system"&&matchMedia("(prefers-color-scheme:dark)").matches);
+  window.wayneApplyAppearance=value=>{
+    const chosen=["light","dark","system"].includes(value)?value:"system";
+    localStorage.setItem("wayneAppearance",chosen);
+    document.documentElement.classList.toggle("wayne-dark-mode",isDark(chosen));
+    document.body?.classList.toggle("settings-dark",isDark(chosen));
+    return chosen;
+  };
+  window.wayneApplyAppearance(localStorage.getItem("wayneAppearance")||"system");
+  matchMedia("(prefers-color-scheme:dark)").addEventListener?.("change",()=>{if((localStorage.getItem("wayneAppearance")||"system")==="system")window.wayneApplyAppearance("system")});
+})();
+
 // Lightweight shared dialogs used by customer/admin pages.
 (function installWayneDialogs(){
   const style=document.createElement("style");
@@ -142,12 +176,11 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
   function enhanceHomeHeader(){
     const themeButton=document.getElementById("marketThemeBtn");
-    if(themeButton){
-      themeButton.id="marketWalletBtn";
-      themeButton.setAttribute("aria-label","Wallet");
-      themeButton.setAttribute("title","Wallet");
-      themeButton.innerHTML=walletSvg;
-      themeButton.onclick=()=>{location.href="dashboard.html"};
+    if(themeButton&&!themeButton.dataset.themeReady){
+      themeButton.dataset.themeReady="true";
+      themeButton.setAttribute("aria-label","Toggle appearance");
+      themeButton.setAttribute("title","Toggle appearance");
+      themeButton.onclick=()=>{const dark=document.documentElement.classList.contains("wayne-dark-mode");window.wayneApplyAppearance(dark?"light":"dark")};
     }
     const actions=document.querySelector(".market-header-actions");
     if(!actions)return;
