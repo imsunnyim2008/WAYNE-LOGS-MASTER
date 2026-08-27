@@ -297,6 +297,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     return clean||fallback;
   }
   function toast(message,type="info",options={}){
+    if(window.__wayneFeedbackV3)return null;
     const kind=["success","error","warning","info"].includes(type)?type:"info";
     if(typeof window.waynePopup==="function"){window.waynePopup(message,kind,options.title);return null}
     const host=ensureStack();
