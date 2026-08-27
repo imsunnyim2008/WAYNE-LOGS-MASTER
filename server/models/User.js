@@ -13,6 +13,9 @@ const schema = new mongoose.Schema({
   referredBy:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null,immutable:true},
   sessionVersion:{type:Number,default:0,min:0},
   mustChangePassword:{type:Boolean,default:false},
-  temporaryPasswordUsedAt:{type:Date,default:null}
+  temporaryPasswordUsedAt:{type:Date,default:null},
+  notificationPreferences:{
+    orderUpdates:{type:Boolean,default:true},walletAlerts:{type:Boolean,default:true},productAnnouncements:{type:Boolean,default:true},promotions:{type:Boolean,default:false}
+  }
 },{timestamps:true});
 module.exports = mongoose.model("User",schema);
