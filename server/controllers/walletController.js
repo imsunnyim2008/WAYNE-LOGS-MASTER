@@ -1,5 +1,5 @@
 const crypto=require("crypto"),mongoose=require("mongoose"),bcrypt=require("bcryptjs");
-const User=require("../models/User"),WalletTransaction=require("../models/WalletTransaction"),provider=require("../services/paymentProvider");
+const User=require("../models/User"),WalletTransaction=require("../models/WalletTransaction"),SiteSetting=require("../models/SiteSetting"),provider=require("../services/paymentProvider");
 const notifications=require("../services/notificationService");
 const wayneIdService=require("../services/wayneIdService");
 const MIN_KOBO=Number(process.env.WALLET_MIN_TOPUP_KOBO||10000),MAX_KOBO=Number(process.env.WALLET_MAX_TOPUP_KOBO||500000000);
@@ -62,14 +62,19 @@ exports.transfer=async(req,res)=>{
   }finally{await session.endSession()}
 };
 exports.initialize=async(req,res)=>{try{
+  const settings=await SiteSetting.findOne({key:"main"});
+  const minKobo=Number(settings?.minimumTopupKobo||MIN_KOBO),maxKobo=Number(settings?.maximumTopupKobo||MAX_KOBO);
   const amountKobo=Math.round(Number(req.body.amount)*100);
-  if(!Number.isSafeInteger(amountKobo)||amountKobo<MIN_KOBO||amountKobo>MAX_KOBO)return res.status(400).json({message:`Enter an amount between ₦${MIN_KOBO/100} and ₦${MAX_KOBO/100}.`});
+  if(!Number.isSafeInteger(amountKobo)||amountKobo<minKobo||amountKobo>maxKobo)return res.status(400).json({message:`Enter an amount between ₦${minKobo/100} and ₦${maxKobo/100}.`});
   const selected=String(req.body.paymentMethod||"manual_bank").trim().toLowerCase();
   if(!["manual_bank","kora","korapay"].includes(selected))return res.status(400).json({message:"Choose Kora Pay or Manual Bank Transfer."});
-  const method=selected==="korapay"?"kora":selected,reference="WLT-"+Date.now()+"-"+crypto.randomBytes(8).toString("hex"),front=(process.env.FRONTEND_URL||"http://127.0.0.1:5500").replace(/\/$/,"");
+  const method=selected==="korapay"?"kora":selected;
+  if(method==="manual_bank"&&settings?.manualBankEnabled===false)return res.status(503).json({message:"Manual bank funding is temporarily unavailable."});
+  if(method==="kora"&&settings?.onlinePaymentEnabled!==true)return res.status(503).json({message:"Online wallet funding is temporarily unavailable."});
+  const reference="WLT-"+Date.now()+"-"+crypto.randomBytes(8).toString("hex"),front=(process.env.FRONTEND_URL||"http://127.0.0.1:5500").replace(/\/$/,"");
   const transaction=await WalletTransaction.create({user:req.user._id,type:"deposit",amountKobo,reference,provider:method,description:method==="kora"?"Kora wallet top-up":"Manual bank wallet top-up"});
   if(method==="manual_bank"){
-    const bank={name:process.env.WALLET_BANK_NAME||"",accountName:process.env.WALLET_BANK_ACCOUNT_NAME||"",accountNumber:process.env.WALLET_BANK_ACCOUNT_NUMBER||""};
+    const bank={name:settings?.bankName||process.env.WALLET_BANK_NAME||"",accountName:settings?.bankAccountName||process.env.WALLET_BANK_ACCOUNT_NAME||"",accountNumber:settings?.bankAccountNumber||process.env.WALLET_BANK_ACCOUNT_NUMBER||""};
     if(!bank.name||!bank.accountName||!bank.accountNumber){transaction.status="failed";await transaction.save();return res.status(503).json({message:"Bank-transfer top-ups are not configured yet."})}
     return res.status(201).json({success:true,mode:"manual_bank",reference,amountKobo,bank});
   }
