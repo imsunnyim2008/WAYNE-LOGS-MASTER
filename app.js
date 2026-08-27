@@ -31,7 +31,7 @@ function setNavLoggedIn(user){
   if(accountLink){accountLink.textContent="My Profile";accountLink.href="profile.html"}
   if(registerLink){registerLink.hidden=true;registerLink.setAttribute("hidden","")}
   if(adminLink)adminLink.hidden=user?.role!=="admin";
-  if(sideAccountBox){sideAccountBox.innerHTML=`<strong>Wallet Balance</strong><div id="sideWalletBalance" style="font-size:25px;font-weight:950;margin:8px 0">₦0.00</div><a href="dashboard.html">Top Up →</a>${user?.role==="admin"?'<a href="admin.html">Admin Panel →</a>':""}<a href="#" id="sideLogout">Logout</a>`;sideAccountBox.querySelector("#sideLogout")?.addEventListener("click",e=>{e.preventDefault();clearSession();location.href="index.html"})}
+  if(sideAccountBox){sideAccountBox.innerHTML=`<strong>Wallet Balance</strong><div id="sideWalletBalance" style="font-size:25px;font-weight:950;margin:8px 0">₦0.00</div><a href="dashboard.html">Top Up →</a>${user?.role==="admin"?'<a href="admin.html">Admin Panel →</a>':""}<a href="#" id="sideLogout" class="market-side-logout">Logout</a>`;sideAccountBox.querySelector("#sideLogout")?.addEventListener("click",e=>{e.preventDefault();clearSession();location.href="index.html"})}
 }
 async function validateSession(){
   if(!token){setNavLoggedOut();return}
