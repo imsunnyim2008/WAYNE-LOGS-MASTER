@@ -101,7 +101,7 @@ refreshOrders.onclick=loadOrders;apiUrlInput.value=API_URL;saveApiUrl.onclick=()
  const el=id=>document.getElementById(id);let configuration={staff:[]};
  function json(method,body){return{method:method,headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}}
  async function loadConfig(){
-  const results=await Promise.all([api("/api/auth/admin"),api("/api/admin-config")]),u=results[0].user,data=results[1],s=data.settings||{};configuration=data;
+  const results=await Promise.all([api("/api/auth/admin"),api("/api/admin-config")]),u=results[0].user,data=results[1],s=data.settings||{};configuration=data;const ps=data.paymentStatus||{};el("cfgProviderStatus").textContent="Manual bank: "+(ps.manualBankConfigured?"Configured":"Needs bank details")+" · Online provider: "+(ps.onlineProviderConfigured?"Configured":"Not configured")+" · Webhook base: "+(ps.webhookBaseUrl||"Not configured");
   el("adminFirstName").value=u.firstName||"";el("adminLastName").value=u.lastName||"";el("adminEmail").value=u.email||"";el("adminPhone").value=u.phone||"";
   el("cfgStoreOpen").checked=s.storeOpen!==false;el("cfgPurchases").checked=s.purchasesEnabled!==false;el("cfgManualBank").checked=s.manualBankEnabled!==false;el("cfgOnlinePayment").checked=s.onlinePaymentEnabled===true;
   el("cfgLowStock").value=s.lowStockThreshold==null?3:s.lowStockThreshold;el("cfgMinTopup").value=Number(s.minimumTopupKobo||10000)/100;el("cfgMaxTopup").value=Number(s.maximumTopupKobo||500000000)/100;
