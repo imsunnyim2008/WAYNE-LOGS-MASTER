@@ -63,7 +63,7 @@ body.settings-dark{--set-bg:#071422;--set-card:#0d2135;--set-text:#eef7ff;--set-
 
 <section class="settings-card"><h2>Account Management</h2><p>Need help with your account or want it removed?</p><div class="settings-actions"><a class="set-btn set-secondary" style="display:inline-flex;align-items:center;text-decoration:none" href="support.html">Contact Support</a><a class="set-btn set-danger" style="display:inline-flex;align-items:center;text-decoration:none" href="support.html?topic=delete-account">Request Account Deletion</a></div><div class="security-note">For your protection, account deletion is reviewed before wallet and order records are removed.</div></section>
 </div></main>
-<script src="config.js?v=20260827-noloader1"></script>
+<script src="config.js?v=20260827-feedback3"></script><script src="feedback.js?v=20260827-feedback3"></script>
 <script>
 const API_URL=window.WAYNE_API_URL||localStorage.getItem("wayneApiUrl")||"http://localhost:5000",$=id=>document.getElementById(id);let token=localStorage.getItem("wayneToken");if(!token)location.replace("login.html");let originalEmail="";
 function message(text,type="ok"){const box=$("pageMessage");box.textContent=text;box.className="set-message show "+type;box.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>box.className="set-message",4500)}
