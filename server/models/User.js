@@ -10,6 +10,8 @@ const schema = new mongoose.Schema({
   adminNotes:[{text:{type:String,maxlength:500},admin:{type:mongoose.Schema.Types.ObjectId,ref:"User"},createdAt:{type:Date,default:Date.now}}],
   isActive:{type:Boolean,default:true},
   walletBalanceKobo:{type:Number,default:0,min:0},
+  transferPin:{type:String,select:false,default:null},
+  transferPinSetAt:{type:Date,default:null},
   wayneId:{type:String,unique:true,sparse:true,uppercase:true,trim:true,index:true},
   referralCode:{type:String,unique:true,sparse:true,uppercase:true,trim:true,index:true},
   referredBy:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null,immutable:true},

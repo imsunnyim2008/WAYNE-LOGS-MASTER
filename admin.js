@@ -153,5 +153,5 @@ refreshOrders.onclick=loadOrders;apiUrlInput.value=API_URL;saveApiUrl.onclick=()
  get("customerDetailNotify").onclick=async()=>{if(selected){await customerNotify(selected._id);await openCustomerDetails(selected._id)}};
  get("customerDetailNote").onclick=async()=>{if(selected){await customerNote(selected._id);await openCustomerDetails(selected._id)}};
  get("customerDetailStatus").onclick=async()=>{if(selected){await customerStatus(selected._id,!selected.isActive);await openCustomerDetails(selected._id)}};
- get("customerDetailCredit").onclick=()=>{if(!selected)return;creditEmail.value=selected.email;goAdminSection("wallets");creditAmount.focus()};
+ get("customerDetailCredit").onclick=()=>{if(!selected)return;goAdminSection("wallet-credit");setTimeout(()=>window.wayneCreditCustomer?.(selected),80)};
 })();

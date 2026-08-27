@@ -113,16 +113,28 @@ exports.adminReview=async(req,res)=>{
   catch(error){res.status(error.status||500).json({message:error.status?error.message:"Could not review top-up."})}
   finally{await session.endSession()}
 };
+exports.adminTransferPinStatus=async(req,res)=>{try{const admin=await User.findById(req.user._id).select("transferPinSetAt");res.json({success:true,configured:!!admin?.transferPinSetAt,setAt:admin?.transferPinSetAt||null})}catch(error){res.status(500).json({message:"Could not check transfer PIN status."})}};
+exports.setAdminTransferPin=async(req,res)=>{
+  const adminPassword=String(req.body.adminPassword||""),pin=String(req.body.pin||""),confirmPin=String(req.body.confirmPin||"");
+  if(!/^\d{4}$/.test(pin))return res.status(400).json({message:"Your transfer PIN must contain exactly 4 numbers."});
+  if(pin!==confirmPin)return res.status(400).json({message:"The two transfer PIN entries do not match."});
+  const admin=await User.findById(req.user._id).select("+password +transferPin");
+  if(!admin||!(await bcrypt.compare(adminPassword,admin.password)))return res.status(403).json({message:"Your admin password is incorrect. The transfer PIN was not changed."});
+  admin.transferPin=await bcrypt.hash(pin,12);admin.transferPinSetAt=new Date();await admin.save();
+  res.json({success:true,message:"Your 4-digit transfer PIN is ready."});
+};
 exports.adminCredit=async(req,res)=>{
-  const email=String(req.body.email||"").trim().toLowerCase(),amountKobo=Math.round(Number(req.body.amount)*100),reason=String(req.body.reason||"").trim().slice(0,200),requestId=String(req.body.requestId||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,80),adminPassword=String(req.body.adminPassword||"");
+  const email=String(req.body.email||"").trim().toLowerCase(),amountKobo=Math.round(Number(req.body.amount)*100),reason=String(req.body.reason||"").trim().slice(0,200),requestId=String(req.body.requestId||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,80),transferPin=String(req.body.transferPin||"");
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter the customer's registered email address."});
   if(!Number.isSafeInteger(amountKobo)||amountKobo<100||amountKobo>500000000)return res.status(400).json({message:"Enter a credit between ₦1 and ₦5,000,000."});
   if(reason.length<4)return res.status(400).json({message:"Enter a clear reason for this credit."});
   if(requestId.length<8)return res.status(400).json({message:"Invalid credit request."});
+  if(!/^\d{4}$/.test(transferPin))return res.status(400).json({message:"Enter your 4-digit transfer PIN."});
   const attemptKey=String(req.user._id),now=Date.now(),attempt=creditAttempts.get(attemptKey);
-  if(attempt&&attempt.until>now&&attempt.count>=5)return res.status(429).json({message:"Too many incorrect password attempts. Wallet credits are locked for 15 minutes."});
-  const admin=await User.findById(req.user._id).select("+password");
-  if(!admin||!(await bcrypt.compare(adminPassword,admin.password))){const active=attempt&&attempt.until>now?attempt:{count:0,until:now+15*60*1000};active.count++;creditAttempts.set(attemptKey,active);return res.status(403).json({message:"Your admin password is incorrect. Credit was not added."})}
+  if(attempt&&attempt.until>now&&attempt.count>=5)return res.status(429).json({message:"Too many incorrect PIN attempts. Wallet credits are locked for 15 minutes."});
+  const admin=await User.findById(req.user._id).select("+transferPin");
+  if(!admin?.transferPin)return res.status(409).json({message:"Create your 4-digit transfer PIN before crediting a wallet."});
+  if(!(await bcrypt.compare(transferPin,admin.transferPin))){const active=attempt&&attempt.until>now?attempt:{count:0,until:now+15*60*1000};active.count++;creditAttempts.set(attemptKey,active);return res.status(403).json({message:"Your transfer PIN is incorrect. Credit was not added."})}
   creditAttempts.delete(attemptKey);
   const dailyLimit=Number(process.env.ADMIN_DAILY_CREDIT_LIMIT_KOBO||500000000),start=new Date();start.setHours(0,0,0,0);
   const totals=await WalletTransaction.aggregate([{$match:{provider:"admin_credit",status:"completed",createdAt:{$gte:start}}},{$group:{_id:null,total:{$sum:"$amountKobo"}}}]);
