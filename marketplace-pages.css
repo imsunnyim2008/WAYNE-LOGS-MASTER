@@ -216,3 +216,11 @@ body.market-orders{
   .market-product-row{grid-template-columns:52px minmax(0,1fr) 88px;padding:14px 13px;gap:10px}.market-product-thumb{width:50px;height:50px}.market-product-thumb img{width:34px;height:34px}.market-product-buy{min-width:88px}.market-product-price{font-size:16px}.market-buy-btn{min-width:70px;font-size:13px}.market-stock{font-size:12px}
   .market-order-row{grid-template-columns:52px minmax(0,1fr) 88px 10px;padding:14px 12px;gap:9px}.market-order-icon{width:50px;height:50px}.market-order-right b{font-size:16px}.market-order-copy strong{font-size:15px}.market-order-arrow{font-size:20px}
 }
+
+/* Purchased delivery visible directly in My Orders */
+.market-order-list-item{border-bottom:1px solid #dbe6ef}.market-order-list-item:last-child{border-bottom:0}.market-order-list-item .market-order-row{border-bottom:0}
+.market-order-list-delivery{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;margin:0 22px 20px;padding:16px 17px;border:1px solid #b9dff3;border-radius:17px;background:linear-gradient(145deg,#f4fbff,#e4f5fd)}
+.market-order-list-delivery>div{min-width:0}.market-order-list-delivery span{display:block;margin-bottom:7px;color:#5e7892;font-size:10px;font-weight:950;letter-spacing:.13em}.market-order-list-delivery pre{max-height:150px;margin:0;overflow:auto;color:#153451;font:600 14px/1.55 inherit;white-space:pre-wrap;overflow-wrap:anywhere}
+.market-list-copy-btn{min-width:118px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #0787ca;border-radius:13px;background:linear-gradient(135deg,#0877ca,#09a9df);color:#fff;font-weight:950;box-shadow:0 10px 22px rgba(7,130,197,.22)}.market-list-copy-btn span{display:inline;margin:0;color:#fff;font-size:18px;letter-spacing:0}.market-list-copy-btn.copied{background:linear-gradient(135deg,#07875b,#16ad78);border-color:#07875b}
+.market-order-list-waiting{margin:0 22px 20px;padding:13px 15px;border:1px dashed #cadce8;border-radius:14px;background:#f8fbfd;color:#71859a;font-size:13px}
+@media(max-width:620px){.market-order-list-delivery{grid-template-columns:1fr;margin:0 12px 14px;padding:14px}.market-list-copy-btn{width:100%;min-height:49px}.market-order-list-waiting{margin:0 12px 14px}.market-order-list-delivery pre{max-height:190px}}
