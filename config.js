@@ -200,6 +200,23 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     if(admin)admin.hidden=!isAdmin;
   }
 
+  const adminSectionHistory=[];
+  let adminHistoryNavigating=false;
+  function trackAdminSections(){
+    if(!location.pathname.toLowerCase().endsWith("/admin.html"))return;
+    const active=document.querySelector(".admin-menu [data-section].active")?.dataset.section||"overview";
+    if(!adminSectionHistory.length)adminSectionHistory.push(active);
+    document.querySelectorAll(".admin-menu [data-section]").forEach(button=>{
+      if(button.dataset.backTracked)return;
+      button.dataset.backTracked="true";
+      button.addEventListener("click",()=>{
+        if(adminHistoryNavigating)return;
+        const section=button.dataset.section;
+        if(section&&adminSectionHistory.at(-1)!==section)adminSectionHistory.push(section);
+      });
+    });
+  }
+
   function addBackButton(){
     const path=location.pathname.toLowerCase();
     const isHome=path==="/"||path.endsWith("/index.html")||path==="";
@@ -213,7 +230,13 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     if(document.querySelector(".wayne-global-back-wrap"))return;
     const wrap=document.createElement("div");wrap.className="wayne-global-back-wrap";
     const back=document.createElement("a");back.className="wayne-global-back";back.href="index.html";back.innerHTML=backSvg+'<span>Back</span>';
-    back.onclick=e=>{e.preventDefault();if(history.length>1)history.back();else location.href="index.html"};
+    if(path.endsWith("/admin.html")){
+      back.href="admin.html";
+      back.setAttribute("aria-label","Back to previous admin section");
+      back.onclick=e=>{e.preventDefault();if(adminSectionHistory.length>1)adminSectionHistory.pop();const target=adminSectionHistory.at(-1)||"overview";adminHistoryNavigating=true;document.querySelector('.admin-menu [data-section="'+target+'"]')?.click();adminHistoryNavigating=false};
+    }else{
+      back.onclick=e=>{e.preventDefault();if(history.length>1)history.back();else location.href="index.html"};
+    }
     wrap.appendChild(back);
     const header=document.querySelector(".market-page-header,.simple-header,.dash-header,.nav,.admin-top,.auth-card");
     if(header&&header.parentNode)header.parentNode.insertBefore(wrap,header.nextSibling);else document.body.insertBefore(wrap,document.body.firstChild);
@@ -225,7 +248,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   }
 
   const start=()=>{
-    enforceCleanup();enhanceHomeHeader();addBackButton();
+    enforceCleanup();enhanceHomeHeader();trackAdminSections();addBackButton();
     new MutationObserver(()=>{enforceCleanup();enhanceHomeHeader();}).observe(document.body,{childList:true,subtree:true});
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
