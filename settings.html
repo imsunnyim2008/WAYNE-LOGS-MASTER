@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Account Settings | WAYNE LOGS</title>
+<link rel="icon" type="image/png" href="/assets/wayne-bat-logo.jpg">
+<meta name="theme-color" content="#0f2d53">
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="premium-pages.css?v=20260825-optimized2"><link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6">
+<style>
+:root{--set-bg:#f4f8fc;--set-card:#fff;--set-text:#0f2d53;--set-muted:#617995;--set-line:#d9e6f2;--set-blue:#0783c0;--set-soft:#eaf8fe}
+body.settings-page{background:var(--set-bg);color:var(--set-text)}
+.settings-wrap{width:min(920px,calc(100% - 28px));margin:34px auto 70px}
+.settings-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:24px}
+.settings-head h1{font-size:36px;margin:5px 0 7px}.settings-head p{margin:0;color:var(--set-muted)}
+.settings-kicker{color:var(--set-blue);font-weight:900;font-size:12px;letter-spacing:.14em}
+.settings-grid{display:grid;gap:18px}.settings-card{background:var(--set-card);border:1px solid var(--set-line);border-radius:22px;padding:24px;box-shadow:0 10px 30px rgba(15,45,83,.06)}
+.settings-card h2{font-size:21px;margin:0 0 5px}.settings-card>p{color:var(--set-muted);margin:0 0 20px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:7px}.field.full{grid-column:1/-1}.field label{font-weight:800;font-size:13px}
+.field input,.field select{width:100%;height:48px;border:1px solid var(--set-line);border-radius:12px;padding:0 14px;background:var(--set-card);color:var(--set-text);font:inherit;outline:none}.field input:focus,.field select:focus{border-color:#53b7e4;box-shadow:0 0 0 3px rgba(83,183,228,.16)}
+.field small{color:var(--set-muted)}.settings-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.set-btn{min-height:44px;border:0;border-radius:12px;padding:0 17px;font-weight:850;cursor:pointer}.set-primary{background:#0783c0;color:#fff}.set-secondary{background:var(--set-soft);color:#0879ad}.set-danger{background:#fff1f2;color:#dc2626;border:1px solid #fecaca}
+.set-btn:disabled{opacity:.6;cursor:not-allowed}.set-message{display:none;margin:0 0 16px;padding:12px 14px;border-radius:12px;font-weight:750}.set-message.show{display:block}.set-message.ok{background:#ecfdf5;color:#15803d}.set-message.error{background:#fff1f2;color:#dc2626}
+.pref-list{display:grid}.pref-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:15px 0;border-bottom:1px solid var(--set-line)}.pref-row:last-child{border-bottom:0}.pref-row strong{display:block}.pref-row small{color:var(--set-muted)}
+.switch{position:relative;width:50px;height:29px;flex:none}.switch input{position:absolute;opacity:0}.switch span{position:absolute;inset:0;background:#b8c7d7;border-radius:999px;transition:.2s}.switch span:after{content:"";position:absolute;width:23px;height:23px;left:3px;top:3px;background:#fff;border-radius:50%;box-shadow:0 2px 7px rgba(0,0,0,.2);transition:.2s}.switch input:checked+span{background:#16a36f}.switch input:checked+span:after{transform:translateX(21px)}
+.security-note{padding:13px;border-radius:12px;background:var(--set-soft);color:var(--set-muted);font-size:13px;margin-top:14px}
+body.settings-dark{--set-bg:#071422;--set-card:#0d2135;--set-text:#eef7ff;--set-muted:#9cb1c8;--set-line:#223c55;--set-soft:#102f48}.settings-dark .nav{background:#091b2c}.settings-dark .field input,.settings-dark .field select{color-scheme:dark}
+@media(max-width:650px){.settings-wrap{margin-top:23px}.settings-head{display:block}.settings-head h1{font-size:30px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.settings-card{padding:19px;border-radius:18px}.nav-actions a:not(:first-child){display:none}}
+</style>
+</head>
+<body class="settings-page">
+<nav class="nav"><div class="container nav-inner"><a class="brand" href="index.html"><span class="brand-mark">W</span><span>WAYNE LOGS</span></a><div class="nav-actions"><a class="ghost-btn" href="index.html">Shop</a><a class="ghost-btn" href="profile.html">Profile</a><button class="ghost-btn" id="logout">Logout</button></div></div></nav>
+<main class="settings-wrap">
+<header class="settings-head"><div><span class="settings-kicker">CUSTOMER ACCOUNT</span><h1>Account Settings</h1><p>Manage your details, security, alerts and appearance.</p></div><a class="ghost-btn" href="profile.html">View Profile</a></header>
+<div id="pageMessage" class="set-message"></div>
+<div class="settings-grid">
+<section class="settings-card"><h2>Personal Information</h2><p>Keep your account details accurate.</p>
+<form id="profileForm"><div class="form-grid">
+<div class="field"><label for="firstName">First name</label><input id="firstName" maxlength="60" required autocomplete="given-name"></div>
+<div class="field"><label for="lastName">Last name</label><input id="lastName" maxlength="60" required autocomplete="family-name"></div>
+<div class="field"><label for="email">Email address</label><input id="email" type="email" maxlength="254" required autocomplete="email"><small>Changing email requires your password.</small></div>
+<div class="field"><label for="phone">Phone number</label><input id="phone" maxlength="30" required autocomplete="tel"></div>
+<div class="field full"><label for="profilePassword">Current password (only when changing email)</label><input id="profilePassword" type="password" autocomplete="current-password"></div>
+</div><div class="settings-actions"><button class="set-btn set-primary" type="submit">Save Changes</button></div></form></section>
+
+<section class="settings-card"><h2>Security</h2><p>Use a strong password that you do not use elsewhere.</p>
+<form id="passwordForm"><div class="form-grid">
+<div class="field full"><label for="currentPassword">Current password</label><input id="currentPassword" type="password" required autocomplete="current-password"></div>
+<div class="field"><label for="newPassword">New password</label><input id="newPassword" type="password" minlength="8" required autocomplete="new-password"></div>
+<div class="field"><label for="confirmPassword">Confirm new password</label><input id="confirmPassword" type="password" minlength="8" required autocomplete="new-password"></div>
+</div><div class="security-note">Use at least 8 characters with uppercase, lowercase and a number.</div><div class="settings-actions"><button class="set-btn set-primary" type="submit">Change Password</button><button class="set-btn set-danger" id="logoutAll" type="button">Log Out All Devices</button></div></form></section>
+
+<section class="settings-card"><h2>Notifications</h2><p>Choose which account updates you want to receive.</p><form id="preferencesForm"><div class="pref-list">
+<label class="pref-row"><span><strong>Order updates</strong><small>Payment, delivery and order-status alerts.</small></span><span class="switch"><input id="orderUpdates" type="checkbox"><span></span></span></label>
+<label class="pref-row"><span><strong>Wallet alerts</strong><small>Funding, credits and wallet activity.</small></span><span class="switch"><input id="walletAlerts" type="checkbox"><span></span></span></label>
+<label class="pref-row"><span><strong>Product announcements</strong><small>New products and important stock updates.</small></span><span class="switch"><input id="productAnnouncements" type="checkbox"><span></span></span></label>
+<label class="pref-row"><span><strong>Promotions</strong><small>Optional offers and promotional messages.</small></span><span class="switch"><input id="promotions" type="checkbox"><span></span></span></label>
+</div><div class="settings-actions"><button class="set-btn set-primary" type="submit">Save Notifications</button></div></form></section>
+
+<section class="settings-card"><h2>Appearance</h2><p>Choose how Account Settings appears on this device.</p><div class="field"><label for="appearance">Theme</label><select id="appearance"><option value="system">Use device setting</option><option value="light">Light mode</option><option value="dark">Dark mode</option></select></div></section>
+
+<section class="settings-card"><h2>Account Management</h2><p>Need help with your account or want it removed?</p><div class="settings-actions"><a class="set-btn set-secondary" style="display:inline-flex;align-items:center;text-decoration:none" href="support.html">Contact Support</a><a class="set-btn set-danger" style="display:inline-flex;align-items:center;text-decoration:none" href="support.html?topic=delete-account">Request Account Deletion</a></div><div class="security-note">For your protection, account deletion is reviewed before wallet and order records are removed.</div></section>
+</div></main>
+<script src="config.js?v=20260825-logoutfix1"></script>
+<script>
+const API_URL=window.WAYNE_API_URL||localStorage.getItem("wayneApiUrl")||"http://localhost:5000",token=localStorage.getItem("wayneToken"),$=id=>document.getElementById(id);if(!token)location.replace("login.html");let originalEmail="";
+function message(text,type="ok"){const box=$("pageMessage");box.textContent=text;box.className="set-message show "+type;box.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>box.className="set-message",4500)}
+async function api(path,options={}){options.headers={...(options.headers||{}),Authorization:"Bearer "+token};if(options.body)options.headers["Content-Type"]="application/json";const response=await fetch(API_URL+path,options),data=await response.json().catch(()=>({}));if(!response.ok){if(response.status===401){localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.replace("login.html")}throw new Error(data.message||"Request failed.")}return data}
+async function load(){try{const data=await api("/api/auth/me"),u=data.user;["firstName","lastName","email","phone"].forEach(key=>$(key).value=u[key]||"");originalEmail=u.email||"";const p=u.notificationPreferences||{};$("orderUpdates").checked=p.orderUpdates!==false;$("walletAlerts").checked=p.walletAlerts!==false;$("productAnnouncements").checked=p.productAnnouncements!==false;$("promotions").checked=p.promotions===true}catch(e){message(e.message,"error")}}
+$("profileForm").onsubmit=async e=>{e.preventDefault();try{const body={firstName:$("firstName").value,lastName:$("lastName").value,email:$("email").value,phone:$("phone").value,currentPassword:$("profilePassword").value};const d=await api("/api/auth/profile",{method:"PUT",body:JSON.stringify(body)});localStorage.setItem("wayneUser",JSON.stringify(d.user));originalEmail=d.user.email;$("profilePassword").value="";message(d.message)}catch(e){message(e.message,"error")}};
+$("passwordForm").onsubmit=async e=>{e.preventDefault();if($("newPassword").value!==$("confirmPassword").value)return message("The new passwords do not match.","error");try{const d=await api("/api/auth/password",{method:"POST",body:JSON.stringify({currentPassword:$("currentPassword").value,password:$("newPassword").value})});localStorage.setItem("wayneToken",d.token);localStorage.setItem("wayneUser",JSON.stringify(d.user));e.target.reset();message(d.message)}catch(e){message(e.message,"error")}};
+$("preferencesForm").onsubmit=async e=>{e.preventDefault();try{const body={orderUpdates:$("orderUpdates").checked,walletAlerts:$("walletAlerts").checked,productAnnouncements:$("productAnnouncements").checked,promotions:$("promotions").checked};const d=await api("/api/auth/preferences",{method:"PATCH",body:JSON.stringify(body)});message(d.message)}catch(e){message(e.message,"error")}};
+$("logoutAll").onclick=async()=>{if(!confirm("Log out this account from every device?"))return;try{await api("/api/auth/logout-all",{method:"POST"});localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.replace("login.html")}catch(e){message(e.message,"error")}};
+function applyTheme(value){const dark=value==="dark"||(value==="system"&&matchMedia("(prefers-color-scheme:dark)").matches);document.body.classList.toggle("settings-dark",dark)}
+const savedTheme=localStorage.getItem("wayneAppearance")||"system";$("appearance").value=savedTheme;applyTheme(savedTheme);$("appearance").onchange=e=>{localStorage.setItem("wayneAppearance",e.target.value);applyTheme(e.target.value);message("Appearance saved on this device.")};matchMedia("(prefers-color-scheme:dark)").addEventListener?.("change",()=>{if($("appearance").value==="system")applyTheme("system")});
+$("logout").onclick=()=>{localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.href="login.html"};load();
+</script></body></html>
