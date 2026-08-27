@@ -22,6 +22,6 @@ function details(req){
 module.exports=(req,res,next)=>{
   if(!["POST","PUT","PATCH","DELETE"].includes(req.method))return next();
   const started=Date.now(),requestId=clean(req.headers["x-request-id"]||crypto.randomUUID(),100);
-  res.on("finish",()=>{if(res.statusCode>=400||req.user?.role!=="admin")return;const event=details(req);if(!event)return;AuditLog.create({...event,admin:req.user._id,ipAddress:clean(req.headers["x-forwarded-for"]?.split(",")[0]||req.ip,100),userAgent:clean(req.headers["user-agent"],300),requestId,metadata:{...event.metadata,statusCode:res.statusCode,durationMs:Date.now()-started}}).catch(error=>console.error("Audit log write failed:",error.message))});
+  res.on("finish",()=>{if(res.statusCode>=400||!["admin","staff"].includes(req.user?.role))return;const event=details(req);if(!event)return;AuditLog.create({...event,admin:req.user._id,ipAddress:clean(req.headers["x-forwarded-for"]?.split(",")[0]||req.ip,100),userAgent:clean(req.headers["user-agent"],300),requestId,metadata:{...event.metadata,statusCode:res.statusCode,durationMs:Date.now()-started}}).catch(error=>console.error("Audit log write failed:",error.message))});
   next();
 };
