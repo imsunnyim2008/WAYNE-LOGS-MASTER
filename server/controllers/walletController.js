@@ -17,7 +17,7 @@ async function credit(reference,v){
   });if(transaction?.status==="completed")await notifications.create({user:transaction.user,type:"wallet",title:"Wallet funded",message:`₦${(transaction.amountKobo/100).toLocaleString("en-NG")} was added to your wallet.`,link:"dashboard.html",key:`wallet:${transaction.reference}`}).catch(()=>{});return transaction}finally{await session.endSession()}
 }
 exports.summary=async(req,res)=>{try{const user=await User.findById(req.user._id).select("walletBalanceKobo wayneId");if(!user)return res.status(404).json({message:"Account not found."});try{user.wayneId=await wayneIdService.ensureWayneId(user)}catch(error){console.error("WAYNE ID wallet error:",error)}res.json({success:true,wallet:{balanceKobo:user.walletBalanceKobo||0,wayneId:user.wayneId||"",currency:"NGN",withdrawalsEnabled:false,providers:{manualBank:true,kora:!!process.env.KORA_SECRET_KEY}}})}catch(error){res.status(500).json({message:"Could not load the wallet."})}};
-exports.history=async(req,res)=>{try{const transactions=await WalletTransaction.find({user:req.user._id}).sort({createdAt:-1}).limit(250);res.json({success:true,transactions})}catch(error){res.status(500).json({message:"Could not load wallet transactions."})}};
+exports.history=async(req,res)=>{try{const transactions=await WalletTransaction.find({user:req.user._id}).sort({createdAt:-1}).limit(250).lean();const safeTransactions=transactions.map(transaction=>{if(transaction.provider==="admin_credit")return{...transaction,description:"Wallet credit from WAYNE LOGS Admin",reviewNote:undefined,reviewedBy:undefined};return transaction});res.json({success:true,transactions:safeTransactions})}catch(error){res.status(500).json({message:"Could not load wallet transactions."})}};
 exports.lookupTransferRecipient=async(req,res)=>{try{
   const wayneId=normalizeWayneId(req.params.wayneId);
   if(!/^WL-[A-F0-9]{10}$/.test(wayneId))return res.status(400).json({message:"Enter a valid WAYNE ID."});
@@ -134,7 +134,7 @@ exports.adminCredit=async(req,res)=>{
     const user=await User.findOneAndUpdate({email,isActive:true},{$inc:{walletBalanceKobo:amountKobo}},{new:true,session});
     if(!user)throw Object.assign(new Error("Customer not found."),{status:404});
     [transaction]=await WalletTransaction.create([{user:user._id,type:"deposit",status:"completed",amountKobo,currency:"NGN",reference,provider:"admin_credit",description:reason,balanceAfterKobo:user.walletBalanceKobo,verifiedAt:new Date(),reviewedBy:req.user._id,reviewNote:reason}],{session});
-  });if(transaction)await notifications.create({user:transaction.user,type:"wallet",title:"Wallet credit received",message:`₦${(transaction.amountKobo/100).toLocaleString("en-NG")} was added: ${transaction.description}`,link:"dashboard.html",key:`wallet:${transaction.reference}`}).catch(()=>{});res.json({success:true,transaction})}
+  });if(transaction)await notifications.create({user:transaction.user,type:"wallet",title:"Wallet credit received",message:`₦${(transaction.amountKobo/100).toLocaleString("en-NG")} was added to your wallet by WAYNE LOGS Admin.`,link:"dashboard.html",key:`wallet:${transaction.reference}`}).catch(()=>{});res.json({success:true,transaction})}
   catch(error){res.status(error.status||500).json({message:error.status?error.message:"Could not credit the wallet."})}
   finally{await session.endSession()}
 };
