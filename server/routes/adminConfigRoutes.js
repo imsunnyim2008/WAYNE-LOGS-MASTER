@@ -1,0 +1,9 @@
+const r=require("express").Router(),c=require("../controllers/adminConfigController"),{protect,adminOnly}=require("../middleware/authMiddleware");
+r.get("/",protect,adminOnly,c.overview);
+r.put("/store",protect,adminOnly,c.updateStore);
+r.patch("/customers/:id/status",protect,adminOnly,c.customerStatus);
+r.post("/customers/:id/notes",protect,adminOnly,c.customerNote);
+r.post("/customers/:id/notify",protect,adminOnly,c.customerNotify);
+r.post("/staff",protect,adminOnly,c.createStaff);
+r.patch("/staff/:id",protect,adminOnly,c.updateStaff);
+module.exports=r;
