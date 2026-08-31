@@ -1,6 +1,7 @@
 const r=require("express").Router(),c=require("../controllers/adminConfigController"),{protect,adminOnly}=require("../middleware/authMiddleware");
 r.get("/",protect,adminOnly,c.overview);
 r.put("/store",protect,adminOnly,c.updateStore);
+r.put("/bank-details",protect,adminOnly,c.updateBankDetails);
 r.get("/customers/:id",protect,adminOnly,c.customerDetails);
 r.patch("/customers/:id/status",protect,adminOnly,c.customerStatus);
 r.post("/customers/:id/notes",protect,adminOnly,c.customerNote);
