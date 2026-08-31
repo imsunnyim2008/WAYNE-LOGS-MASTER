@@ -84,17 +84,31 @@ exports.initialize=async(req,res)=>{try{
 exports.submitManual=async(req,res)=>{try{
   const customerReference=String(req.body.customerReference||"").trim().toUpperCase().replace(/\s+/g," ").slice(0,100);
   if(customerReference.length<4)return res.status(400).json({message:"Enter the transfer reference from your bank."});
+  const receipt=req.body.receipt&&typeof req.body.receipt==="object"?req.body.receipt:{};
+  const receiptFileName=String(receipt.fileName||"").replace(/[\\/<>:"|?*\x00-\x1F]/g,"_").trim().slice(0,180);
+  const receiptMimeType=String(receipt.mimeType||"").trim().toLowerCase(),allowedMimeTypes=new Set(["image/jpeg","image/png","image/webp","application/pdf"]);
+  if(!receiptFileName||!allowedMimeTypes.has(receiptMimeType)||typeof receipt.data!=="string")return res.status(400).json({message:"Upload a JPG, PNG, WEBP image or PDF payment receipt."});
+  const match=receipt.data.match(/^data:([^;,]+);base64,([A-Za-z0-9+/]+={0,2})$/);
+  if(!match||match[1].toLowerCase()!==receiptMimeType)return res.status(400).json({message:"The payment receipt file is invalid. Upload it again."});
+  const receiptBuffer=Buffer.from(match[2],"base64");
+  if(!receiptBuffer.length||receiptBuffer.length>3*1024*1024)return res.status(413).json({message:"The payment receipt must be no larger than 3 MB."});
   const current=await WalletTransaction.findOne({reference:req.params.reference,user:req.user._id,type:"deposit",provider:"manual_bank",status:"pending"});
   if(!current)return res.status(409).json({message:"This top-up cannot be submitted again."});
   const duplicate=await WalletTransaction.findOne({_id:{$ne:current._id},provider:"manual_bank",customerReference,status:{$in:["submitted","completed"]}}).select("_id");
   if(duplicate)return res.status(409).json({message:"This bank reference was already submitted. Enter the unique reference for this transfer."});
-  const transaction=await WalletTransaction.findOneAndUpdate({_id:current._id,status:"pending"},{$set:{status:"submitted",customerReference,submittedAt:new Date()}},{new:true});
+  const transaction=await WalletTransaction.findOneAndUpdate({_id:current._id,status:"pending"},{$set:{status:"submitted",customerReference,submittedAt:new Date(),receiptFileName,receiptMimeType,receiptData:receipt.data}},{new:true});
   if(!transaction)return res.status(409).json({message:"This top-up cannot be submitted again."});
   res.json({success:true,transaction});
 }catch(error){res.status(500).json({message:"Could not submit transfer details."})}};
 exports.verify=async(req,res)=>{try{const transaction=await WalletTransaction.findOne({reference:req.body.reference,user:req.user._id,type:"deposit"});if(!transaction)return res.status(404).json({message:"Top-up not found."});if(transaction.status==="completed")return res.json({success:true,transaction});if(transaction.provider!=="kora")return res.status(400).json({message:"This payment requires manual review."});const result=await provider.verifyTopup(transaction.providerReference||transaction.reference,transaction.provider);res.json({success:true,transaction:await credit(transaction.reference,result)})}catch(error){res.status(400).json({message:"Top-up has not been verified. Your wallet was not credited."})}};
 exports.webhook=async(req,res)=>{try{const name=String(req.params.provider||"").toLowerCase();if(!Buffer.isBuffer(req.body)||!provider.verifyWebhook(name,req.body,req.headers))return res.sendStatus(401);const event=provider.parseWebhook(name,req.body);if(!event||!event.successful)return res.sendStatus(200);const transaction=await WalletTransaction.findOne({$or:[{reference:event.reference},{providerReference:event.reference}],type:"deposit"});if(transaction)await credit(transaction.reference,event);res.sendStatus(200)}catch(error){res.sendStatus(500)}};
 exports.adminAll=async(req,res)=>{try{const transactions=await WalletTransaction.find().populate("user","firstName lastName email walletBalanceKobo").populate("order","productName totalAmount").sort({createdAt:-1}).limit(1000);res.json({success:true,transactions})}catch(error){res.status(500).json({message:"Could not load wallet transactions."})}};
+exports.adminReceipt=async(req,res)=>{try{
+  if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({message:"Invalid payment ID."});
+  const transaction=await WalletTransaction.findOne({_id:req.params.id,type:"deposit",provider:"manual_bank"}).select("+receiptData receiptFileName receiptMimeType");
+  if(!transaction||!transaction.receiptData)return res.status(404).json({message:"No payment receipt is attached to this transfer."});
+  res.json({success:true,receipt:{fileName:transaction.receiptFileName,mimeType:transaction.receiptMimeType,data:transaction.receiptData}});
+}catch(error){res.status(500).json({message:"Could not open the payment receipt."})}};
 exports.adminReview=async(req,res)=>{
   if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({message:"Invalid top-up ID."});
   const decision=req.body.decision;

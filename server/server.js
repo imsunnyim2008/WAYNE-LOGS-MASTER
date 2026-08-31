@@ -33,7 +33,7 @@ const allowedOrigins=new Set([process.env.FRONTEND_URL,"https://waynelogs.com","
 app.use(cors({origin(origin,callback){if(!origin||allowedOrigins.has(String(origin).replace(/\/$/,"")))return callback(null,true);return callback(new Error("Origin not allowed"))},credentials:false,methods:["GET","POST","PUT","PATCH","DELETE","OPTIONS"],allowedHeaders:["Content-Type","Authorization"]}));
 app.use(morgan("dev"));
 app.post("/api/wallet/webhooks/:provider",express.raw({type:"application/json",limit:"1mb"}),walletWebhook);
-app.use(express.json({limit:"2mb"}));
+app.use(express.json({limit:"6mb"}));
 app.use(express.urlencoded({extended:true,limit:"2mb"}));
 app.use(auditMiddleware);
 function createRateLimiter({windowMs,max,message}){

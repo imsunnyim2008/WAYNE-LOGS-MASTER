@@ -8,6 +8,7 @@ const schema=new mongoose.Schema({
   providerReference:{type:String,default:""}, order:{type:mongoose.Schema.Types.ObjectId,ref:"Order",default:null},
   description:{type:String,default:""}, balanceAfterKobo:{type:Number,default:null}, verifiedAt:{type:Date,default:null},
   customerReference:{type:String,default:""}, submittedAt:{type:Date,default:null},
+  receiptFileName:{type:String,default:"",maxlength:180}, receiptMimeType:{type:String,default:""}, receiptData:{type:String,default:"",select:false},
   reviewedBy:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null}, reviewNote:{type:String,default:""},
   counterparty:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null}
 },{timestamps:true});
