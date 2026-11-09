@@ -23,6 +23,7 @@ const auditRoutes=require("./routes/auditRoutes");
 const securityRoutes=require("./routes/securityRoutes");
 const adminConfigRoutes=require("./routes/adminConfigRoutes");
 const auditMiddleware=require("./middleware/auditMiddleware");
+const emailService=require("./services/emailService");
 const maintenance=require("./services/maintenanceService");
 const{webhook:walletWebhook}=require("./controllers/walletController");
 app.disable("x-powered-by");
@@ -49,6 +50,8 @@ function createRateLimiter({windowMs,max,message}){
   return(req,res,next)=>{const now=Date.now(),key=String(req.ip||req.socket?.remoteAddress||"unknown"),current=attempts.get(key);if(attempts.size>10000)for(const[id,value]of attempts)if(value.resetAt<=now)attempts.delete(id);if(!current||current.resetAt<=now){attempts.set(key,{count:1,resetAt:now+windowMs});res.setHeader("RateLimit-Limit",String(max));res.setHeader("RateLimit-Remaining",String(max-1));return next()}if(current.count>=max){res.setHeader("Retry-After",Math.max(1,Math.ceil((current.resetAt-now)/1000)));res.setHeader("RateLimit-Remaining","0");return res.status(429).json({message})}current.count+=1;res.setHeader("RateLimit-Limit",String(max));res.setHeader("RateLimit-Remaining",String(Math.max(0,max-current.count)));next()};
 }
 app.use("/api/auth/login",createRateLimiter({windowMs:15*60*1000,max:20,message:"Too many login attempts. Please wait a few minutes and try again."}));
+app.use("/api/auth/forgot-password",createRateLimiter({windowMs:15*60*1000,max:5,message:"Too many recovery requests. Please try again in 15 minutes."}));
+app.use("/api/auth/reset-password",createRateLimiter({windowMs:15*60*1000,max:10,message:"Too many reset attempts. Please try again in 15 minutes."}));
 app.use("/api/auth/register",createRateLimiter({windowMs:60*60*1000,max:10,message:"Too many account-creation attempts. Please try again later."}));
 app.use("/api/wallet/transfers",createRateLimiter({windowMs:10*60*1000,max:20,message:"Too many wallet-transfer attempts. Please wait and try again."}));
 app.use("/api/wallet/topups",createRateLimiter({windowMs:10*60*1000,max:30,message:"Too many top-up attempts. Please wait and try again."}));
@@ -108,6 +111,7 @@ async function connectDatabase(){
   }finally{connecting=false;}
 }
 httpServer=app.listen(PORT,"0.0.0.0",()=>console.log("WAYNE LOGS API listening on "+PORT));
+console.log("Email password recovery:",emailService.isConfigured()?"mail transport configured":"SMTP not configured");
 httpServer.requestTimeout=Number(process.env.REQUEST_TIMEOUT_MS||30000);
 httpServer.headersTimeout=Math.max(httpServer.requestTimeout+5000,35000);
 httpServer.keepAliveTimeout=5000;

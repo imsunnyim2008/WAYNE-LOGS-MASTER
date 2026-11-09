@@ -18,6 +18,9 @@ const schema = new mongoose.Schema({
   sessionVersion:{type:Number,default:0,min:0},
   mustChangePassword:{type:Boolean,default:false},
   temporaryPasswordUsedAt:{type:Date,default:null},
+  passwordResetTokenHash:{type:String,select:false},
+  passwordResetExpiresAt:{type:Date,select:false},
+  passwordResetRequestedAt:{type:Date,select:false},
   notificationPreferences:{
     orderUpdates:{type:Boolean,default:true},walletAlerts:{type:Boolean,default:true},productAnnouncements:{type:Boolean,default:true},promotions:{type:Boolean,default:false}
   }

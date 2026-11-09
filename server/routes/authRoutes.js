@@ -1,8 +1,12 @@
 const r=require("express").Router();
 const c=require("../controllers/authController");
+const recovery=require("../controllers/passwordRecoveryController");
 const{protect,adminOnly}=require("../middleware/authMiddleware");
 r.post("/register",c.register);
 r.post("/login",c.login);
+r.get("/password-recovery/status",recovery.status);
+r.post("/forgot-password",recovery.forgotPassword);
+r.post("/reset-password",recovery.resetPassword);
 r.post("/change-password",protect,c.changeTemporaryPassword);
 r.get("/me",protect,c.me);
 r.put("/profile",protect,c.updateProfile);
