@@ -165,6 +165,7 @@ exports.adminCredit=async(req,res)=>{
   finally{await session.endSession()}
 };
 exports.adminClear=async(req,res)=>{
+  if(req.user.role!=="admin")return res.status(403).json({message:"Only the owner admin may clear customer balances."});
   const email=String(req.body.email||"").trim().toLowerCase(),reason=String(req.body.reason||"").trim().slice(0,200),requestId=String(req.body.requestId||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,80),adminPassword=String(req.body.adminPassword||"");
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter the customer's registered email address."});
   if(reason.length<4)return res.status(400).json({message:"Enter a clear reason for removing the balance."});
