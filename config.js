@@ -390,7 +390,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 /* ULTRON_STORE_HELP_BOOT_V1 */
 (()=>{
   const page=location.pathname.split("/").pop().toLowerCase();
-  if(/^admin(?:-[a-z0-9-]+)?\.html$/.test(page))return;
+  // Admin pages also get ULTRON; privileged mode is checked on the backend.
   const load=()=>{
     if(document.getElementById("ultron-store-root")||document.querySelector('script[data-ultron-store]'))return;
     const sheet=document.createElement("link");

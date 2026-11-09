@@ -13,6 +13,7 @@ if(!process.env.INVENTORY_ENCRYPTION_KEY)console.warn("WARNING: INVENTORY_ENCRYP
 const app=express();
 const authRoutes=require("./routes/authRoutes");
 const ultronRoutes=require("./routes/ultronRoutes");
+const ultronAiRoutes=require("./routes/ultronAiRoutes");
 const productRoutes=require("./routes/productRoutes");
 const orderRoutes=require("./routes/orderRoutes");
 const walletRoutes=require("./routes/walletRoutes");
@@ -65,7 +66,9 @@ app.use("/api/auth/admin/password-assistance/reset",createRateLimiter({windowMs:
 app.use("/api/wallet/admin/transfer-pin",createRateLimiter({windowMs:15*60*1000,max:15,message:"Too many transfer PIN operations. Try again later."}));
 app.use("/api/wallet/admin/credit",createRateLimiter({windowMs:15*60*1000,max:20,message:"Too many wallet credit attempts. Try again later."}));
 app.use("/api/wallet/admin/clear",createRateLimiter({windowMs:15*60*1000,max:10,message:"Too many wallet balance operations. Try again later."}));
-app.use("/api/ultron",createRateLimiter({windowMs:15*60*1000,max:24,message:"Too many store-help messages. Please try again later."}));
+app.use("/api/ultron/ask",createRateLimiter({windowMs:15*60*1000,max:24,message:"Too many store-help messages. Please try again later."}));
+app.use("/api/ultron/ai/chat",createRateLimiter({windowMs:15*60*1000,max:18,message:"Too many AI chat messages. Try again later."}));
+app.use("/api/ultron/ai",ultronAiRoutes);
 app.use("/api/ultron",ultronRoutes);
 app.use("/api/auth",authRoutes);
 app.use("/api/products",productRoutes);
