@@ -4,6 +4,7 @@ const recovery=require("../controllers/passwordRecoveryController");
 const{protect,adminOnly}=require("../middleware/authMiddleware");
 r.post("/register",c.register);
 r.post("/login",c.login);
+r.post("/2fa/login",c.verifyTwoFactorLogin);
 r.get("/password-recovery/status",recovery.status);
 r.post("/forgot-password",recovery.forgotPassword);
 r.post("/reset-password",recovery.resetPassword);

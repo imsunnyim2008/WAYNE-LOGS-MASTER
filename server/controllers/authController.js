@@ -1,6 +1,8 @@
 const bcrypt=require("bcryptjs");
 const jwt=require("jsonwebtoken");
 const crypto=require("crypto");
+const twoFactor=require("../services/twoFactorService");
+const AuditLog=require("../models/AuditLog");
 const User=require("../models/User");
 const Referral=require("../models/Referral");
 const referralService=require("../services/referralService");
@@ -39,12 +41,21 @@ exports.login=async(req,res)=>{
     const key=attemptKey(req,email),now=Date.now(),record=attempts.get(key);
     if(record&&record.until>now&&record.count>=MAX_ATTEMPTS)return res.status(429).json({message:"Too many failed login attempts. Try again in 15 minutes."});
     const u=await User.findOne({email:(email||"").toLowerCase()});
-    if(!u||!(await bcrypt.compare(password||"",u.password))){const active=record&&record.until>now?record:{count:0,until:now+WINDOW};active.count++;attempts.set(key,active);return res.status(401).json({message:"Invalid email or password."})}
+    if(!u||!(await bcrypt.compare(password||"",u.password))){
+      const active=record&&record.until>now?record:{count:0,until:now+WINDOW};active.count++;attempts.set(key,active);
+      if(u&&["admin","staff"].includes(u.role))AuditLog.create({admin:u._id,action:"auth.failed",entity:"security",summary:"Incorrect password submitted at administrator login.",ipAddress:String(req.ip||"").slice(0,100),userAgent:String(req.get("user-agent")||"").slice(0,300),metadata:{count:active.count}}).catch(()=>{});
+      return res.status(401).json({message:"Invalid email or password."})
+    }
     if(!u.isActive) return res.status(403).json({message:"Account disabled."});
     try{u.referralCode=await referralService.ensureReferralCode(u)}catch(error){console.error("Referral ID login error:",error)}
     try{u.wayneId=await wayneIdService.ensureWayneId(u)}catch(error){console.error("WAYNE ID login error:",error)}
     if(u.mustChangePassword){const consumed=await User.findOneAndUpdate({_id:u._id,mustChangePassword:true,temporaryPasswordUsedAt:null},{$set:{temporaryPasswordUsedAt:new Date()}},{new:true});if(!consumed)return res.status(403).json({message:"This temporary password was already used. Ask the administrator for a new one."});u.temporaryPasswordUsedAt=consumed.temporaryPasswordUsedAt}
     attempts.delete(key);
+    if(["admin","staff"].includes(u.role)&&u.totpEnabled){
+      const challenge=jwt.sign({id:u._id,sv:Number(u.sessionVersion||0),purpose:"totp-login"},process.env.JWT_SECRET,{expiresIn:"5m"});
+      return res.json({success:true,requiresTwoFactor:true,challenge,message:"Enter the code from your authenticator app or a recovery code."});
+    }
+    if(u.role==="admin")AuditLog.create({admin:u._id,action:"auth.login",entity:"security",summary:"Administrator signed in.",ipAddress:String(req.ip||"").slice(0,100),userAgent:String(req.get("user-agent")||"").slice(0,300)}).catch(()=>{});
     res.json({success:true,token:token(u),user:safe(u)});
   }catch(e){console.error("Login error:",e);res.status(500).json({message:"Could not login."});}
 };
@@ -90,3 +101,21 @@ exports.updatePreferences=async(req,res)=>{try{
   const input=req.body||{},preferences={orderUpdates:input.orderUpdates!==false,walletAlerts:input.walletAlerts!==false,productAnnouncements:input.productAnnouncements!==false,promotions:input.promotions===true};
   const user=await User.findByIdAndUpdate(req.user._id,{$set:{notificationPreferences:preferences}},{new:true});res.json({success:true,preferences:user.notificationPreferences,message:"Notification preferences saved."});
 }catch(e){res.status(500).json({message:"Could not save notification preferences."})}};
+
+exports.verifyTwoFactorLogin=async(req,res)=>{
+  res.set("Cache-Control","no-store");
+  const challenge=String(req.body?.challenge||""),code=String(req.body?.code||"").trim();
+  if(challenge.length>2000||!code||code.length>64)return res.status(401).json({message:"Invalid or expired verification request."});
+  try{
+    const decoded=jwt.verify(challenge,process.env.JWT_SECRET,{algorithms:["HS256"]});
+    if(decoded.purpose!=="totp-login")return res.status(401).json({message:"Invalid verification request."});
+    const user=await User.findById(decoded.id).select("+totpSecretEncrypted +totpRecoveryCodeHashes +totpLastUsedStep");
+    if(!user||!user.isActive||!user.totpEnabled||!["admin","staff"].includes(user.role)||Number(decoded.sv)!==Number(user.sessionVersion||0))return res.status(401).json({message:"Your verification session has expired. Sign in again."});
+    if(!await twoFactor.consumeCode(user,code)){
+      AuditLog.create({admin:user._id,action:"auth.2fa_failed",entity:"security",summary:"Incorrect authenticator or recovery code at login.",ipAddress:String(req.ip||"").slice(0,100),userAgent:String(req.get("user-agent")||"").slice(0,300)}).catch(()=>{});
+      return res.status(401).json({message:"Code incorrect, expired or already used."});
+    }
+    AuditLog.create({admin:user._id,action:"auth.2fa_login",entity:"security",summary:"Administrator completed two-factor login.",ipAddress:String(req.ip||"").slice(0,100),userAgent:String(req.get("user-agent")||"").slice(0,300)}).catch(()=>{});
+    return res.json({success:true,token:token(user),user:safe(user)});
+  }catch(error){return res.status(401).json({message:"Verification session expired. Sign in again."});}
+};

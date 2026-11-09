@@ -50,6 +50,8 @@ function createRateLimiter({windowMs,max,message}){
   return(req,res,next)=>{const now=Date.now(),key=String(req.ip||req.socket?.remoteAddress||"unknown"),current=attempts.get(key);if(attempts.size>10000)for(const[id,value]of attempts)if(value.resetAt<=now)attempts.delete(id);if(!current||current.resetAt<=now){attempts.set(key,{count:1,resetAt:now+windowMs});res.setHeader("RateLimit-Limit",String(max));res.setHeader("RateLimit-Remaining",String(max-1));return next()}if(current.count>=max){res.setHeader("Retry-After",Math.max(1,Math.ceil((current.resetAt-now)/1000)));res.setHeader("RateLimit-Remaining","0");return res.status(429).json({message})}current.count+=1;res.setHeader("RateLimit-Limit",String(max));res.setHeader("RateLimit-Remaining",String(Math.max(0,max-current.count)));next()};
 }
 app.use("/api/auth/login",createRateLimiter({windowMs:15*60*1000,max:20,message:"Too many login attempts. Please wait a few minutes and try again."}));
+app.use("/api/auth/2fa/login",createRateLimiter({windowMs:15*60*1000,max:10,message:"Too many verification attempts. Try again in 15 minutes."}));
+app.use("/api/security/admin/2fa",createRateLimiter({windowMs:15*60*1000,max:12,message:"Too many security setup requests. Try again later."}));
 app.use("/api/auth/forgot-password",createRateLimiter({windowMs:15*60*1000,max:5,message:"Too many recovery requests. Please try again in 15 minutes."}));
 app.use("/api/auth/reset-password",createRateLimiter({windowMs:15*60*1000,max:10,message:"Too many reset attempts. Please try again in 15 minutes."}));
 app.use("/api/auth/register",createRateLimiter({windowMs:60*60*1000,max:10,message:"Too many account-creation attempts. Please try again later."}));
