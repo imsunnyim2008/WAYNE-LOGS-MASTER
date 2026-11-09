@@ -21,10 +21,15 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
-    "morgan": "^1.10.0",
+    "morgan": "^1.12.1",
     "nodemailer": "^10.4.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
+  },
+  "overrides": {
+    "body-parser": "1.20.9",
+    "proxy-addr": "2.0.8",
+    "qs": "6.17.1"
   }
 }
