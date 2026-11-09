@@ -1,0 +1,26 @@
+/* ULTRON Store Help — isolated customer-only widget */
+#ultron-store-root{position:fixed;bottom:calc(19px + env(safe-area-inset-bottom,0px));right:18px;z-index:2147480000;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-sizing:border-box;pointer-events:none}
+#ultron-store-root *{box-sizing:border-box}
+#ultron-store-launch{pointer-events:auto;border:1px solid rgba(255,255,255,.27);display:flex;align-items:center;gap:9px;border-radius:999px;background:linear-gradient(125deg,#0a58bf,#0794cf);box-shadow:0 12px 35px rgba(11,74,155,.3);color:#fff;min-height:49px;padding:11px 18px;cursor:pointer;font-size:14px;font-weight:800;letter-spacing:.02em}
+#ultron-store-launch:hover{filter:brightness(1.05)}
+#ultron-store-launch:focus-visible,#ultron-store-panel button:focus-visible,#ultron-store-panel input:focus-visible{outline:3px solid #70d6ff;outline-offset:3px}
+#ultron-store-launch .ultron-pulse{display:inline-grid;place-items:center;font-size:17px;width:25px;height:25px;border-radius:50%;background:rgba(255,255,255,.2)}
+#ultron-store-panel{pointer-events:auto;position:absolute;bottom:64px;right:0;width:min(388px,calc(100vw - 30px));height:min(560px,calc(100dvh - 110px));display:flex;flex-direction:column;border-radius:24px;overflow:hidden;background:#fff;color:#153148;box-shadow:0 24px 74px rgba(3,31,73,.28);border:1px solid #d4e3f1}
+#ultron-store-panel[hidden]{display:none!important}
+#ultron-store-head{padding:16px 16px 15px;background:linear-gradient(135deg,#0c3d85,#087dc0);color:#fff;display:flex;gap:11px;align-items:center}
+#ultron-store-head .ultron-avatar{width:42px;height:42px;border:1px solid rgba(255,255,255,.34);border-radius:14px;background:rgba(255,255,255,.13);display:grid;place-items:center;font-weight:950}
+#ultron-store-head h2{color:#fff!important;margin:0;font-size:17px;line-height:1.2;font-weight:850}
+#ultron-store-head p{margin:3px 0 0;color:#d1f3ff!important;font-size:11px}
+#ultron-store-close{margin-left:auto;border:0;color:#fff;background:rgba(255,255,255,.15);width:35px;height:35px;border-radius:10px;font-size:22px;cursor:pointer}
+#ultron-store-body{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:11px;background:#f7faff;overscroll-behavior:contain}
+.ultron-msg{max-width:90%;white-space:pre-line;line-height:1.5;border-radius:16px;padding:11px 13px;font-size:13px;overflow-wrap:anywhere}
+.ultron-msg.bot{align-self:flex-start;background:#fff;color:#203d59;border:1px solid #dfeaf5;border-bottom-left-radius:5px}
+.ultron-msg.user{align-self:flex-end;background:#075db7;color:#fff;border-bottom-right-radius:5px}
+.ultron-msg a{display:inline-block;margin-top:9px;color:#006fca;text-decoration:underline;font-weight:750}
+#ultron-store-actions{display:flex;flex-wrap:wrap;gap:7px;padding:11px 14px;background:#fff;border-top:1px solid #edf2f7}
+#ultron-store-actions button{background:#edf5fd;color:#11619c;border:1px solid #d5e8f9;border-radius:999px;font-size:11px;font-weight:730;padding:8px 10px;cursor:pointer}
+#ultron-store-form{display:flex;padding:11px;gap:8px;border-top:1px solid #edf2f7;background:#fff}
+#ultron-store-input{flex:1;min-width:0;font-size:14px;border:1px solid #cbddec;background:#fff;color:#0a2d48;border-radius:12px;padding:12px 11px;outline:none}
+#ultron-store-send{border:0;border-radius:12px;background:#0867bb;color:#fff;font-weight:800;padding:0 14px;cursor:pointer}
+#ultron-store-send:disabled{opacity:.6;cursor:wait}
+@media(max-width:480px){#ultron-store-root{right:11px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}#ultron-store-panel{width:calc(100vw - 22px);height:min(540px,calc(100dvh - 101px));border-radius:19px}}

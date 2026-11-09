@@ -387,6 +387,20 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
 
 
+/* ULTRON_STORE_HELP_BOOT_V1 */
+(()=>{
+  const page=location.pathname.split("/").pop().toLowerCase();
+  if(/^admin(?:-[a-z0-9-]+)?\.html$/.test(page))return;
+  const load=()=>{
+    if(document.getElementById("ultron-store-root")||document.querySelector('script[data-ultron-store]'))return;
+    const sheet=document.createElement("link");
+    sheet.rel="stylesheet";sheet.href="ultron-store.css?v=20261109-v1";document.head.appendChild(sheet);
+    const s=document.createElement("script");s.src="ultron-store.js?v=20261109-v1";s.dataset.ultronStore="true";document.body.appendChild(s);
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",load,{once:true});
+  else load();
+})();
+
 /* WAYNE_ACTION_POPUP_V2 */
 (()=>{
   const style=document.createElement("style");

@@ -1,0 +1,11 @@
+"use strict";
+const assert=require("node:assert/strict");
+const {answer}=require("../services/ultronStoreService");
+assert.equal(answer("How do I top up my wallet?").category,"wallet");
+assert.equal(answer("Where is my order?").category,"orders");
+assert.equal(answer("I want a refund").category,"support");
+assert.equal(answer("Show products").category,"products");
+assert.equal(answer("I forgot my password").category,"account");
+assert.equal(answer("Who is Ultron?").category,"about");
+assert.equal(answer("hi").category,"fallback");
+console.log("ULTRON Store Help FAQ tests passed.");
