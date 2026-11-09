@@ -1,0 +1,42 @@
+name: WAYNE VAULT encrypted backup
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: server
+    env:
+      VAULT_MONGO_URI: ${{ secrets.VAULT_MONGO_URI }}
+      VAULT_BACKUP_KEY: ${{ secrets.VAULT_BACKUP_KEY }}
+      VAULT_BACKUP_PATH: backups/wayne-logs.vault
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Check backup secrets
+        run: |
+          if [ -z "$VAULT_MONGO_URI" ] || [ -z "$VAULT_BACKUP_KEY" ]; then
+            echo 'Configure VAULT_MONGO_URI and VAULT_BACKUP_KEY as GitHub Actions secrets before running.' >&2
+            exit 1
+          fi
+      - name: Install production dependencies
+        run: npm install --omit=dev --no-audit
+      - name: Export encrypted data
+        run: node scripts/vault-backup.js
+      - name: Verify archive
+        run: node scripts/vault-verify.js backups/wayne-logs.vault
+      - name: Upload encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: wayne-logs-encrypted-vault
+          path: server/backups/wayne-logs.vault
+          if-no-files-found: error
+          retention-days: 14
