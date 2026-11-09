@@ -32,6 +32,14 @@ app.use((req,res,next)=>{runtime.requests+=1;const requestId=String(req.headers[
 const allowedOrigins=new Set([process.env.FRONTEND_URL,"https://waynelogs.com","https://www.waynelogs.com","http://localhost:5500","http://127.0.0.1:5500"].concat(String(process.env.ALLOWED_ORIGINS||"").split(",")).map(v=>String(v||"").trim().replace(/\/$/,"")).filter(Boolean));
 app.use(cors({origin(origin,callback){if(!origin||allowedOrigins.has(String(origin).replace(/\/$/,"")))return callback(null,true);return callback(new Error("Origin not allowed"))},credentials:false,methods:["GET","POST","PUT","PATCH","DELETE","OPTIONS"],allowedHeaders:["Content-Type","Authorization"]}));
 app.use(morgan("dev"));
+app.use("/api",(req,res,next)=>{
+  if(req.path==="/health"||req.path==="/test")return next();
+  if(mongoose.connection.readyState!==1){
+    res.setHeader("Retry-After","15");
+    return res.status(503).json({message:"The store is temporarily unavailable while its database reconnects. Please try again shortly.",requestId:req.requestId});
+  }
+  next();
+});
 app.post("/api/wallet/webhooks/:provider",express.raw({type:"application/json",limit:"1mb"}),walletWebhook);
 app.use(express.json({limit:"6mb"}));
 app.use(express.urlencoded({extended:true,limit:"2mb"}));
@@ -64,13 +72,52 @@ app.get("/api/health",(req,res)=>res.status(mongoose.connection.readyState===1?2
 app.use("/api",(req,res)=>res.status(404).json({message:"API route not found."}));
 app.use((error,req,res,next)=>{if(res.headersSent)return next(error);const invalidJson=error instanceof SyntaxError&&error.status===400&&"body" in error,blocked=error?.message==="Origin not allowed",status=invalidJson?400:blocked?403:Number(error?.status||error?.statusCode)||500;if(status>=500)console.error(`[${req.requestId||"no-request-id"}] Request failed:`,error?.message||error);res.status(status).json({message:invalidJson?"The request contains invalid JSON.":blocked?"This website origin is not allowed.":status>=500?"The server could not complete this request.":error.message||"Request failed.",requestId:req.requestId})});
 const PORT=process.env.PORT||5000;
-let httpServer,maintenanceTimer,shuttingDown=false;
+let httpServer,maintenanceTimer,retryTimer,shuttingDown=false,connecting=false;
+let retryDelayMs=5000;
 mongoose.connection.on("disconnected",()=>console.error("MongoDB disconnected"));
 mongoose.connection.on("reconnected",()=>console.log("MongoDB reconnected"));
-mongoose.connect(process.env.MONGO_URI,{serverSelectionTimeoutMS:15000,connectTimeoutMS:15000,maxPoolSize:Number(process.env.MONGO_POOL_SIZE||20),minPoolSize:1})
-  .then(async()=>{console.log("MongoDB connected");await maintenance.reconcileInventoryStock().catch(error=>{maintenance.recordError(error);console.error("Initial stock reconciliation failed:",error.message)});maintenanceTimer=setInterval(()=>maintenance.reconcileInventoryStock().catch(error=>{maintenance.recordError(error);console.error("Scheduled stock reconciliation failed:",error.message)}),5*60*1000);maintenanceTimer.unref?.();httpServer=app.listen(PORT,"0.0.0.0",()=>console.log("WAYNE LOGS API running on "+PORT));httpServer.requestTimeout=Number(process.env.REQUEST_TIMEOUT_MS||30000);httpServer.headersTimeout=Math.max(httpServer.requestTimeout+5000,35000);httpServer.keepAliveTimeout=5000;})
-  .catch(e=>{console.error("MongoDB connection failed:",e.message);process.exit(1);});
-async function shutdown(signal){if(shuttingDown)return;shuttingDown=true;console.log(`${signal} received; shutting down safely.`);if(maintenanceTimer)clearInterval(maintenanceTimer);const force=setTimeout(()=>process.exit(1),10000);force.unref?.();if(httpServer)await new Promise(resolve=>httpServer.close(resolve));await mongoose.connection.close(false).catch(()=>{});clearTimeout(force);process.exit(0)}
+function startMaintenance(){
+  if(maintenanceTimer)return;
+  maintenance.reconcileInventoryStock().catch(error=>{maintenance.recordError(error);console.error("Initial stock reconciliation failed:",error.message)});
+  maintenanceTimer=setInterval(()=>maintenance.reconcileInventoryStock().catch(error=>{maintenance.recordError(error);console.error("Scheduled stock reconciliation failed:",error.message)}),5*60*1000);
+  maintenanceTimer.unref?.();
+}
+async function connectDatabase(){
+  if(shuttingDown||connecting||mongoose.connection.readyState===1)return;
+  connecting=true;
+  try{
+    await mongoose.connect(process.env.MONGO_URI,{serverSelectionTimeoutMS:15000,connectTimeoutMS:15000,maxPoolSize:Number(process.env.MONGO_POOL_SIZE||20),minPoolSize:1});
+    console.log("MongoDB connected");
+    retryDelayMs=5000;
+    startMaintenance();
+  }catch(error){
+    console.error("MongoDB connection failed:",error.message);
+    if(!shuttingDown){
+      const delay=retryDelayMs;
+      retryDelayMs=Math.min(60000,retryDelayMs*2);
+      console.warn("Database unavailable; retrying connection in "+(delay/1000)+" seconds.");
+      retryTimer=setTimeout(connectDatabase,delay);
+      retryTimer.unref?.();
+    }
+  }finally{connecting=false;}
+}
+httpServer=app.listen(PORT,"0.0.0.0",()=>console.log("WAYNE LOGS API listening on "+PORT));
+httpServer.requestTimeout=Number(process.env.REQUEST_TIMEOUT_MS||30000);
+httpServer.headersTimeout=Math.max(httpServer.requestTimeout+5000,35000);
+httpServer.keepAliveTimeout=5000;
+connectDatabase();
+async function shutdown(signal){
+  if(shuttingDown)return;
+  shuttingDown=true;
+  console.log(signal+" received; shutting down safely.");
+  if(retryTimer)clearTimeout(retryTimer);
+  if(maintenanceTimer)clearInterval(maintenanceTimer);
+  const force=setTimeout(()=>process.exit(1),10000);
+  force.unref?.();
+  if(httpServer)await new Promise(resolve=>httpServer.close(resolve));
+  await mongoose.connection.close(false).catch(()=>{});
+  clearTimeout(force);
+  process.exit(0);
+}
 process.on("SIGTERM",()=>shutdown("SIGTERM"));
 process.on("SIGINT",()=>shutdown("SIGINT"));
-
