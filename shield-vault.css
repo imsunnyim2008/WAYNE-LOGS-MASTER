@@ -1,0 +1,18 @@
+
+.shield-vault-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:20px 0}
+.shield-vault-grid .panel{min-width:0;border-radius:18px}
+.shield-vault-grid .panel-head{display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap}
+.shield-vault-grid .panel-head h3{margin:0 0 8px}
+.shield-vault-grid .panel-head p{margin:0 0 12px;font-size:13px;color:var(--muted,#688197)}
+.shield-form{display:grid;gap:14px;margin-top:12px}
+.shield-form label{display:grid;gap:7px;font-weight:650;font-size:13px}
+.shield-form input{width:100%;min-height:42px;padding:12px 14px;border:1px solid #c9d9e8;border-radius:12px;background:transparent;color:inherit}
+.shield-form button{min-height:42px}
+.shield-secret{padding:16px;border:1px dashed #3890ba;border-radius:14px;font-weight:750;letter-spacing:2px;overflow-wrap:anywhere;font-family:ui-monospace,monospace;background:rgba(26,112,202,.07);user-select:all}
+#shieldRecoveryCodes{border:1px solid #abc5dd;border-radius:12px;padding:14px;background:rgba(26,112,202,.07);font-family:ui-monospace,monospace;line-height:1.7}
+.vault-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.vault-metrics div{border:1px solid #c8dbe9;border-radius:12px;padding:11px}
+.vault-metrics b{display:block;font-size:19px;margin-top:5px}
+.vault-warning{border-left:4px solid #d97706;padding:10px;border-radius:8px;margin:10px 0;background:rgba(245,158,11,.07)}
+.vault-good{border-left:4px solid #15803d;padding:10px;margin:10px 0}
+@media(max-width:970px){.shield-vault-grid{grid-template-columns:1fr}}

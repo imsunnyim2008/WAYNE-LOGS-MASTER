@@ -1,4 +1,4 @@
-const mongoose=require("mongoose"),Order=require("../models/Order"),WalletTransaction=require("../models/WalletTransaction"),AuditLog=require("../models/AuditLog"),Product=require("../models/Product"),InventoryItem=require("../models/InventoryItem"),maintenance=require("../services/maintenanceService");
+const mongoose=require("mongoose"),Order=require("../models/Order"),WalletTransaction=require("../models/WalletTransaction"),AuditLog=require("../models/AuditLog"),Product=require("../models/Product"),InventoryItem=require("../models/InventoryItem"),maintenance=require("../services/maintenanceService"),User=require("../models/User");
 exports.overview=async(req,res)=>{try{
   const now=new Date(),today=new Date(now);today.setHours(0,0,0,0);const week=new Date(now);week.setDate(week.getDate()-7);
   const stale=new Date(now.getTime()-30*60*1000);
@@ -19,3 +19,28 @@ exports.overview=async(req,res)=>{try{
   res.json({success:true,metrics:{failedPayments,refundsToday,cancelledOrders,adminCredits},stability:{databaseConnected:mongoose.connection.readyState===1,paidNotDelivered,manualAwaitingReview,stalePendingOrders:stalePending,inventoryMismatches,maintenance:maintenance.status()},protections:[{name:"Unique checkout requests",active:true,detail:"Repeated checkout requests reuse the same order."},{name:"Atomic wallet purchases",active:true,detail:"Balance, stock and delivery update together or not at all."},{name:"Automatic stock reconciliation",active:true,detail:"Managed product stock is checked against unused encrypted inventory every five minutes."},{name:"Purchase rate guard",active:true,detail:"Excessive purchase attempts are temporarily blocked."},{name:"Server-side pricing",active:true,detail:"Customers cannot submit or change product prices."},{name:"One-time inventory allocation",active:true,detail:"Each inventory record can be assigned only once."}],events:[...recentWalletEvents.map(item=>({date:item.createdAt,type:item.provider,status:item.status,email:item.user?.email||"",detail:item.order?.productName||item.description||"",amountKobo:item.amountKobo})),...recentSecurityAudit.map(item=>({date:item.createdAt,type:item.action,status:"recorded",email:item.target||"",detail:item.summary||"",amountKobo:0}))].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,30)});
 }catch(error){res.status(500).json({message:"Could not load security information."})}};
 
+exports.vault=async(req,res)=>{
+ res.set("Cache-Control","no-store");
+ if(req.user.role!=="admin")return res.status(403).json({message:"Only the owner administrator can inspect data integrity."});
+ try{
+  const orphaned=[];
+  const [customers,orders,transactions,products,inventoryItems,negativeWallets,orphanInventory,unlinkedSales,unlinkedWalletPayments,activeResets]=await Promise.all([
+   User.countDocuments({role:"user"}),Order.countDocuments(),WalletTransaction.countDocuments(),Product.countDocuments(),InventoryItem.countDocuments(),
+   User.countDocuments({walletBalanceKobo:{$lt:0}}),
+   InventoryItem.countDocuments({status:"sold",order:null}),
+   Order.countDocuments({paymentStatus:"paid",paymentMethod:"wallet",paymentReference:""}),
+   WalletTransaction.countDocuments({type:"purchase",status:"completed",order:null}),
+   User.countDocuments({passwordResetExpiresAt:{$gt:new Date()}})
+  ]);
+  const warnings=[];
+  if(negativeWallets)warnings.push("Negative balances detected. Review immediately.");
+  if(orphanInventory)warnings.push("Sold inventory without linked orders.");
+  if(unlinkedSales||unlinkedWalletPayments)warnings.push("Some paid records are missing references.");
+  return res.json({success:true,checkedAt:new Date().toISOString(),databaseConnected:true,
+   records:{customers,orders,transactions,products,inventoryItems},
+   anomalies:{negativeWallets,orphanInventory,unlinkedSales,unlinkedWalletPayments},
+   security:{activePasswordResets:activeResets},
+   backups:{encryptedExportAvailable:true,automatedBackupsConfigured:false,lastBackupAt:null,verifiedRestore:false},
+   warnings});
+ }catch(error){console.error("Vault integrity check failed:",error?.name);return res.status(503).json({message:"The data integrity check could not be completed."})}
+};

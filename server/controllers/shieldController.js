@@ -20,7 +20,7 @@ exports.setup=async(req,res)=>{
  res.set("Cache-Control","no-store");
  try{
   const password=String(req.body?.password||"");
-  const u=await User.findById(req.user._id).select("+password totpEnabled");
+  const u=await User.findById(req.user._id).select("+password");
   if(!u||!await bcrypt.compare(password,u.password))return res.status(403).json({message:"Incorrect administrator password."});
   if(u.totpEnabled)return res.status(409).json({message:"Two-factor authentication is already enabled."});
   const secret=totp.newSecret();
