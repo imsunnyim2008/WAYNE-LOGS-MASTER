@@ -324,6 +324,7 @@ exports.adminStatus=async(req,res)=>{
 };
 
 exports.adminRefund=async(req,res)=>{
+  if(req.user.role!=="admin")return res.status(403).json({message:"Only the owner admin may issue wallet refunds."});
   if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({message:"Invalid order ID."});
   const reason=String(req.body.reason||"").trim().slice(0,250),adminPassword=String(req.body.adminPassword||"");
   if(reason.length<4)return res.status(400).json({message:"Enter a clear reason for this refund."});
