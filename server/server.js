@@ -73,6 +73,7 @@ app.use("/api/wallet/admin/credit",createRateLimiter({windowMs:15*60*1000,max:20
 app.use("/api/wallet/admin/clear",createRateLimiter({windowMs:15*60*1000,max:10,message:"Too many wallet balance operations. Try again later."}));
 app.use("/api/ultron/ask",createRateLimiter({windowMs:15*60*1000,max:24,message:"Too many store-help messages. Please try again later."}));
 app.use("/api/ultron/ai/chat",createRateLimiter({windowMs:15*60*1000,max:18,message:"Too many AI chat messages. Try again later."}));
+app.use("/api/ultron/ai/customer-help",createRateLimiter({windowMs:15*60*1000,max:60,message:"Too many account-help lookups. Please try later."}));
 app.use("/api/ultron/ai",ultronAiRoutes);
 app.use("/api/ultron",ultronRoutes);
 app.use("/api/auth",authRoutes);
