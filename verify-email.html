@@ -19,15 +19,44 @@
   function show(text,kind){message.textContent=text;message.className="message "+kind;message.style.display="block";}
   const token=new URLSearchParams(location.hash.slice(1)).get("token")||"";
   if(token)history.replaceState(null,"",location.pathname);
+  // Prevent email link previews from consuming one-time tokens.
   if(token){
-    form.hidden=true;show("Checking your secure verification link…","info");
-    (async()=>{try{
-      const r=await fetch(api+"/api/auth/verify-email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})});
-      const d=await r.json().catch(()=>({}));
-      if(!r.ok)throw new Error(d.message||"Could not verify your email.");
-      show("Email verified successfully. You can now sign in.","success");
-      const a=document.createElement("a");a.href="login.html";a.textContent="Continue to login →";a.style.cssText="display:inline-block;margin-top:14px;color:var(--blue);font-weight:700";message.appendChild(document.createElement("br"));message.appendChild(a);
-    }catch(error){show(error.message,"error");form.hidden=false;}})();
+    form.hidden=true;
+    show("Tap Verify Email to confirm your address. If you already verified, try signing in.","info");
+    const confirm=document.createElement("button");
+    confirm.type="button";
+    confirm.className="primary-btn";
+    confirm.style.cssText="display:block;width:100%;margin-top:16px";
+    confirm.textContent="Verify Email";
+    message.appendChild(confirm);
+    const login=document.createElement("a");
+    login.href="login.html";
+    login.textContent="Already verified? Sign in →";
+    login.style.cssText="display:block;margin-top:16px;color:var(--blue);font-weight:700;text-align:center";
+    message.appendChild(login);
+    confirm.addEventListener("click",async()=>{
+      confirm.disabled=true;confirm.textContent="Verifying securely…";
+      try{
+        const r=await fetch(api+"/api/auth/verify-email",{
+          method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})
+        });
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok)throw new Error(d.message||"Verification could not be completed.");
+        show(d.message||"Email verified. You can now sign in.","success");
+        form.hidden=true;
+        const a=document.createElement("a");
+        a.href="login.html";a.textContent="Continue to login →";
+        a.style.cssText="display:inline-block;margin-top:14px;color:var(--blue);font-weight:700";
+        message.appendChild(document.createElement("br"));message.appendChild(a);
+      }catch(error){
+        show(error.message||"Could not verify this link.","error");
+        form.hidden=false;
+        const a=document.createElement("a");
+        a.href="login.html";a.textContent="Already verified? Try signing in →";
+        a.style.cssText="display:inline-block;margin-top:14px;color:var(--blue);font-weight:700";
+        message.appendChild(document.createElement("br"));message.appendChild(a);
+      }
+    },{once:true});
   }
   form.addEventListener("submit",async event=>{
     event.preventDefault();button.disabled=true;button.textContent="Sending securely…";
