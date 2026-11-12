@@ -26,3 +26,20 @@ for(const filename of ["config.js","feedback.js"]){
   else assert.match(source,/const mutation=![^;]+&&!isUltronConversationRequest\(url\)/);
 }
 console.log("ULTRON chat popup suppression tests passed; purchase/wallet feedback remains enabled.");
+
+
+const root=path.join(__dirname,"..","..");
+const pages=["admin","dashboard","force-change-password","forgot-password","index","login","notifications","orders","profile","register","reset-password","settings","support","verify-email","wallet"];
+const cacheVersion="20261112-chatpopupfix-v2";
+for(const page of pages){
+  const html=fs.readFileSync(path.join(root,page+".html"),"utf8");
+  assert(html.includes("config.js?v="+cacheVersion),page+" must load fresh config.js");
+  if(page!=="verify-email")assert(html.includes("feedback.js?v="+cacheVersion),page+" must load fresh feedback.js");
+}
+const vercel=JSON.parse(fs.readFileSync(path.join(root,"vercel.json"),"utf8"));
+for(const script of ["/config.js","/feedback.js"]){
+  const rule=vercel.headers.find(x=>x.source===script);
+  assert(rule,script+" must have a specific cache rule.");
+  assert(rule.headers.some(h=>h.key==="Cache-Control"&&h.value.includes("must-revalidate")),script+" must revalidate");
+}
+console.log("All customer pages request fresh feedback scripts.");
