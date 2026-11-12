@@ -67,7 +67,9 @@ jobs:
           echo "MongoDB replica set did not become writable." >&2
           exit 1
       - name: Exercise wallet and external-payment workflows against fake funds
-        run: node tests/purchase-staging.mongo.test.js
+        run: |
+          node tests/purchase-staging.mongo.test.js
+          node tests/paystack-dva-staging.mongo.test.js
         env:
           CI: "true"
           WAYNE_RUN_DISPOSABLE_DB_TESTS: "1"
