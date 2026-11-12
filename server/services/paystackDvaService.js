@@ -40,7 +40,7 @@ function normalizeAssignment(event){
   const customer=d.customer||account.customer||{};
   const number=String(account.account_number||"");
   const email=String(customer.email||"").toLowerCase().trim();
-  if(!/^\\d{10}$/.test(number)||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)||
+  if(!/^\d{10}$/.test(number)||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||
     !account.bank?.name||!account.account_name||account.active===false||
     (account.currency&&account.currency!=="NGN"))return null;
   return{number,email,bankName:String(account.bank.name).slice(0,90),
