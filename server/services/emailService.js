@@ -17,3 +17,13 @@ exports.sendPasswordReset=({to,firstName,resetUrl})=>{
     html:'<div style="font-family:Arial,sans-serif;max-width:540px;margin:auto;padding:28px;border:1px solid #dbe7f3;border-radius:20px;color:#16314f"><h2 style="color:#0875d6">WAYNE LOGS</h2><h1 style="font-size:24px">Reset your password</h1><p>Hello '+safeName+',</p><p>We received a request to reset your WAYNE LOGS password. Tap the button below to set a new password.</p><p style="margin:30px 0"><a href="'+safeLink+'" style="background:#0875d6;color:white;padding:15px 24px;border-radius:12px;text-decoration:none;font-weight:bold">Reset Password</a></p><p style="color:#526981;font-size:13px">This link expires in <strong>15 minutes</strong> and works only once. If you did not request a reset, you can safely ignore this message.</p><p style="border-top:1px solid #dbe7f3;padding-top:16px;font-size:12px;color:#61768b">For your security, we never ask for your password by email.</p></div>'
   });
 };
+
+exports.sendEmailVerification=({to,firstName,verifyUrl})=>{
+  const name=escapeHtml(firstName||"there"),link=escapeHtml(verifyUrl);
+  return send({
+    to,
+    subject:"Verify your WAYNE LOGS email",
+    text:"Hello "+String(firstName||"there")+",\n\nConfirm your WAYNE LOGS account by opening this link:\n"+verifyUrl+"\n\nThe link expires in 24 hours and works once. If you did not create an account, ignore this message.\n\nWAYNE LOGS",
+    html:'<div style="font-family:Arial,sans-serif;max-width:540px;margin:auto;padding:28px;border:1px solid #dbe7f3;border-radius:20px;color:#16314f"><h2 style="color:#0875d6">WAYNE LOGS</h2><h1 style="font-size:24px">Verify your email address</h1><p>Hello '+name+',</p><p>To activate your new WAYNE LOGS account, confirm that you own this email address.</p><p style="margin:30px 0"><a href="'+link+'" style="background:#0875d6;color:white;padding:15px 24px;border-radius:12px;text-decoration:none;font-weight:bold">Verify Email</a></p><p style="color:#526981;font-size:13px">This link expires in <strong>24 hours</strong> and can only be used once. If you did not create this account, ignore this email.</p><p style="border-top:1px solid #dbe7f3;padding-top:16px;font-size:12px;color:#61768b">For your security, WAYNE LOGS never asks you for your password by email.</p></div>'
+  });
+};

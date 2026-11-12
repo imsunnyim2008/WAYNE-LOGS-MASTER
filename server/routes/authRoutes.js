@@ -1,6 +1,7 @@
 const r=require("express").Router();
 const c=require("../controllers/authController");
 const recovery=require("../controllers/passwordRecoveryController");
+const verification=require("../controllers/emailVerificationController");
 const{protect,adminOnly}=require("../middleware/authMiddleware");
 r.post("/register",c.register);
 r.post("/login",c.login);
@@ -8,6 +9,8 @@ r.post("/2fa/login",c.verifyTwoFactorLogin);
 r.get("/password-recovery/status",recovery.status);
 r.post("/forgot-password",recovery.forgotPassword);
 r.post("/reset-password",recovery.resetPassword);
+r.post("/verify-email",verification.verifyEmail);
+r.post("/resend-verification",verification.resendVerification);
 r.post("/change-password",protect,c.changeTemporaryPassword);
 r.get("/me",protect,c.me);
 r.put("/profile",protect,c.updateProfile);

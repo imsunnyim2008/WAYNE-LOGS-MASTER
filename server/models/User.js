@@ -9,6 +9,12 @@ const schema = new mongoose.Schema({
   staffPermissions:[{type:String,enum:["products","orders","payments","customers","communications","settings","security"]}],
   adminNotes:[{text:{type:String,maxlength:500},admin:{type:mongoose.Schema.Types.ObjectId,ref:"User"},createdAt:{type:Date,default:Date.now}}],
   isActive:{type:Boolean,default:true},
+  // Default true preserves access for accounts created before email verification was introduced.
+  emailVerified:{type:Boolean,default:true},
+  emailVerifiedAt:{type:Date,default:null},
+  emailVerificationTokenHash:{type:String,select:false},
+  emailVerificationExpiresAt:{type:Date,select:false},
+  emailVerificationRequestedAt:{type:Date,select:false},
   walletBalanceKobo:{type:Number,default:0,min:0},
   transferPin:{type:String,select:false,default:null},
   transferPinSetAt:{type:Date,default:null},
