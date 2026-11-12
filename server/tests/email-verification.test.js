@@ -1,0 +1,18 @@
+"use strict";
+const assert=require("node:assert/strict");
+const tokens=require("../services/verificationTokens");
+const first=tokens.generate(),second=tokens.generate();
+assert.match(first,/^[a-f0-9]{64}$/);
+assert.match(second,/^[a-f0-9]{64}$/);
+assert.notEqual(first,second);
+assert.equal(tokens.valid(first),true);
+assert.equal(tokens.valid(first.toUpperCase()),false);
+assert.equal(tokens.valid(first.slice(1)),false);
+assert.equal(tokens.valid(""),false);
+assert.equal(tokens.valid(undefined),false);
+assert.equal(tokens.hash(first).length,64);
+assert.notEqual(tokens.hash(first),first,"Never store plaintext verification tokens.");
+assert.notEqual(tokens.hash(first),tokens.hash(second));
+const now=new Date("2026-11-12T10:00:00.000Z");
+assert.equal(tokens.expiration(now).toISOString(),"2026-11-13T10:00:00.000Z");
+console.log("Email verification token tests passed.");
