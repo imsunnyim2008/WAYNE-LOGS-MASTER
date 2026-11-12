@@ -46,7 +46,9 @@ jobs:
           cache: npm
           cache-dependency-path: server/package-lock.json
       - name: Install dependencies
-        run: npm ci
+        # The repository's existing package-lock.json is out of sync with package.json.
+        # Match the main verification job until the lockfile is regenerated.
+        run: npm install
       - name: Start disposable MongoDB replica set
         run: |
           set -euo pipefail
