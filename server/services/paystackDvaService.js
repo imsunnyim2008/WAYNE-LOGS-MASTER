@@ -2,8 +2,11 @@
 const crypto=require("crypto");
 const BASE="https://api.paystack.co";
 function enabled(){
+  const key=String(process.env.PAYSTACK_SECRET_KEY||"");
+  // Never display test-bank account details on a production storefront.
+  if(process.env.NODE_ENV==="production"&&key.startsWith("sk_test_"))return false;
   return process.env.PAYSTACK_DVA_ENABLED==="true"&&
-    /^sk_(?:test|live)_[A-Za-z0-9]+$/.test(String(process.env.PAYSTACK_SECRET_KEY||""));
+    /^sk_(?:test|live)_[A-Za-z0-9]+$/.test(key);
 }
 function verifySignature(raw,headers){
   const secret=String(process.env.PAYSTACK_SECRET_KEY||"");
