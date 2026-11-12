@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><meta name="theme-color" content="#0f2d53">
+<title>Verify Email | WAYNE LOGS</title><link rel="icon" href="assets/wayne-bat-logo.jpg" type="image/jpeg">
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="premium-pages.css?v=20260825-optimized2"><link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6">
+</head><body class="login-page"><main class="auth-page"><section class="auth-card">
+<a class="brand" href="index.html"><span class="brand-mark">W</span><span>WAYNE LOGS</span></a>
+<h1>Verify your email</h1><p style="color:var(--muted)">Confirm your email address to activate your customer account. Links expire after 24 hours.</p>
+<div id="message" class="message" role="status" aria-live="polite" style="display:none"></div>
+<form id="resendForm"><div class="field"><label for="email">Account email</label><input id="email" type="email" autocomplete="email" maxlength="254" required placeholder="you@example.com"></div>
+<button id="resendButton" class="primary-btn" type="submit" style="width:100%">Resend verification email</button></form>
+<p style="color:var(--muted);font-size:13px;margin-top:16px">If the email doesn't arrive, check your spam folder. You can request another link after two minutes.</p>
+<p style="text-align:center"><a href="login.html" style="color:var(--blue)">← Back to sign in</a></p>
+</section></main>
+<script src="config.js?v=20261112-verify1"></script><script>
+(()=>{
+  const api=window.WAYNE_API_URL||"http://localhost:5000";
+  const message=document.getElementById("message"),form=document.getElementById("resendForm"),button=document.getElementById("resendButton");
+  function show(text,kind){message.textContent=text;message.className="message "+kind;message.style.display="block";}
+  const token=new URLSearchParams(location.hash.slice(1)).get("token")||"";
+  if(token)history.replaceState(null,"",location.pathname);
+  if(token){
+    form.hidden=true;show("Checking your secure verification link…","info");
+    (async()=>{try{
+      const r=await fetch(api+"/api/auth/verify-email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.message||"Could not verify your email.");
+      show("Email verified successfully. You can now sign in.","success");
+      const a=document.createElement("a");a.href="login.html";a.textContent="Continue to login →";a.style.cssText="display:inline-block;margin-top:14px;color:var(--blue);font-weight:700";message.appendChild(document.createElement("br"));message.appendChild(a);
+    }catch(error){show(error.message,"error");form.hidden=false;}})();
+  }
+  form.addEventListener("submit",async event=>{
+    event.preventDefault();button.disabled=true;button.textContent="Sending securely…";
+    try{
+      const r=await fetch(api+"/api/auth/resend-verification",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:document.getElementById("email").value.trim()})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.message||"Could not request verification.");
+      show(d.message||"If an unverified account exists, a new link will be sent.","success");
+      form.reset();
+    }catch(error){show(error.message,"error");}
+    finally{button.disabled=false;button.textContent="Resend verification email";}
+  });
+})();
+</script></body></html>
