@@ -24,7 +24,7 @@ let mode="customer",aiReady=false,pending=false,history=[];
 const user=()=>{try{return JSON.parse(localStorage.getItem("wayneUser")||"null")}catch{return null}};
 const jwt=()=>localStorage.getItem("wayneToken")||"";
 const isAdmin=()=>user()?.role==="admin"&&Boolean(jwt());
-const allowedLinks=new Set(["index.html#shop","wallet.html","orders.html","support.html","forgot-password.html"]);
+const allowedLinks=new Set(["index.html#shop","wallet.html","dashboard.html","orders.html","support.html","forgot-password.html"]);
 function append(text,role,link){
  const node=make("div","ultron-msg "+role,String(text||""));
  if(link&&allowedLinks.has(link.href)){
@@ -47,7 +47,7 @@ if(isAdmin()){modeButton("Admin insights","admin");modeButton("Creator","creator
 function setActions(){
  actions.replaceChildren();
  const options=mode==="customer"?
-  [["🛒 Products","Show available products"],["💳 Wallet","How can I fund my wallet?"],["📦 Orders","Where are my orders?"],["🎧 Support","How do I contact support?"]]:
+  [["🛒 Products","Show available products"],["💳 My balance","What is my wallet balance?"],["📦 My orders","Where are my orders?"],["💳 My transactions","Show my recent wallet transactions"],["🎧 Support","How do I contact support?"]]:
   mode==="admin"?
   [["📈 Sales","Analyze our sales totals"],["📦 Stock","Which products need restocking?"],["💳 Payments","Review outstanding manual transfer risks"]]:
   [["🧠 Strategy","Suggest priorities for Wayne Logs"],["🛡 Security","What should I secure next?"]];
@@ -71,8 +71,20 @@ async function submitQuestion(question){
  const previous=compactHistory();append(text,"user");input.value="";
  try{
   let response;
+  // First use a signed-in, read-only account lookup. This also works
+  // when the AI worker is offline and never exposes private data to a model.
+  if(jwt()&&askMode==="customer"){
+    const r=await fetch(api+"/api/ultron/ai/customer-help",{
+      method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+jwt()},
+      body:JSON.stringify({message:text}),signal:AbortSignal.timeout(12000)
+    });
+    const d=await r.json().catch(()=>({}));
+    if(r.ok&&d.handled===true)response=d;
+    else if([401,403].includes(r.status))throw Error(d.message||"Please sign in again for account help.");
+    else if(!r.ok)throw Error(d.message||"Account lookup is temporarily unavailable.");
+  }
   // AI never receives authentication secrets, private records, or arbitrary site actions.
-  if(jwt()&&aiReady){
+  if(!response&&jwt()&&aiReady){
    const r=await fetch(api+"/api/ultron/ai/chat",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+jwt()},body:JSON.stringify({mode:askMode,message:text,history:previous}),signal:AbortSignal.timeout(42000)});
    const data=await r.json().catch(()=>({}));
    if(r.ok)response=data;
