@@ -16,17 +16,32 @@ exports.verifyEmail=async(req,res)=>{
   const token=typeof req.body?.token==="string"?req.body.token.trim().toLowerCase():"";
   if(!tokens.valid(token))return res.status(400).json({message:"This verification link is invalid. Request another email."});
   try{
+    const fingerprint=tokens.hash(token);
+    const verifiedAt=new Date();
     const user=await User.findOneAndUpdate({
       role:"user",isActive:true,emailVerified:false,
-      emailVerificationTokenHash:tokens.hash(token),
-      emailVerificationExpiresAt:{$gt:new Date()}
+      emailVerificationTokenHash:fingerprint,
+      emailVerificationExpiresAt:{$gt:verifiedAt}
     },{
-      $set:{emailVerified:true,emailVerifiedAt:new Date()},
+      $set:{
+        emailVerified:true,emailVerifiedAt:verifiedAt,
+        emailVerificationUsedTokenHash:fingerprint,emailVerificationUsedAt:verifiedAt
+      },
       $unset:{emailVerificationTokenHash:"",emailVerificationExpiresAt:"",emailVerificationRequestedAt:""},
       $inc:{sessionVersion:1}
     },{new:false,runValidators:true}).select("_id");
-    if(!user)return res.status(400).json({message:"This verification link has expired or was already used. Request another email."});
-    return res.json({success:true,message:"Email verified successfully. You can now sign in."});
+    if(user)return res.json({success:true,message:"Email verified successfully. You can now sign in."});
+
+    // Gmail/in-app browsers may open the same link twice within milliseconds.
+    // A used token only receives a positive acknowledgement for 15 minutes:
+    // it cannot change a password, sign anyone in, or reactivate an account.
+    const recentlyVerified=await User.exists({
+      role:"user",isActive:true,emailVerified:true,
+      emailVerificationUsedTokenHash:fingerprint,
+      emailVerificationUsedAt:{$gt:new Date(Date.now()-15*60*1000)}
+    });
+    if(recentlyVerified)return res.json({success:true,message:"Email already verified. You can now sign in."});
+    return res.status(400).json({message:"This link cannot be used. If you already verified, try signing in; otherwise request another email."});
   }catch(error){
     console.error("Email verification failed:",String(error?.name||"database_error").slice(0,100));
     return res.status(503).json({message:"Could not verify your email right now. Please try again."});
