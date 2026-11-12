@@ -345,6 +345,12 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     return"Action completed successfully.";
   }
 
+  // Chat replies already render inside ULTRON. A network POST is not a
+  // purchase or account action and must not create a full-screen success modal.
+  function isUltronConversationRequest(url){
+    try{return /^\/api\/ultron\/(?:ask|ai\/chat)\/?$/i.test(new URL(String(url||""),location.href).pathname)}
+    catch{return false}
+  }
   const originalFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
     const method=String(init?.method||(typeof Request!=="undefined"&&input instanceof Request?input.method:"GET")||"GET").toUpperCase();
@@ -353,7 +359,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
       const response=await originalFetch(input,init);
       // Verification pages provide their own inline result and should not show
       // a second global modal over the confirmation UI.
-      if(String(url).includes("/api/auth/verify-email")||String(url).includes("/api/auth/resend-verification"))return response;
+      if(String(url).includes("/api/auth/verify-email")||String(url).includes("/api/auth/resend-verification")||isUltronConversationRequest(url))return response;
       if(!["GET","HEAD","OPTIONS"].includes(method)){
         let data=null;
         try{data=await response.clone().json()}catch{}
@@ -368,7 +374,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
       }
       return response;
     }catch(error){
-      if(!["GET","HEAD","OPTIONS"].includes(method))toast("Connection failed. Check your network and try again.","error");
+      if(!["GET","HEAD","OPTIONS"].includes(method)&&!isUltronConversationRequest(url))toast("Connection failed. Check your network and try again.","error");
       throw error;
     }
   };
