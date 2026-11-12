@@ -64,11 +64,17 @@
     return"Action completed successfully.";
   }
 
+  // ULTRON renders its own success/errors inside the chat pane.
+  // Keep transactional checkout, wallet and account feedback unchanged.
+  function isUltronConversationRequest(url){
+    try{return /^\/api\/ultron\/(?:ask|ai\/chat)\/?$/i.test(new URL(String(url||""),location.href).pathname)}
+    catch{return false}
+  }
   const inheritedFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
     const method=String(init?.method||(typeof Request!=="undefined"&&input instanceof Request?input.method:"GET")||"GET").toUpperCase();
     const url=typeof input==="string"?input:(input?.url||"");
-    const mutation=!["GET","HEAD","OPTIONS"].includes(method);
+    const mutation=!["GET","HEAD","OPTIONS"].includes(method)&&!isUltronConversationRequest(url);
     const before=popupVersion;
     try{
       const response=await inheritedFetch(input,init);
