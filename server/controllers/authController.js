@@ -7,12 +7,15 @@ const User=require("../models/User");
 const Referral=require("../models/Referral");
 const referralService=require("../services/referralService");
 const wayneIdService=require("../services/wayneIdService");
+const emailService=require("../services/emailService");
+const verification=require("./emailVerificationController");
+const verificationTokens=require("../services/verificationTokens");
 const token=u=>jwt.sign({id:u._id,role:u.role,sv:Number(u.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:["admin","staff"].includes(u.role)?"2h":"7d"});
 const attempts=new Map(),WINDOW=15*60*1000,MAX_ATTEMPTS=5;
 function attemptKey(req,email){return String(req.ip||req.socket?.remoteAddress||"")+"|"+String(email||"").toLowerCase()}
 const safe=u=>({id:u._id,wayneId:u.wayneId||"",firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,staffPermissions:u.staffPermissions||[],isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,notificationPreferences:u.notificationPreferences||{orderUpdates:true,walletAlerts:true,productAnnouncements:true,promotions:false},createdAt:u.createdAt});
 exports.register=async(req,res)=>{
-  let createdUser=null;
+  let createdUser=null,emailFailed=false;
   try{
     const firstName=String(req.body.firstName||"").trim().slice(0,60),lastName=String(req.body.lastName||"").trim().slice(0,60),email=String(req.body.email||"").trim().toLowerCase().slice(0,254),phone=String(req.body.phone||"").trim().slice(0,30),password=String(req.body.password||"");
     const enteredCode=String(req.body.referralCode||"").trim().toUpperCase();
@@ -20,6 +23,7 @@ exports.register=async(req,res)=>{
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter a valid email address."});
     if(String(phone).replace(/\D/g,"").length<7)return res.status(400).json({message:"Enter a valid phone number."});
     if(password.length<8||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/\d/.test(password))return res.status(400).json({message:"Use at least 8 characters with uppercase, lowercase and a number."});
+    if(!verification.verificationReady())return res.status(503).json({message:"Email verification is temporarily unavailable. Please try again later."});
     if(await User.findOne({email})) return res.status(409).json({message:"Email already registered."});
     const referrer=enteredCode?await User.findOne({referralCode:enteredCode,isActive:true}):null;
     if(enteredCode&&!referrer)return res.status(400).json({message:"That referral code is not valid."});
@@ -27,13 +31,36 @@ exports.register=async(req,res)=>{
     const hash=await bcrypt.hash(password,12);
     // Public registration can never create an administrator. Admin accounts are
     // created only through the protected seed/recovery process.
-    const u=await User.create({firstName,lastName,email,phone,password:hash,role:"user",referredBy:referrer?referrer._id:null});
+    const verificationRequired=verification.verificationRequired();
+    const verifyToken=verificationRequired?verificationTokens.generate():null;
+    const verificationTime=new Date();
+    const u=await User.create({firstName,lastName,email,phone,password:hash,role:"user",referredBy:referrer?referrer._id:null,
+      emailVerified:!verificationRequired,
+      ...(verificationRequired?{
+        emailVerificationTokenHash:verificationTokens.hash(verifyToken),
+        emailVerificationExpiresAt:verificationTokens.expiration(verificationTime),
+        emailVerificationRequestedAt:verificationTime
+      }:{})
+    });
     createdUser=u;
     try{u.referralCode=await referralService.ensureReferralCode(u)}catch(error){console.error("Referral ID creation error:",error)}
     try{u.wayneId=await wayneIdService.ensureWayneId(u)}catch(error){console.error("WAYNE ID creation error:",error)}
     if(referrer)await Referral.create({referrer:referrer._id,referredUser:u._id,code:enteredCode});
+    if(verificationRequired){
+      try{
+        await emailService.sendEmailVerification({to:u.email,firstName:u.firstName,verifyUrl:"https://www.waynelogs.com/verify-email.html#token="+verifyToken});
+      }catch(error){emailFailed=true;throw error}
+      return res.status(201).json({success:true,verificationRequired:true,message:"Check your email for your secure verification link. Verify your address before signing in."});
+    }
     res.status(201).json({success:true,token:token(u),user:safe(u)});
-  }catch(e){if(createdUser?._id)await User.deleteOne({_id:createdUser._id}).catch(()=>{});res.status(500).json({message:"Could not register."});}
+  }catch(e){
+    if(createdUser?._id){
+      await Referral.deleteMany({referredUser:createdUser._id}).catch(()=>{});
+      await User.deleteOne({_id:createdUser._id}).catch(()=>{});
+    }
+    if(emailFailed)console.error("Registration verification email failed:",String(e?.code||e?.name||"mail_error").slice(0,100));
+    res.status(emailFailed?503:500).json({message:emailFailed?"Could not send your verification email. Please try again shortly.":"Could not register."});
+  }
 };
 exports.login=async(req,res)=>{
   try{
@@ -47,6 +74,7 @@ exports.login=async(req,res)=>{
       return res.status(401).json({message:"Invalid email or password."})
     }
     if(!u.isActive) return res.status(403).json({message:"Account disabled."});
+    if(u.role==="user"&&u.emailVerified===false)return res.status(403).json({code:"EMAIL_NOT_VERIFIED",message:"Please verify your email address before signing in."});
     try{u.referralCode=await referralService.ensureReferralCode(u)}catch(error){console.error("Referral ID login error:",error)}
     try{u.wayneId=await wayneIdService.ensureWayneId(u)}catch(error){console.error("WAYNE ID login error:",error)}
     if(u.mustChangePassword){const consumed=await User.findOneAndUpdate({_id:u._id,mustChangePassword:true,temporaryPasswordUsedAt:null},{$set:{temporaryPasswordUsedAt:new Date()}},{new:true});if(!consumed)return res.status(403).json({message:"This temporary password was already used. Ask the administrator for a new one."});u.temporaryPasswordUsedAt=consumed.temporaryPasswordUsedAt}
