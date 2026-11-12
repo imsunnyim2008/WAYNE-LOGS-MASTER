@@ -114,7 +114,7 @@ exports.updateProfile=async(req,res)=>{try{
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter a valid email address."});
   if(phone.replace(/\D/g,"").length<7)return res.status(400).json({message:"Enter a valid phone number."});
   const user=await User.findById(req.user._id);if(!user)return res.status(404).json({message:"Account not found."});
-  if(email!==user.email){if(!currentPassword||!(await bcrypt.compare(currentPassword,user.password)))return res.status(403).json({message:"Enter your current password to change your email."});const exists=await User.findOne({email,_id:{$ne:user._id}});if(exists)return res.status(409).json({message:"That email address is already in use."})}
+  if(email!==user.email){if(!currentPassword||!(await bcrypt.compare(currentPassword,user.password)))return res.status(403).json({message:"Enter your current password to change your email."});if(verification.verificationRequired())return res.status(409).json({message:"Verified email changes require additional confirmation. Contact support to change your email address securely."});const exists=await User.findOne({email,_id:{$ne:user._id}});if(exists)return res.status(409).json({message:"That email address is already in use."})}
   user.firstName=firstName;user.lastName=lastName;user.phone=phone;user.email=email;await user.save();res.json({success:true,user:safe(user),message:"Account details updated."});
 }catch(e){res.status(500).json({message:"Could not update account details."})}};
 exports.changePassword=async(req,res)=>{try{
