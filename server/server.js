@@ -28,6 +28,7 @@ const auditMiddleware=require("./middleware/auditMiddleware");
 const emailService=require("./services/emailService");
 const maintenance=require("./services/maintenanceService");
 const{webhook:walletWebhook}=require("./controllers/walletController");
+const{webhook:virtualAccountWebhook}=require("./controllers/virtualAccountController");
 app.disable("x-powered-by");
 app.set("trust proxy",1);
 const runtime={startedAt:new Date(),requests:0};
@@ -43,6 +44,7 @@ app.use("/api",(req,res,next)=>{
   }
   next();
 });
+app.post("/api/wallet/webhooks/paystack-dva",express.raw({type:"application/json",limit:"1mb"}),virtualAccountWebhook);
 app.post("/api/wallet/webhooks/:provider",express.raw({type:"application/json",limit:"1mb"}),walletWebhook);
 app.use(express.json({limit:"6mb"}));
 app.use(express.urlencoded({extended:true,limit:"2mb"}));
