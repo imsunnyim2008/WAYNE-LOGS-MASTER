@@ -351,6 +351,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     const url=typeof input==="string"?input:(input?.url||"");
     try{
       const response=await originalFetch(input,init);
+      // Verification pages provide their own inline result and should not show
+      // a second global modal over the confirmation UI.
+      if(String(url).includes("/api/auth/verify-email")||String(url).includes("/api/auth/resend-verification"))return response;
       if(!["GET","HEAD","OPTIONS"].includes(method)){
         let data=null;
         try{data=await response.clone().json()}catch{}
