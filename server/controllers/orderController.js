@@ -53,6 +53,26 @@ async function sendPurchaseEmails(orderId){
   if(product){try{await emailService.sendLowStockAlert({product,threshold})}catch(e){await Product.updateOne({_id:product._id},{$set:{lowStockAlertSentAt:null}});console.error("Low-stock email failed:",e.message)}}
 }
 
+async function notifyPaidOrder(order){
+  if(!order||order.paymentStatus!=="paid")return;
+  // Stable per-user+order keys make webhook retries and wallet replays harmless.
+  await notifications.create({
+    user:order.user,type:"purchase",title:"Purchase confirmed",
+    message:order.status==="completed"
+      ?`Your order for ${order.productName} is ready in My Orders.`
+      :`Payment for ${order.productName} was received. Delivery is being processed.`,
+    link:"orders.html",key:`purchase:${order._id}`
+  }).catch(error=>console.error("Purchase notification failed:",String(error?.name||"unknown")));
+  const admins=await User.find({role:"admin",isActive:true}).select("_id").lean().catch(()=>[]);
+  await Promise.allSettled(admins.map(admin=>notifications.create({
+    user:admin._id,type:"purchase",title:"New paid order",
+    message:`${order.productName} — order ${String(order._id).slice(-8)} (${order.status}).`,
+    link:"admin.html",key:`admin-purchase:${order._id}`
+  })));
+  await referralService.rewardForPurchase({userId:order.user,orderId:order._id,totalAmount:order.totalAmount})
+    .catch(error=>console.error("Referral reward task failed:",String(error?.name||"unknown")));
+}
+
 async function repairPaidInventoryOrder(orderId,userId){
   const session=await mongoose.startSession();let repaired=null;
   try{await session.withTransaction(async()=>{
@@ -118,7 +138,10 @@ async function finalize(orderId,ref){
       await o.save({session});
       out=o;
     });
-    if(out?._id)await sendPurchaseEmails(out._id).catch(e=>console.error("Purchase email task failed:",e.message));
+    if(out?._id){
+      await sendPurchaseEmails(out._id).catch(e=>console.error("Purchase email task failed:",String(e?.name||"unknown")));
+      await notifyPaidOrder(out);
+    }
     return out;
   }finally{
     await session.endSession();
@@ -318,8 +341,7 @@ exports.payWithWallet=async(req,res)=>{
       await order.save({session});result=order;
     });
     await sendPurchaseEmails(result._id).catch(e=>console.error("Purchase email task failed:",e.message));
-    await notifications.create({user:result.user,type:"purchase",title:"Purchase completed",message:`Your order for ${result.productName} is ready.`,link:"orders.html",key:`purchase:${result._id}`}).catch(()=>{});
-    await referralService.rewardForPurchase({userId:result.user,orderId:result._id,totalAmount:result.totalAmount}).catch(e=>console.error("Referral reward task failed:",e.message));
+    await notifyPaidOrder(result);
     res.json({success:true,order:result});
   }catch(error){
     if(error?.code===11000){
