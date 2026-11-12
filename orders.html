@@ -117,27 +117,90 @@
     history.replaceState({},"","orders.html");
     view.innerHTML=`<div class="market-orders-title"><h1>My Orders</h1><p>${orders.length} order${orders.length===1?"":"s"} total</p></div>`+(orders.length?`<div class="market-orders-card">${orders.map(o=>`<article class="market-order-list-item"><div class="market-order-row" data-order="${esc(o._id)}" role="button" tabindex="0"><div class="market-order-icon">${icon(o.platform,o.productIcon||"★")}</div><div class="market-order-copy"><strong>${esc(o.productName)}</strong><small>${shortId(o)} · ${relative(o.createdAt)}${Number(o.quantity)>1?` · Qty: ${Number(o.quantity)}`:""}</small></div><div class="market-order-right"><b>${money(o.totalAmount)}</b><span class="market-status ${statusClass(o)}">${esc(statusText(o))}</span></div><span class="market-order-arrow">›</span></div>${o.deliveryContent?`<div class="market-order-list-delivery"><div><span>YOUR PURCHASE</span><pre>${esc(o.deliveryContent)}</pre></div><button class="market-list-copy-btn" type="button" data-copy-delivery="${esc(o._id)}"><span>⧉</span> Copy</button></div>`:`<div class="market-order-list-waiting">${o.paymentStatus==="paid"?"Your purchase is being prepared. It will appear here when ready.":"Complete payment to receive your purchase."}</div>`}</article>`).join("")}</div>`:'<div class="market-orders-card"><div class="market-orders-empty">No orders yet.<br><a href="index.html#shop" style="color:#0893d0;font-weight:900">Go to the shop →</a></div></div>');
   }
-  function renderDetail(o){
+  function renderDetail(o,pushHistory=true){
     if(!o){renderList();return}
-    history.pushState({order:o._id},"",`orders.html?order=${encodeURIComponent(o._id)}`);
+    if(pushHistory&&new URLSearchParams(location.search).get("order")!==String(o._id))history.pushState({order:o._id},"",`orders.html?order=${encodeURIComponent(o._id)}`);
     const ref=o.paymentReference||("ORD_"+String(o._id).slice(-10).toUpperCase());
     view.innerHTML=`<a class="market-back-link" href="orders.html" id="backOrders">← Back to Orders</a><div class="market-order-detail"><div class="market-order-detail-head"><div class="market-receipt-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg></div><div><h2>Order ${shortId(o)}</h2><small>${new Date(o.createdAt).toLocaleString()}</small></div><span class="market-status ${statusClass(o)}">${esc(statusText(o))}</span></div><div class="market-order-detail-body"><div class="market-detail-product"><div class="market-order-icon">${icon(o.platform,o.productIcon||"★")}</div><div><strong>${esc(o.productName)}</strong><small>Qty: ${Number(o.quantity||1)} · Ref: ${esc(ref)}</small></div></div><div class="market-price-box"><div class="market-price-line"><span>Subtotal</span><span>${money(o.totalAmount)}</span></div><div class="market-price-line total"><span>Total Paid</span><strong>${o.paymentStatus==="paid"?money(o.totalAmount):"—"}</strong></div></div>${o.deliveryContent?`<div class="market-delivery-title">DELIVERY DETAILS</div><div class="market-delivery-box"><pre>${esc(o.deliveryContent)}</pre></div><button class="market-copy-btn market-detail-copy-btn" id="copyDelivery" type="button"><span>⧉</span> Copy Purchase</button>`:`<div class="market-delivery-title">DELIVERY DETAILS</div><div class="market-locked">${o.paymentStatus==="paid"?"Your order is being processed. Delivery details will appear here when ready.":"Delivery details appear here after successful payment and completion."}</div>`}<div class="market-detail-actions">${o.paymentStatus==="pending"?`<button class="market-pay-btn" id="retryWallet" type="button">Pay from Wallet</button>`:""}<a class="market-all-orders-btn" href="orders.html" id="allOrders">All Orders</a><a class="market-all-orders-btn" href="support.html?order=${esc(o._id)}">Get Support</a></div></div></div>`;
     document.getElementById("backOrders").onclick=e=>{e.preventDefault();renderList()};document.getElementById("allOrders").onclick=e=>{e.preventDefault();renderList()};
     document.getElementById("copyDelivery")?.addEventListener("click",e=>copyOrderDelivery(o._id,e.currentTarget));
     document.getElementById("retryWallet")?.addEventListener("click",e=>retryPayment(o._id,e.currentTarget));
   }
-  async function retryPayment(id,button){button.disabled=true;button.textContent="Paying...";try{const r=await fetch(API_URL+`/api/orders/${encodeURIComponent(id)}/wallet/pay`,{method:"POST",headers:{Authorization:"Bearer "+token}}),d=await r.json();if(!r.ok)throw new Error(d.message||"Wallet payment could not be completed");show("Wallet payment completed successfully.","success");await load(id)}catch(err){show(err.message);button.disabled=false;button.textContent="Pay from Wallet"}}
-  async function copyOrderDelivery(orderId,button){const order=orders.find(item=>String(item._id)===String(orderId)),text=String(order?.deliveryContent||"");if(!text)return;let copied=false;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);copied=true}}catch{}if(!copied){const area=document.createElement("textarea");area.value=text;area.setAttribute("readonly","");area.style.position="fixed";area.style.left="-9999px";area.style.top="0";document.body.appendChild(area);area.focus();area.select();area.setSelectionRange(0,area.value.length);try{copied=document.execCommand("copy")}catch{copied=false}finally{area.remove()}}if(!copied){if(typeof window.waynePopup==="function")window.waynePopup("Your browser blocked copying. Press and hold the purchase text to copy it.","error","Copy Failed");return}button.innerHTML="<span>✓</span> Copied";button.classList.add("copied");if(typeof window.waynePopup==="function")window.waynePopup("Your purchased item was copied.","success","Copied");setTimeout(()=>{button.innerHTML=button.id==="copyDelivery"?"<span>⧉</span> Copy Purchase":"<span>⧉</span> Copy";button.classList.remove("copied")},1600)}
+  async function retryPayment(id,button){
+    if(button.disabled)return;
+    const order=orders.find(o=>String(o._id)===String(id));
+    if(!order||order.paymentStatus!=="pending"||order.status!=="pending"){
+      show("This order is no longer awaiting payment. Refresh My Orders first.");return;
+    }
+    const message=`Pay ${money(order.totalAmount)} from your wallet for ${order.productName}? Please verify the amount before continuing.`;
+    const approved=typeof window.wayneConfirm==="function"
+      ?await window.wayneConfirm(message,{title:"Review Wallet Payment",confirmText:"Pay",cancelText:"Cancel"})
+      :window.confirm(message);
+    if(!approved)return;
+    button.disabled=true;button.textContent="Processing securely...";
+    try{
+      const r=await fetch(API_URL+`/api/orders/${encodeURIComponent(id)}/wallet/pay`,{
+        method:"POST",headers:{Authorization:"Bearer "+token}
+      });
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.message||"Wallet payment could not be completed");
+      if(d.order?.paymentStatus!=="paid")throw new Error("Payment status is not yet confirmed. Refresh My Orders before retrying.");
+      show("Wallet payment confirmed.","success");
+      await load(id);
+    }catch(error){
+      show(error.message||"Could not confirm payment. Refresh My Orders before trying again.");
+      button.disabled=false;button.textContent="Pay from Wallet";
+    }
+  }
+  async function copyOrderDelivery(orderId,button){
+    const order=orders.find(item=>String(item._id)===String(orderId));
+    const text=String(order?.deliveryContent||"");
+    if(!text)return;
+    let copied=false;
+    try{
+      if(navigator.clipboard&&window.isSecureContext){
+        await navigator.clipboard.writeText(text);copied=true;
+      }
+    }catch{}
+    if(!copied){
+      const area=document.createElement("textarea");
+      area.value=text;area.setAttribute("readonly","");
+      area.style.cssText="position:fixed;left:0;top:0;width:1px;height:1px;opacity:0";
+      document.body.appendChild(area);
+      area.focus();area.select();
+      try{copied=document.execCommand("copy")===true}catch{}
+      finally{area.remove()}
+    }
+    if(!copied){
+      // Allow a manual iOS long-press copy; never cover delivery with a modal.
+      const article=button.closest(".market-order-list-item,.market-order-detail");
+      const pre=article?.querySelector(".market-order-list-delivery pre,.market-delivery-box pre");
+      if(pre){
+        const range=document.createRange();range.selectNodeContents(pre);
+        const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);
+      }
+      show("Your browser blocked automatic copying. Press and hold the selected delivery text to copy it.");
+      return;
+    }
+    button.innerHTML="<span>✓</span> Copied";
+    button.classList.add("copied");
+    show("Purchase details copied.","success");
+    setTimeout(()=>{
+      if(!button.isConnected)return;
+      button.innerHTML=button.id==="copyDelivery"?"<span>⧉</span> Copy Purchase":"<span>⧉</span> Copy";
+      button.classList.remove("copied");
+    },1600);
+  }
   view.addEventListener("click",e=>{const copy=e.target.closest("[data-copy-delivery]");if(copy){e.preventDefault();e.stopPropagation();copyOrderDelivery(copy.dataset.copyDelivery,copy);return}const row=e.target.closest("[data-order]");if(row){const o=orders.find(x=>String(x._id)===String(row.dataset.order));renderDetail(o)}});
   view.addEventListener("keydown",e=>{if(!["Enter"," "].includes(e.key))return;const row=e.target.closest("[data-order]");if(row){e.preventDefault();const o=orders.find(x=>String(x._id)===String(row.dataset.order));renderDetail(o)}});
-  window.addEventListener("popstate",()=>{const id=new URLSearchParams(location.search).get("order");const o=orders.find(x=>String(x._id)===String(id));id&&o?renderDetail(o):renderList()});
+  window.addEventListener("popstate",()=>{const id=new URLSearchParams(location.search).get("order");const o=orders.find(x=>String(x._id)===String(id));id&&o?renderDetail(o,false):renderList()});
 
   async function load(preferredId){
     try{
       view.innerHTML='<div class="market-orders-card"><div class="market-orders-empty">Loading your orders…</div></div>';
       const r=await fetch(API_URL+"/api/orders/my",{cache:"no-store",headers:{Authorization:"Bearer "+token}}),d=await r.json();
       if(r.status===401){localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.replace("login.html");return}
-      if(!r.ok)throw new Error(d.message||"Could not load orders");orders=Array.isArray(d.orders)?d.orders:[];const requested=preferredId||params.get("order");const selected=orders.find(o=>String(o._id)===String(requested));selected?renderDetail(selected):renderList()}catch(err){show(err.message);view.innerHTML='<div class="market-orders-card"><div class="market-orders-empty">Could not load your orders.<br><button id="retryOrders" type="button" class="market-pay-btn" style="margin-top:16px">Try Again</button></div></div>';document.getElementById("retryOrders").addEventListener("click",()=>load(preferredId))}
+      if(!r.ok)throw new Error(d.message||"Could not load orders");orders=Array.isArray(d.orders)?d.orders:[];const requested=preferredId||new URLSearchParams(location.search).get("order");const selected=orders.find(o=>String(o._id)===String(requested));selected?renderDetail(selected):renderList()}catch(err){show(err.message);view.innerHTML='<div class="market-orders-card"><div class="market-orders-empty">Could not load your orders.<br><button id="retryOrders" type="button" class="market-pay-btn" style="margin-top:16px">Try Again</button></div></div>';document.getElementById("retryOrders").addEventListener("click",()=>load(preferredId))}
   }
   if(params.get("walletPurchase")==="success")show("Wallet payment completed successfully.","success");
   load();
