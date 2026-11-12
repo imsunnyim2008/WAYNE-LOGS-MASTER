@@ -8,6 +8,7 @@ exports.protect = async (req,res,next) => {
     if(decoded.purpose)return res.status(401).json({success:false,message:"Complete verification before using this account."});
     const user=await User.findById(decoded.id).select("-password -totpPendingEncrypted -totpSecretEncrypted -totpRecoveryCodeHashes -totpPendingExpiresAt -totpLastUsedStep");
     if(!user||!user.isActive) return res.status(401).json({success:false,message:"Account unavailable."});
+    if(user.role==="user"&&user.emailVerified===false)return res.status(403).json({success:false,code:"EMAIL_NOT_VERIFIED",message:"Verify your email before using this account."});
     if(Number(decoded.sv||0)!==Number(user.sessionVersion||0))return res.status(401).json({success:false,message:"Your session has ended. Please login again."});
     if(user.role==="user"&&user.mustChangePassword&&!req.originalUrl.startsWith("/api/auth/change-password"))return res.status(403).json({success:false,code:"PASSWORD_CHANGE_REQUIRED",message:"Create a new private password before continuing."});
     req.user=user; next();
