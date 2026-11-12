@@ -22,3 +22,10 @@ assert.match(html,/selectNodeContents\(pre\)/);
 assert.match(html,/cache:"no-store"/);
 assert.match(html,/renderDetail\(o,false\)/);
 console.log("My Orders and checkout UI safety checks passed.");
+
+
+const home=fs.readFileSync(path.join(root,"index.html"),"utf8");
+assert.match(home,/app\\.js\\?v=20261112-phase2-checkout/);
+const vercel=JSON.parse(fs.readFileSync(path.join(root,"vercel.json"),"utf8"));
+assert(vercel.headers.some(record=>record.source==="/app.js"&&
+  record.headers.some(h=>h.key==="Cache-Control"&&h.value.includes("must-revalidate"))));
