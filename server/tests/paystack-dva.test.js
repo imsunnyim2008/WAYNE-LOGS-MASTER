@@ -8,6 +8,10 @@ process.env.PAYSTACK_SECRET_KEY=secret;
 assert.equal(svc.enabled(),false,"Virtual accounts must be opt-in and off by default.");
 process.env.PAYSTACK_DVA_ENABLED="true";
 assert.equal(svc.enabled(),true);
+process.env.NODE_ENV="production";
+assert.equal(svc.enabled(),false,"Test DVA accounts must never appear on live production.");
+delete process.env.NODE_ENV;
+assert.equal(svc.enabled(),true);
 const event={event:"dedicatedaccount.assign.success",data:{
   customer:{email:"Customer@example.invalid",customer_code:"CUS_TEST"},
   dedicated_account:{bank:{name:"Test Bank",slug:"test-bank"},
