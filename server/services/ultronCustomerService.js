@@ -9,7 +9,7 @@ function intentFor(message){
   const q=String(message||"").toLowerCase();
   if(/\b(send|transfer|withdraw|pay|buy|purchase)\b/.test(q)&&/\b(now|for me|on my behalf|from my wallet|to\s+(?:a|my|their|another))\b/.test(q))return"action";
   if(/\b(balance|how much.*(?:wallet|credit)|wallet.*(?:have|money|balance))\b/.test(q))return"balance";
-  if(/\b(transaction|deposit|credit history|payment history|last transfer|recent transfer|funding status|top.?up status)\b/.test(q))return"transactions";
+  if(/\b(transactions?|deposits?|credit history|payment history|last transfer|recent transfer|funding status|top.?up status)\b/.test(q))return"transactions";
   if(/\b(my|mine|latest|last|recent|track|where|status)\b/.test(q)&&/\b(orders?|purchases?|delivery|deliveries)\b/.test(q))return"orders";
   if(/\b(recommend|suggest|available products?|what.*(?:buy|sell|available)|in stock)\b/.test(q))return"products";
   if(/\b(agent|human support|contact support|support ticket)\b/.test(q))return"support";
