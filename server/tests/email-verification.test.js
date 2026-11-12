@@ -25,12 +25,12 @@ const path=require("node:path");
 (async()=>{
   let verified=false,usedHash="",usedAt=null,changes=0;
   const fakeUser={
-    findOneAndUpdate:async(filter,update)=>{
+    findOneAndUpdate:(filter,update)=>({select:async()=>{
       if(verified||filter.emailVerificationTokenHash!==tokens.hash(first))return null;
       verified=true;usedHash=update.$set.emailVerificationUsedTokenHash;
       usedAt=update.$set.emailVerificationUsedAt;changes++;
       return {_id:"test-customer"};
-    },
+    }}),
     exists:async(filter)=>verified&&
       filter.emailVerificationUsedTokenHash===usedHash&&
       usedAt>filter.emailVerificationUsedAt.$gt?{_id:"test-customer"}:null
