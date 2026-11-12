@@ -15,6 +15,10 @@ const schema = new mongoose.Schema({
   emailVerificationTokenHash:{type:String,select:false},
   emailVerificationExpiresAt:{type:Date,select:false},
   emailVerificationRequestedAt:{type:Date,select:false},
+  // Keep an acknowledgement fingerprint briefly for duplicate link opens.
+  // A used verification token cannot grant access or create a session.
+  emailVerificationUsedTokenHash:{type:String,select:false},
+  emailVerificationUsedAt:{type:Date,select:false},
   walletBalanceKobo:{type:Number,default:0,min:0},
   transferPin:{type:String,select:false,default:null},
   transferPinSetAt:{type:Date,default:null},
