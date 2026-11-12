@@ -122,16 +122,63 @@ function openCheckoutFor(id){
 }
 function closeCheckout(){checkoutModal?.classList.remove("show");checkoutModal?.setAttribute("aria-hidden","true");document.body.style.overflow=""}
 function showCheckoutMessage(text,type="error"){checkoutMessage.textContent=text;checkoutMessage.className=`simple-message show ${type}`}
+let checkoutBusy=false;
 async function pay(){
-  if(!checkoutSelection)return;if(!token||!currentUser){requireLoginFor(checkoutSelection._id);return}
-  const reviewMessage=`Product: ${checkoutSelection.name}\nAmount: ${money(checkoutSelection.price)}\nDelivery: ${deliveryText(checkoutSelection)}\nWallet balance: ${walletMoney(walletBalanceKobo)}\n\nPlease recheck these details before continuing. Completed wallet purchases cannot be reversed.`;
-  const approved=typeof window.wayneConfirm==="function"?await window.wayneConfirm(reviewMessage,{title:"Review Purchase",confirmText:"Continue",cancelText:"Recheck"}):window.confirm(reviewMessage);
-  if(!approved)return;
-  payButton.disabled=true;payButton.textContent="Processing purchase...";showCheckoutMessage("Securely checking your wallet balance...","info");
+  if(checkoutBusy||!checkoutSelection)return;
+  if(!token||!currentUser){requireLoginFor(checkoutSelection._id);return}
+  checkoutBusy=true;let orderId="";
   try{
-    let response=await fetch(API_URL+"/api/orders",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({productId:checkoutSelection._id,requestId:checkoutRequestId})}),data=await response.json();if(!response.ok){if(response.status===401){clearSession();requireLoginFor(checkoutSelection._id);return}throw new Error(data.message||"Could not create your order.")}
-    const order=data.order;localStorage.setItem("wayneLastOrderId",order._id);response=await fetch(`${API_URL}/api/orders/${order._id}/wallet/pay`,{method:"POST",headers:{Authorization:"Bearer "+token}});data=await response.json();if(!response.ok)throw new Error(data.message||"Wallet payment could not be completed.");clearCart();if(typeof window.waynePopup==="function")await window.waynePopup("Payment successful. Your purchase is ready in My Orders.","success","Purchase Complete");location.href=`orders.html?order=${encodeURIComponent(order._id)}&walletPurchase=success`
-  }catch(error){showCheckoutMessage(`${error.message} Your order is saved and can be retried from My Orders.`,"error");if(typeof window.waynePopup==="function")window.waynePopup(error.message||"Wallet payment failed.","error","Purchase Failed");payButton.disabled=false;payButton.innerHTML="<span>⚡</span> Buy Now"}
+    const reviewMessage=`Product: ${checkoutSelection.name}\nAmount: ${money(checkoutSelection.price)}\nDelivery: ${deliveryText(checkoutSelection)}\nWallet balance: ${walletMoney(walletBalanceKobo)}\n\nPlease recheck these details before continuing. Completed wallet purchases cannot be reversed.`;
+    const approved=typeof window.wayneConfirm==="function"
+      ?await window.wayneConfirm(reviewMessage,{title:"Review Purchase",confirmText:"Continue",cancelText:"Recheck"})
+      :window.confirm(reviewMessage);
+    if(!approved)return;
+    payButton.disabled=true;payButton.textContent="Processing purchase...";
+    showCheckoutMessage("Securely checking your wallet balance...","info");
+    const created=await fetch(API_URL+"/api/orders",{
+      method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},
+      body:JSON.stringify({productId:checkoutSelection._id,requestId:checkoutRequestId})
+    });
+    const details=await created.json().catch(()=>({}));
+    if(!created.ok){
+      if(created.status===401){clearSession();requireLoginFor(checkoutSelection._id);return}
+      throw new Error(details.message||"Could not create your order.");
+    }
+    orderId=String(details.order?._id||"");
+    if(!orderId)throw new Error("The server did not return an order.");
+    localStorage.setItem("wayneLastOrderId",orderId);
+    const paid=await fetch(API_URL+"/api/orders/"+encodeURIComponent(orderId)+"/wallet/pay",{
+      method:"POST",headers:{Authorization:"Bearer "+token}
+    });
+    const result=await paid.json().catch(()=>({}));
+    if(!paid.ok)throw new Error(result.message||"Wallet payment could not be completed.");
+    if(result.order?.paymentStatus!=="paid")throw new Error("Payment has not been confirmed. Check My Orders before trying again.");
+    clearCart();
+    location.href="orders.html?order="+encodeURIComponent(orderId)+"&walletPurchase=success";
+  }catch(error){
+    if(orderId){
+      // A failed HTTP response does not prove the database transaction failed.
+      // Look up the existing order before allowing the customer to retry.
+      try{
+        const r=await fetch(API_URL+"/api/orders/my",{cache:"no-store",headers:{Authorization:"Bearer "+token}});
+        const data=await r.json().catch(()=>({}));
+        const row=Array.isArray(data.orders)?data.orders.find(o=>String(o._id)===orderId):null;
+        if(r.ok&&row?.paymentStatus==="paid"){clearCart();location.href="orders.html?order="+encodeURIComponent(orderId);return}
+      }catch{}
+    }
+    const stale=/price (?:has )?changed|checkout changed|new price|refresh the store/i.test(String(error.message||""));
+    if(stale){
+      closeCheckout();
+      await loadProducts();
+      if(typeof window.waynePopup==="function")window.waynePopup(error.message,"error","Review New Price");
+    }else{
+      showCheckoutMessage(error.message+(orderId?" Check My Orders before retrying to avoid paying twice.":""),"error");
+      if(typeof window.waynePopup==="function")window.waynePopup(error.message||"Purchase was not confirmed.","error","Purchase Not Confirmed");
+    }
+  }finally{
+    checkoutBusy=false;
+    if(payButton){payButton.disabled=false;payButton.innerHTML="<span>⚡</span> Buy Now"}
+  }
 }
 closeProductBtn?.addEventListener("click",closeProduct);closeCheckoutBtn?.addEventListener("click",closeCheckout);modalAdd?.addEventListener("click",()=>{if(currentProduct){setCartProduct(currentProduct._id,true);closeProduct()}});modalBuy?.addEventListener("click",()=>{if(currentProduct)openCheckoutFor(currentProduct._id)});payButton?.addEventListener("click",pay);checkoutRelated?.addEventListener("click",event=>{const card=event.target.closest("[data-checkout-related]");if(card)openCheckoutFor(card.dataset.checkoutRelated)});
 productModal?.addEventListener("click",e=>{if(e.target===productModal)closeProduct()});checkoutModal?.addEventListener("click",e=>{if(e.target===checkoutModal)closeCheckout()});document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;closeMenu();closeProduct();closeCheckout();closeCart()});

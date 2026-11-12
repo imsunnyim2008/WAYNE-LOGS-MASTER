@@ -27,3 +27,50 @@ jobs:
         run: npm test
       - name: Production dependency vulnerability audit
         run: npm audit --omit=dev --audit-level=high
+
+  checkout-staging:
+    # Uses a disposable MongoDB replica set. Never mounts Atlas credentials.
+    # Do not run against the production Render database.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Install dependencies
+        # The repository's existing package-lock.json is out of sync with package.json.
+        # Match the main verification job until the lockfile is regenerated.
+        run: npm install
+      - name: Start disposable MongoDB replica set
+        run: |
+          set -euo pipefail
+          docker run --rm -d --name wayne-checkout-mongodb \
+            -p 127.0.0.1:27017:27017 mongo:7.0 \
+            mongod --replSet rs0 --bind_ip_all
+          for i in $(seq 1 40); do
+            if docker exec wayne-checkout-mongodb mongosh --quiet --eval 'db.adminCommand({ping:1}).ok' | grep -q '1'; then break; fi
+            sleep 2
+          done
+          docker exec wayne-checkout-mongodb mongosh --quiet --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})'
+          for i in $(seq 1 45); do
+            if docker exec wayne-checkout-mongodb mongosh --quiet --eval 'db.hello().isWritablePrimary' | grep -q 'true'; then exit 0; fi
+            sleep 2
+          done
+          echo "MongoDB replica set did not become writable." >&2
+          exit 1
+      - name: Exercise wallet and external-payment workflows against fake funds
+        run: node tests/purchase-staging.mongo.test.js
+        env:
+          CI: "true"
+          WAYNE_RUN_DISPOSABLE_DB_TESTS: "1"
+      - name: Stop disposable MongoDB
+        if: always()
+        run: docker rm -f wayne-checkout-mongodb || true

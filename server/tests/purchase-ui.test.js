@@ -1,0 +1,24 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const path=require("node:path");
+const vm=require("node:vm");
+const root=path.join(__dirname,"..","..");
+const store=fs.readFileSync(path.join(root,"app.js"),"utf8");
+new vm.Script(store,{filename:"app.js"});
+assert.match(store,/let checkoutBusy=false/);
+assert.match(store,/if\(checkoutBusy\|\|!checkoutSelection\)return;/);
+assert.match(store,/const row=Array\.isArray\(data\.orders\)/);
+assert.match(store,/row\?\.paymentStatus==="paid"/);
+assert.match(store,/price \(\?:has \)\?changed/);
+const html=fs.readFileSync(path.join(root,"orders.html"),"utf8");
+const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
+  .map(match=>match[1]).filter(Boolean);
+for(const [index,s] of scripts.entries())new vm.Script(s,{filename:"orders.html:inline-"+index});
+assert.match(html,/async function retryPayment\(id,button\)/);
+assert.match(html,/window\.wayneConfirm\(message/);
+assert.match(html,/if\(d\.order\?\.paymentStatus!=="paid"\)/);
+assert.match(html,/selectNodeContents\(pre\)/);
+assert.match(html,/cache:"no-store"/);
+assert.match(html,/renderDetail\(o,false\)/);
+console.log("My Orders and checkout UI safety checks passed.");

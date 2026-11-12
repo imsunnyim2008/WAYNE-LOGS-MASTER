@@ -7,6 +7,7 @@ const User=require("../models/User");
 const WalletTransaction=require("../models/WalletTransaction");
 const InventoryItem=require("../models/InventoryItem");
 const inventoryCrypto=require("../services/inventoryCrypto");
+const purchaseChecks=require("../services/purchaseChecks");
 const emailService=require("../services/emailService");
 const notifications=require("../services/notificationService");
 const referralService=require("../services/referralService");
@@ -46,10 +47,31 @@ function meta(v){
 async function sendPurchaseEmails(orderId){
   if(!emailService.isConfigured())return;
   const claimed=await Order.findOneAndUpdate({_id:orderId,paymentStatus:"paid",receiptEmailSentAt:null},{$set:{receiptEmailSentAt:new Date()}},{new:true}).populate("user","firstName lastName email");
-  if(claimed?.user){try{await emailService.sendPurchaseReceipt({user:claimed.user,order:claimed})}catch(e){await Order.updateOne({_id:claimed._id},{$set:{receiptEmailSentAt:null}});console.error("Receipt email failed:",e.message)}}
+  if(!claimed)return;
+  if(claimed.user){try{await emailService.sendPurchaseReceipt({user:claimed.user,order:claimed})}catch(e){await Order.updateOne({_id:claimed._id},{$set:{receiptEmailSentAt:null}});console.error("Receipt email failed:",e.message)}}
   const threshold=Number(process.env.LOW_STOCK_THRESHOLD||5);
   const product=await Product.findOneAndUpdate({_id:claimed?.product,stock:{$lte:threshold},lowStockAlertSentAt:null},{$set:{lowStockAlertSentAt:new Date()}},{new:true});
   if(product){try{await emailService.sendLowStockAlert({product,threshold})}catch(e){await Product.updateOne({_id:product._id},{$set:{lowStockAlertSentAt:null}});console.error("Low-stock email failed:",e.message)}}
+}
+
+async function notifyPaidOrder(order){
+  if(!order||order.paymentStatus!=="paid")return;
+  // Stable per-user+order keys make webhook retries and wallet replays harmless.
+  await notifications.create({
+    user:order.user,type:"purchase",title:"Purchase confirmed",
+    message:order.status==="completed"
+      ?`Your order for ${order.productName} is ready in My Orders.`
+      :`Payment for ${order.productName} was received. Delivery is being processed.`,
+    link:"orders.html",key:`purchase:${order._id}`
+  }).catch(error=>console.error("Purchase notification failed:",String(error?.name||"unknown")));
+  const admins=await User.find({role:"admin",isActive:true}).select("_id").lean().catch(()=>[]);
+  await Promise.allSettled(admins.map(admin=>notifications.create({
+    user:admin._id,type:"purchase",title:"New paid order",
+    message:`${order.productName} — order ${String(order._id).slice(-8)} (${order.status}).`,
+    link:"admin.html",key:`admin-purchase:${order._id}`
+  })));
+  await referralService.rewardForPurchase({userId:order.user,orderId:order._id,totalAmount:order.totalAmount})
+    .catch(error=>console.error("Referral reward task failed:",String(error?.name||"unknown")));
 }
 
 async function repairPaidInventoryOrder(orderId,userId){
@@ -60,7 +82,12 @@ async function repairPaidInventoryOrder(orderId,userId){
     if(order.inventoryItem&&order.deliveryContent){repaired=order;return}
     let item=null;
     if(order.inventoryItem)item=await InventoryItem.findOne({_id:order.inventoryItem,order:order._id,soldTo:userId,status:"sold"}).select("+encryptedContent").session(session);
-    else item=await InventoryItem.findOneAndUpdate({product:order.product,status:"available"},{$set:{status:"sold",soldTo:userId,order:order._id,soldAt:new Date()}},{new:true,sort:{createdAt:1},session}).select("+encryptedContent");
+    else{
+      const p=await Product.findById(order.product).select("inventoryManaged").session(session);
+      // Never assign unrelated inventory to a legacy/manual order.
+      if(!p?.inventoryManaged){repaired=order;return}
+      item=await InventoryItem.findOneAndUpdate({product:order.product,status:"available"},{$set:{status:"sold",soldTo:userId,order:order._id,soldAt:new Date()}},{new:true,sort:{createdAt:1},session}).select("+encryptedContent");
+    }
     if(!item){repaired=order;return}
     order.inventoryItem=item._id;order.deliveryContent=inventoryCrypto.decrypt(item.encryptedContent);order.status="completed";order.deliveredAt=order.deliveredAt||new Date();await order.save({session});repaired=order;
   });return repaired}finally{await session.endSession()}
@@ -83,27 +110,39 @@ async function finalize(orderId,ref){
       o.paymentMethod="paystack";
       o.activePurchaseKey=undefined;
 
-      if(p && p.status==="active" && Number(p.stock)>=Number(o.quantity)){
-        p.stock=Number(p.stock)-Number(o.quantity);
-        await p.save({session});
-
-        if(p.deliveryType==="instant"){
-          o.deliveryContent=p.privateDelivery||"";
-          o.status="completed";
-          o.deliveredAt=new Date();
-        }else{
-          o.status="processing";
+      if(p&&p.status==="active"&&Number(p.stock)>=Number(o.quantity)){
+        let inventory=null,content="";
+        if(p.inventoryManaged){
+          inventory=await InventoryItem.findOneAndUpdate(
+            {product:p._id,status:"available"},
+            {$set:{status:"sold",soldTo:o.user,order:o._id,soldAt:new Date()}},
+            {new:true,sort:{createdAt:1},session}
+          ).select("+encryptedContent");
+          if(inventory)content=inventoryCrypto.decrypt(inventory.encryptedContent);
         }
+        if(!p.inventoryManaged||inventory){
+          p.stock=Number(p.stock)-Number(o.quantity);
+          await p.save({session});
+          if(inventory)o.inventoryItem=inventory._id;
+          if(content||(p.deliveryType==="instant"&&p.privateDelivery)){
+            o.deliveryContent=content||(p.privateDelivery||"");
+            o.status="completed";
+            o.deliveredAt=new Date();
+          }else o.status="processing";
+        }else o.status="processing";
       }else{
-        // Never leave a genuinely paid customer showing as unpaid.
-        // Admin can manually fulfill or refund if stock changed before payment completed.
+        // The external payment is real. Preserve it as paid and flag
+        // manual fulfillment/refund when there is no safe delivery stock.
         o.status="processing";
       }
 
       await o.save({session});
       out=o;
     });
-    if(out?._id)await sendPurchaseEmails(out._id).catch(e=>console.error("Purchase email task failed:",e.message));
+    if(out?._id){
+      await sendPurchaseEmails(out._id).catch(e=>console.error("Purchase email task failed:",String(e?.name||"unknown")));
+      await notifyPaidOrder(out);
+    }
     return out;
   }finally{
     await session.endSession();
@@ -120,6 +159,7 @@ exports.create=async(req,res)=>{
 
     const p=await Product.findById(productId);
     if(!p||p.status!=="active"||Number(p.stock)<1)return res.status(400).json({message:"This product is currently unavailable."});
+    if(!purchaseChecks.toKobo(p.price))return res.status(409).json({message:"This product does not have a valid purchase price."});
 
     // Reuse an existing unpaid order for the same item so repeated payment attempts
     // do not create a pile of duplicate pending orders.
@@ -131,6 +171,16 @@ exports.create=async(req,res)=>{
       status:"pending"
     }).sort({createdAt:-1}).select("+purchaseRequestId +activePurchaseKey");
 
+    if(o&&!purchaseChecks.comparableSnapshot(o,p)){
+      // Release a stale, unpaid wallet checkout so a fresh attempt
+      // can be created at the new price without silently charging it.
+      // Never cancel an order that may have a Paystack payment in progress.
+      if(o.paymentReference)return res.status(409).json({message:"A payment session is active for this item. Check My Orders or contact support before starting a new checkout."});
+      const cancelled=await Order.updateOne({_id:o._id,user:req.user._id,paymentStatus:"pending",status:"pending",paymentReference:""},
+        {$set:{status:"cancelled"},$unset:{activePurchaseKey:""}});
+      if(cancelled.modifiedCount!==1)return res.status(409).json({message:"Checkout changed. Refresh the store and try again."});
+      o=null;
+    }
     if(!o){
       o=await Order.create({
         user:req.user._id,
@@ -242,7 +292,10 @@ exports.mine=async(req,res)=>{
       // Repair an older paid inventory order if it was created as manual delivery.
       // The inventory record is still restricted to this exact customer and order.
       let current=o;
-      if(o.paymentStatus==="paid"&&(!o.deliveryContent||o.status!=="completed"))current=await repairPaidInventoryOrder(o._id,req.user._id)||o;
+      if(o.paymentStatus==="paid"&&(!o.deliveryContent||o.status!=="completed")){
+        try{current=await repairPaidInventoryOrder(o._id,req.user._id)||o}
+        catch(error){console.error("Order delivery reconciliation skipped:",String(error?.name||"unknown"));current=o}
+      }
       const row=current.toObject();
       if(current.paymentStatus!=="paid"||current.status!=="completed")delete row.deliveryContent;
       delete row.inventoryItem;
@@ -265,9 +318,15 @@ exports.payWithWallet=async(req,res)=>{
       const order=await Order.findOne({_id:req.params.id,user:req.user._id}).select("+deliveryContent +inventoryItem").session(session);
       if(!order)throw Object.assign(new Error("Order not found."),{status:404});
       if(order.paymentStatus==="paid"){result=order;return}
-      const amountKobo=Math.round(Number(order.totalAmount)*100);
-      const product=await Product.findOneAndUpdate({_id:order.product,status:"active",stock:{$gte:order.quantity}},{$inc:{stock:-order.quantity}},{new:true,session}).select("+privateDelivery");
-      if(!product)throw Object.assign(new Error("This product is currently unavailable."),{status:409});
+      const snapshot=await Product.findById(order.product).select("price currency status stock inventoryManaged").session(session);
+      const issue=purchaseChecks.validateWalletCheckout(order,snapshot);
+      if(issue)throw Object.assign(new Error(issue),{status:409});
+      const amountKobo=purchaseChecks.toKobo(order.totalAmount);
+      const product=await Product.findOneAndUpdate(
+        {_id:order.product,status:"active",stock:{$gte:order.quantity},price:snapshot.price,currency:snapshot.currency},
+        {$inc:{stock:-order.quantity}},{new:true,session}
+      ).select("+privateDelivery");
+      if(!product)throw Object.assign(new Error("The product or its price changed. Refresh the store before paying."),{status:409});
       let uniqueDelivery="";
       const item=await InventoryItem.findOneAndUpdate({product:product._id,status:"available"},{$set:{status:"sold",soldTo:req.user._id,order:order._id,soldAt:new Date()}},{new:true,sort:{createdAt:1},session}).select("+encryptedContent");
       if(item){
@@ -283,11 +342,16 @@ exports.payWithWallet=async(req,res)=>{
       await order.save({session});result=order;
     });
     await sendPurchaseEmails(result._id).catch(e=>console.error("Purchase email task failed:",e.message));
-    await notifications.create({user:result.user,type:"purchase",title:"Purchase completed",message:`Your order for ${result.productName} is ready.`,link:"orders.html",key:`purchase:${result._id}`}).catch(()=>{});
-    await referralService.rewardForPurchase({userId:result.user,orderId:result._id,totalAmount:result.totalAmount}).catch(e=>console.error("Referral reward task failed:",e.message));
+    await notifyPaidOrder(result);
     res.json({success:true,order:result});
   }catch(error){
-    if(error?.code===11000){const order=await Order.findOne({_id:req.params.id,user:req.user._id});return res.json({success:true,order})}
+    if(error?.code===11000){
+      // Concurrent requests may race on BUY-{order}. Never tell the
+      // customer payment succeeded unless the committed order is paid.
+      const order=await Order.findOne({_id:req.params.id,user:req.user._id}).select("+deliveryContent");
+      if(order?.paymentStatus==="paid")return res.json({success:true,order,replayed:true});
+      return res.status(409).json({message:"The purchase is still being processed. Refresh My Orders before trying again."});
+    }
     res.status(error.status||500).json({message:error.status?error.message:"Could not complete wallet purchase."});
   }finally{await session.endSession()}
 };
