@@ -20,7 +20,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.5",
+    "mongoose": "^8.24.8",
     "morgan": "^1.12.1",
     "nodemailer": "^10.4.0",
     "mongodb": "^6.20.0"
