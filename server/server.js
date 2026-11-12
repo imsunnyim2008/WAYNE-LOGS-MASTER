@@ -63,6 +63,7 @@ app.use("/api/auth/resend-verification",createRateLimiter({windowMs:15*60*1000,m
 app.use("/api/auth/register",createRateLimiter({windowMs:60*60*1000,max:10,message:"Too many account-creation attempts. Please try again later."}));
 app.use("/api/wallet/transfers",createRateLimiter({windowMs:10*60*1000,max:20,message:"Too many wallet-transfer attempts. Please wait and try again."}));
 app.use("/api/wallet/topups",createRateLimiter({windowMs:10*60*1000,max:30,message:"Too many top-up attempts. Please wait and try again."}));
+app.use("/api/wallet/virtual-account",createRateLimiter({windowMs:60*60*1000,max:12,message:"Too many bank account requests. Please try later."}));
 app.use("/api/orders",createRateLimiter({windowMs:60*1000,max:90,message:"Too many order requests. Please wait one minute and try again."}));
 app.use("/api/auth/password",createRateLimiter({windowMs:15*60*1000,max:12,message:"Too many password changes attempted. Try again later."}));
 app.use("/api/auth/change-password",createRateLimiter({windowMs:15*60*1000,max:12,message:"Too many password changes attempted. Try again later."}));
