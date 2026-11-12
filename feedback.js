@@ -67,7 +67,7 @@
   // ULTRON renders its own success/errors inside the chat pane.
   // Keep transactional checkout, wallet and account feedback unchanged.
   function isUltronConversationRequest(url){
-    try{return /^\/api\/ultron\/(?:ask|ai\/chat)\/?$/i.test(new URL(String(url||""),location.href).pathname)}
+    try{return /^\/api\/ultron\/(?:ask|ai\/(?:chat|customer-help))\/?$/i.test(new URL(String(url||""),location.href).pathname)}
     catch{return false}
   }
   const inheritedFetch=window.fetch.bind(window);

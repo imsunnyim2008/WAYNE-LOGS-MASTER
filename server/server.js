@@ -28,6 +28,7 @@ const auditMiddleware=require("./middleware/auditMiddleware");
 const emailService=require("./services/emailService");
 const maintenance=require("./services/maintenanceService");
 const{webhook:walletWebhook}=require("./controllers/walletController");
+const{webhook:virtualAccountWebhook}=require("./controllers/virtualAccountController");
 app.disable("x-powered-by");
 app.set("trust proxy",1);
 const runtime={startedAt:new Date(),requests:0};
@@ -43,6 +44,7 @@ app.use("/api",(req,res,next)=>{
   }
   next();
 });
+app.post("/api/wallet/webhooks/paystack-dva",express.raw({type:"application/json",limit:"1mb"}),virtualAccountWebhook);
 app.post("/api/wallet/webhooks/:provider",express.raw({type:"application/json",limit:"1mb"}),walletWebhook);
 app.use(express.json({limit:"6mb"}));
 app.use(express.urlencoded({extended:true,limit:"2mb"}));
@@ -61,6 +63,7 @@ app.use("/api/auth/resend-verification",createRateLimiter({windowMs:15*60*1000,m
 app.use("/api/auth/register",createRateLimiter({windowMs:60*60*1000,max:10,message:"Too many account-creation attempts. Please try again later."}));
 app.use("/api/wallet/transfers",createRateLimiter({windowMs:10*60*1000,max:20,message:"Too many wallet-transfer attempts. Please wait and try again."}));
 app.use("/api/wallet/topups",createRateLimiter({windowMs:10*60*1000,max:30,message:"Too many top-up attempts. Please wait and try again."}));
+app.use("/api/wallet/virtual-account",createRateLimiter({windowMs:60*60*1000,max:12,message:"Too many bank account requests. Please try later."}));
 app.use("/api/orders",createRateLimiter({windowMs:60*1000,max:90,message:"Too many order requests. Please wait one minute and try again."}));
 app.use("/api/auth/password",createRateLimiter({windowMs:15*60*1000,max:12,message:"Too many password changes attempted. Try again later."}));
 app.use("/api/auth/change-password",createRateLimiter({windowMs:15*60*1000,max:12,message:"Too many password changes attempted. Try again later."}));
@@ -70,6 +73,7 @@ app.use("/api/wallet/admin/credit",createRateLimiter({windowMs:15*60*1000,max:20
 app.use("/api/wallet/admin/clear",createRateLimiter({windowMs:15*60*1000,max:10,message:"Too many wallet balance operations. Try again later."}));
 app.use("/api/ultron/ask",createRateLimiter({windowMs:15*60*1000,max:24,message:"Too many store-help messages. Please try again later."}));
 app.use("/api/ultron/ai/chat",createRateLimiter({windowMs:15*60*1000,max:18,message:"Too many AI chat messages. Try again later."}));
+app.use("/api/ultron/ai/customer-help",createRateLimiter({windowMs:15*60*1000,max:60,message:"Too many account-help lookups. Please try later."}));
 app.use("/api/ultron/ai",ultronAiRoutes);
 app.use("/api/ultron",ultronRoutes);
 app.use("/api/auth",authRoutes);

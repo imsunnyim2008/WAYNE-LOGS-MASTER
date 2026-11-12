@@ -348,7 +348,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   // Chat replies already render inside ULTRON. A network POST is not a
   // purchase or account action and must not create a full-screen success modal.
   function isUltronConversationRequest(url){
-    try{return /^\/api\/ultron\/(?:ask|ai\/chat)\/?$/i.test(new URL(String(url||""),location.href).pathname)}
+    try{return /^\/api\/ultron\/(?:ask|ai\/(?:chat|customer-help))\/?$/i.test(new URL(String(url||""),location.href).pathname)}
     catch{return false}
   }
   const originalFetch=window.fetch.bind(window);
@@ -404,7 +404,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     if(document.getElementById("ultron-store-root")||document.querySelector('script[data-ultron-store]'))return;
     const sheet=document.createElement("link");
     sheet.rel="stylesheet";sheet.href="ultron-store.css?v=20261109-v1";document.head.appendChild(sheet);
-    const s=document.createElement("script");s.src="ultron-store.js?v=20261109-v1";s.dataset.ultronStore="true";document.body.appendChild(s);
+    const s=document.createElement("script");s.src="ultron-store.js?v=20261112-customer-help";s.dataset.ultronStore="true";document.body.appendChild(s);
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",load,{once:true});
   else load();

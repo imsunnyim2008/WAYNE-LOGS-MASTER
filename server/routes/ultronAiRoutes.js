@@ -7,6 +7,7 @@ const User=require("../models/User");
 const WalletTransaction=require("../models/WalletTransaction");
 const bridge=require("../services/ultronBridgeQueue");
 const local=require("../services/ultronStoreService");
+const customerHelp=require("../services/ultronCustomerService");
 const usage=new Map();
 function respondError(res,e){return res.status(503).json({message:"ULTRON AI is currently unavailable. Basic store help remains available."});}
 function remaining(user){
@@ -48,6 +49,18 @@ r.post("/bridge/complete",(req,res)=>{
  const result=bridge.complete(req);
  return result.error?res.status(401).json({message:"Unauthorized"}):res.json(result);
 });
+r.post("/customer-help",protect,async(req,res)=>{
+ res.set("Cache-Control","no-store");
+ const message=typeof req.body?.message==="string"?req.body.message.trim():"";
+ if(message.length<2||message.length>650)return res.status(400).json({message:"Your question must be 2–650 characters long."});
+ try{
+  const response=await customerHelp.answer({message,userId:req.user._id});
+  return res.json({success:true,mode:"customer",provider:"verified-account-lookup",...response});
+ }catch(error){
+  console.error("ULTRON customer-help lookup failed:",String(error?.name||"unknown"));
+  return res.status(503).json({message:"Account lookup is temporarily unavailable. Use My Orders, Wallet or Support."});
+ }
+});
 r.post("/chat",protect,async(req,res)=>{
  res.set("Cache-Control","no-store");
  const message=typeof req.body?.message==="string"?req.body.message.trim():"";
@@ -55,6 +68,14 @@ r.post("/chat",protect,async(req,res)=>{
  if(message.length<2||message.length>650)return res.status(400).json({message:"Your question must be 2–650 characters long."});
  if(mode!=="customer"&&req.user.role!=="admin")return res.status(403).json({message:"Only the administrator can use this ULTRON mode."});
  if(mode==="creator"&&!req.user.totpEnabled)return res.status(403).json({message:"Enable administrator two-factor authentication before using creator mode."});
+ // Verified customer account questions are answered from the database;
+ // never send private order, wallet or payment information to the AI worker.
+ if(mode==="customer"&&customerHelp.intentFor(message)){
+   try{
+     const answer=await customerHelp.answer({message,userId:req.user._id});
+     if(answer.handled)return res.json({success:true,mode:"customer",provider:"verified-account-lookup",...answer});
+   }catch(error){return res.status(503).json({message:"Account lookup unavailable. Open My Orders or Wallet."})}
+ }
  if(!remaining(req.user))return res.status(429).json({message:"Your ULTRON AI daily allowance has been reached. Use store help or try again tomorrow."});
  const worker=bridge.status();
  if(!worker.ready)return res.status(503).json({message:"ULTRON's AI connection is offline. Store Help remains available."});

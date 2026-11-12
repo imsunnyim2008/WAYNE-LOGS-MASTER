@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "check": "node scripts/validate-build.js",
-    "test": "npm run check && node tests/two-factor.test.js && node tests/email-verification.test.js && node tests/ultron-store.test.js && node tests/ultron-popup.test.js && node tests/purchase-safety.test.js && node tests/purchase-ui.test.js && node tests/wallet-purchase.transaction.test.js && node tests/ultron-ai-bridge.test.js",
+    "test": "npm run check && node tests/two-factor.test.js && node tests/email-verification.test.js && node tests/ultron-store.test.js && node tests/ultron-popup.test.js && node tests/purchase-safety.test.js && node tests/purchase-ui.test.js && node tests/wallet-purchase.transaction.test.js && node tests/ultron-customer.test.js && node tests/paystack-dva.test.js && node tests/ultron-ai-bridge.test.js",
     "seed": "node seed.js",
     "reset:admin": "node reset-admin-password.js"
   },
