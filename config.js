@@ -348,7 +348,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   // Chat replies already render inside ULTRON. A network POST is not a
   // purchase or account action and must not create a full-screen success modal.
   function isUltronConversationRequest(url){
-    try{return /^\/api\/ultron\/(?:ask|ai\/chat)\/?$/i.test(new URL(String(url||""),location.href).pathname)}
+    try{return /^\/api\/ultron\/(?:ask|ai\/(?:chat|customer-help))\/?$/i.test(new URL(String(url||""),location.href).pathname)}
     catch{return false}
   }
   const originalFetch=window.fetch.bind(window);
