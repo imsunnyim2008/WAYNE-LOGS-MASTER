@@ -200,9 +200,9 @@
       view.innerHTML='<div class="market-orders-card"><div class="market-orders-empty">Loading your orders…</div></div>';
       const r=await fetch(API_URL+"/api/orders/my",{cache:"no-store",headers:{Authorization:"Bearer "+token}}),d=await r.json();
       if(r.status===401){localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.replace("login.html");return}
-      if(!r.ok)throw new Error(d.message||"Could not load orders");orders=Array.isArray(d.orders)?d.orders:[];const requested=preferredId||new URLSearchParams(location.search).get("order");const selected=orders.find(o=>String(o._id)===String(requested));selected?renderDetail(selected):renderList()}catch(err){show(err.message);view.innerHTML='<div class="market-orders-card"><div class="market-orders-empty">Could not load your orders.<br><button id="retryOrders" type="button" class="market-pay-btn" style="margin-top:16px">Try Again</button></div></div>';document.getElementById("retryOrders").addEventListener("click",()=>load(preferredId))}
+      if(!r.ok)throw new Error(d.message||"Could not load orders");orders=Array.isArray(d.orders)?d.orders:[];const requested=preferredId||new URLSearchParams(location.search).get("order");const selected=orders.find(o=>String(o._id)===String(requested));selected?renderDetail(selected):renderList();if(params.get("walletPurchase")==="success"){if(selected?.paymentStatus==="paid")show("Wallet payment confirmed. View your purchased item below.","success");const next=new URL(location.href);next.searchParams.delete("walletPurchase");history.replaceState(history.state,"",next.pathname+next.search+next.hash)}}catch(err){show(err.message);view.innerHTML='<div class="market-orders-card"><div class="market-orders-empty">Could not load your orders.<br><button id="retryOrders" type="button" class="market-pay-btn" style="margin-top:16px">Try Again</button></div></div>';document.getElementById("retryOrders").addEventListener("click",()=>load(preferredId))}
   }
-  if(params.get("walletPurchase")==="success")show("Wallet payment completed successfully.","success");
+  // Only show inline payment confirmation when the server confirms that order is paid.
   load();
   </script>
 </body>
