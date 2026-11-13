@@ -55,7 +55,7 @@ function reply(){
   assert(login.includes('qs.get("pay")==="1"'));
   assert(login.includes('qs.get("amount")'));
   const config=fs.readFileSync(path.join(root,"config.js"),"utf8");
-  assert(config.includes('isPayPageAction(url)'));
+  assert(!config.includes('window.fetch=async function'),"Payment link should not auto-trigger dialogs from network requests.");
   const dashboard=fs.readFileSync(path.join(root,"dashboard.html"),"utf8");
   assert(dashboard.includes('href="pay.html"'));
   console.log("Payment link: configured bank, disabled settings, pending review and safe customer flows passed.");

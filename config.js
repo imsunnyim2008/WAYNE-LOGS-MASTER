@@ -297,9 +297,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     return clean||fallback;
   }
   function toast(message,type="info",options={}){
-    if(window.__wayneFeedbackV3)return null;
     const kind=["success","error","warning","info"].includes(type)?type:"info";
-    if(typeof window.waynePopup==="function"){window.waynePopup(message,kind,options.title);return null}
     const host=ensureStack();
     const item=document.createElement("div");
     item.className=`wayne-toast ${kind}`;
@@ -321,81 +319,19 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   window.wayneToast=toast;
   window.showToast=window.showToast||toast;
 
-  function actionMessage(url,method,ok,data){
-    const supplied=data&&typeof data==="object"&&(data.message||data.error);
-    if(supplied)return cleanMessage(supplied,ok?"Completed successfully.":"The request failed.");
-    const path=String(url||"").toLowerCase();
-    if(!ok){
-      if(path.includes("/auth/login"))return"Login failed. Check your details and try again.";
-      if(path.includes("/auth/register"))return"Account creation failed. Please check your details.";
-      if(path.includes("/wallet"))return"Wallet action failed. Please try again.";
-      if(path.includes("/orders"))return"Order action failed. Please try again.";
-      return"Your action could not be completed. Please try again.";
-    }
-    if(path.includes("/auth/login"))return"Login successful.";
-    if(path.includes("/auth/register"))return"Account created successfully.";
-    if(path.includes("/wallet")&&path.includes("/pay"))return"Wallet payment completed successfully.";
-    if(path.includes("/wallet"))return"Wallet updated successfully.";
-    if(path.includes("/orders"))return method==="DELETE"?"Order removed successfully.":"Order completed successfully.";
-    if(path.includes("/products"))return method==="DELETE"?"Product deleted successfully.":"Product saved successfully.";
-    if(path.includes("/support"))return"Support message sent successfully.";
-    if(path.includes("/notification"))return"Notification sent successfully.";
-    if(path.includes("/settings")||path.includes("/config"))return"Settings saved successfully.";
-    if(path.includes("/profile")||path.includes("/auth/me"))return"Profile updated successfully.";
-    return"Action completed successfully.";
-  }
+  // NO IMPLICIT API POPUPS. Network requests are NOT proof that the
+  // customer asked for a full-screen notification. This used to show
+  // "Successful / Wallet payment completed successfully" after every POST,
+  // replaying the same modal across page navigations and ULTRON chat.
+  // Explicit checkout confirmations (wayneConfirm) and deliberately called
+  // action feedback (waynePopup/wayneToast) continue working unchanged.
+  try{
+    sessionStorage.removeItem("waynePendingToast");
+    sessionStorage.removeItem("wayneFeedbackPending");
+  }catch{}
+  // Leave native fetch untouched. Each page decides what constitutes a
+  // successful wallet payment, delivered order, deposit or settings update.
 
-  // Chat replies already render inside ULTRON. A network POST is not a
-  // purchase or account action and must not create a full-screen success modal.
-  function isUltronConversationRequest(url){
-    try{return /^\/api\/ultron\/(?:ask|ai\/(?:chat|customer-help))\/?$/i.test(new URL(String(url||""),location.href).pathname)}
-    catch{return false}
-  }
-  function isPayPageAction(url){
-    try{return /\/pay\.html$/i.test(location.pathname)&&/^\/api\/wallet\/topups\//i.test(new URL(String(url||""),location.href).pathname)}catch{return false}
-  }
-  const originalFetch=window.fetch.bind(window);
-  window.fetch=async function(input,init){
-    const method=String(init?.method||(typeof Request!=="undefined"&&input instanceof Request?input.method:"GET")||"GET").toUpperCase();
-    const url=typeof input==="string"?input:(input?.url||"");
-    try{
-      const response=await originalFetch(input,init);
-      // Verification pages provide their own inline result and should not show
-      // a second global modal over the confirmation UI.
-      if(String(url).includes("/api/auth/verify-email")||String(url).includes("/api/auth/resend-verification")||isUltronConversationRequest(url)||isPayPageAction(url))return response;
-      if(!["GET","HEAD","OPTIONS"].includes(method)){
-        let data=null;
-        try{data=await response.clone().json()}catch{}
-        const type=response.ok?"success":"error";
-        const message=actionMessage(url,method,response.ok,data);
-        toast(message,type);
-        if(response.ok){
-          const pending={id:`${Date.now()}_${Math.random()}`,message,type,createdAt:Date.now()};
-          try{sessionStorage.setItem("waynePendingToast",JSON.stringify(pending))}catch{}
-          setTimeout(()=>{try{const saved=JSON.parse(sessionStorage.getItem("waynePendingToast")||"null");if(saved?.id===pending.id)sessionStorage.removeItem("waynePendingToast")}catch{}},7000);
-        }
-      }
-      return response;
-    }catch(error){
-      if(!["GET","HEAD","OPTIONS"].includes(method)&&!isUltronConversationRequest(url)&&!isPayPageAction(url))toast("Connection failed. Check your network and try again.","error");
-      throw error;
-    }
-  };
-
-  const nativeAlert=window.alert.bind(window);
-  window.alert=function(message){
-    toast(message,/fail|error|wrong|unable|invalid/i.test(String(message))?"error":"info",{duration:5600});
-  };
-  window.wayneNativeAlert=nativeAlert;
-
-  function showPending(){
-    try{
-      const pending=JSON.parse(sessionStorage.getItem("waynePendingToast")||"null");
-      sessionStorage.removeItem("waynePendingToast");
-      if(pending&&Date.now()-Number(pending.createdAt||0)<15000)toast(pending.message,pending.type||"success");
-    }catch{}
-  }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",showPending,{once:true});else showPending();
 })();
 
 

@@ -45,55 +45,22 @@
   window.waynePopup=(message,type="success",title)=>open(message,type,title);
   window.wayneConfirm=(message,options={})=>open(message,"info",options.title||"Confirm action",{confirm:true,confirmText:options.confirmText||"Continue",cancelText:options.cancelText||"Recheck"});
   window.wayneReview=window.wayneConfirm;
-  window.alert=message=>{open(message,/fail|error|wrong|unable|invalid/i.test(String(message))?"error":"info")};
-
-  function responseMessage(url,method,ok,data){
-    if(data&&typeof data==="object"&&(data.message||data.error))return String(data.message||data.error);
-    const path=String(url||"").toLowerCase();
-    if(!ok)return path.includes("/wallet")?"Wallet action failed. Please check the details and try again.":"The action could not be completed. Please try again.";
-    if(path.includes("/auth/login"))return"Login successful.";
-    if(path.includes("/auth/register"))return"Account created successfully.";
-    if(path.includes("/wallet")&&path.includes("/pay"))return"Wallet payment completed successfully.";
-    if(path.includes("/wallet"))return"Wallet updated successfully.";
-    if(path.includes("/orders"))return"Order action completed successfully.";
-    if(path.includes("/products"))return method==="DELETE"?"Product deleted successfully.":"Product saved successfully.";
-    if(path.includes("/support"))return"Support action completed successfully.";
-    if(path.includes("/notification"))return"Notification action completed successfully.";
-    if(path.includes("/settings")||path.includes("/config"))return"Settings saved successfully.";
-    if(path.includes("/profile")||path.includes("/auth/me"))return"Profile updated successfully.";
-    return"Action completed successfully.";
-  }
-
-  // ULTRON renders its own success/errors inside the chat pane.
-  // Keep transactional checkout, wallet and account feedback unchanged.
-  function isUltronConversationRequest(url){
-    try{return /^\/api\/ultron\/(?:ask|ai\/(?:chat|customer-help))\/?$/i.test(new URL(String(url||""),location.href).pathname)}
-    catch{return false}
-  }
-  const inheritedFetch=window.fetch.bind(window);
-  window.fetch=async function(input,init){
-    const method=String(init?.method||(typeof Request!=="undefined"&&input instanceof Request?input.method:"GET")||"GET").toUpperCase();
-    const url=typeof input==="string"?input:(input?.url||"");
-    const mutation=!["GET","HEAD","OPTIONS"].includes(method)&&!isUltronConversationRequest(url);
-    const before=popupVersion;
-    try{
-      const response=await inheritedFetch(input,init);
-      if(mutation){
-        let data=null;try{data=await response.clone().json()}catch{}
-        const message=responseMessage(url,method,response.ok,data),type=response.ok?"success":"error";
-        if(response.ok){try{sessionStorage.setItem("wayneFeedbackPending",JSON.stringify({message,type,createdAt:Date.now()}))}catch{}}
-        setTimeout(()=>{if(popupVersion===before)open(message,type)},0);
-        setTimeout(()=>{try{sessionStorage.removeItem("wayneFeedbackPending")}catch{}},7000);
-      }
-      return response;
-    }catch(error){
-      if(mutation)setTimeout(()=>{if(popupVersion===before)open("Connection failed. Check your network and try again.","error")},0);
-      throw error;
-    }
+  // Plain alerts are non-blocking notices. Explicit confirmations remain modal.
+  window.alert=message=>{
+    const kind=/fail|error|wrong|unable|invalid/i.test(String(message))?"error":"info";
+    if(typeof window.wayneToast==="function")window.wayneToast(message,kind);
+    else open(message,kind);
   };
 
-  function showPending(){
-    try{const pending=JSON.parse(sessionStorage.getItem("wayneFeedbackPending")||"null");sessionStorage.removeItem("wayneFeedbackPending");if(pending&&Date.now()-Number(pending.createdAt||0)<15000)open(pending.message,pending.type||"success")}catch{}
-  }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",showPending,{once:true});else showPending();
+  // The generic fetch monitor used to auto-open a full-screen
+  // success/error dialog on *every* POST and remember it in sessionStorage.
+  // That replayed "Successful" and "Wallet payment completed successfully"
+  // when customers returned to My Orders or even chatted with ULTRON.
+  // Remove this behavior site-wide: page handlers own their results.
+  // Keep only explicit calls to waynePopup() or wayneConfirm().
+  try{
+    sessionStorage.removeItem("wayneFeedbackPending");
+    sessionStorage.removeItem("waynePendingToast");
+  }catch{}
+
 })();
