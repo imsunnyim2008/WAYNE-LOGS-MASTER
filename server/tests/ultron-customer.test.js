@@ -42,7 +42,7 @@ const service=moduleRef.exports;
  assert(chat.includes("/api/ultron/ai/customer-help"));
  for(const file of ["config.js","feedback.js"]){
    const js=fs.readFileSync(path.join(__dirname,"../../"+file),"utf8");
-   assert(js.includes("customer-help"),file+" must silence global success popup.");
+   assert(!js.includes("window.fetch=async function"),file+" must not create popups from API responses.");
  }
  console.log("ULTRON private account help, user-scoping, read-only and popup regression tests passed.");
 })().catch(e=>{console.error(e);process.exitCode=1});
