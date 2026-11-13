@@ -8,6 +8,7 @@ const Referral=require("../models/Referral");
 const referralService=require("../services/referralService");
 const wayneIdService=require("../services/wayneIdService");
 const emailService=require("../services/emailService");
+const adminLoginIdentifier=require("../services/adminLoginIdentifier");
 const verification=require("./emailVerificationController");
 const verificationTokens=require("../services/verificationTokens");
 const token=u=>jwt.sign({id:u._id,role:u.role,sv:Number(u.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:["admin","staff"].includes(u.role)?"2h":"7d"});
@@ -67,7 +68,7 @@ exports.login=async(req,res)=>{
     const{email,password}=req.body;
     const key=attemptKey(req,email),now=Date.now(),record=attempts.get(key);
     if(record&&record.until>now&&record.count>=MAX_ATTEMPTS)return res.status(429).json({message:"Too many failed login attempts. Try again in 15 minutes."});
-    const u=await User.findOne({email:(email||"").toLowerCase()});
+    const u=await adminLoginIdentifier.resolveLoginUser(User,email,password,process.env.ADMIN_EMAIL);
     if(!u||!(await bcrypt.compare(password||"",u.password))){
       const active=record&&record.until>now?record:{count:0,until:now+WINDOW};active.count++;attempts.set(key,active);
       if(u&&["admin","staff"].includes(u.role))AuditLog.create({admin:u._id,action:"auth.failed",entity:"security",summary:"Incorrect password submitted at administrator login.",ipAddress:String(req.ip||"").slice(0,100),userAgent:String(req.get("user-agent")||"").slice(0,300),metadata:{count:active.count}}).catch(()=>{});
