@@ -351,6 +351,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     try{return /^\/api\/ultron\/(?:ask|ai\/(?:chat|customer-help))\/?$/i.test(new URL(String(url||""),location.href).pathname)}
     catch{return false}
   }
+  function isPayPageAction(url){
+    try{return /\/pay\.html$/i.test(location.pathname)&&/^\/api\/wallet\/topups\//i.test(new URL(String(url||""),location.href).pathname)}catch{return false}
+  }
   const originalFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
     const method=String(init?.method||(typeof Request!=="undefined"&&input instanceof Request?input.method:"GET")||"GET").toUpperCase();
@@ -359,7 +362,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
       const response=await originalFetch(input,init);
       // Verification pages provide their own inline result and should not show
       // a second global modal over the confirmation UI.
-      if(String(url).includes("/api/auth/verify-email")||String(url).includes("/api/auth/resend-verification")||isUltronConversationRequest(url))return response;
+      if(String(url).includes("/api/auth/verify-email")||String(url).includes("/api/auth/resend-verification")||isUltronConversationRequest(url)||isPayPageAction(url))return response;
       if(!["GET","HEAD","OPTIONS"].includes(method)){
         let data=null;
         try{data=await response.clone().json()}catch{}
@@ -374,7 +377,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
       }
       return response;
     }catch(error){
-      if(!["GET","HEAD","OPTIONS"].includes(method)&&!isUltronConversationRequest(url))toast("Connection failed. Check your network and try again.","error");
+      if(!["GET","HEAD","OPTIONS"].includes(method)&&!isUltronConversationRequest(url)&&!isPayPageAction(url))toast("Connection failed. Check your network and try again.","error");
       throw error;
     }
   };
