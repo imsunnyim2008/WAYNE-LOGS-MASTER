@@ -23,7 +23,7 @@ for(const filename of ["config.js","feedback.js"]){
   assert.equal(predicate("/api/wallet/pay"),false);
   assert.equal(predicate("/api/auth/register"),false);
   assert.equal(predicate("/api/ultron/ai/chatty"),false);
-  if(filename==="config.js")assert.match(source,/\|\|isUltronConversationRequest\(url\)\)return response/);
+  if(filename==="config.js")assert.match(source,/\|\|isUltronConversationRequest\(url\)(?:\|\|isPayPageAction\(url\))?\)return response/);
   else assert.match(source,/const mutation=![^;]+&&!isUltronConversationRequest\(url\)/);
 }
 console.log("ULTRON chat popup suppression tests passed; purchase/wallet feedback remains enabled.");

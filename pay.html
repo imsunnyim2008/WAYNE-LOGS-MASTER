@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0c65ba">
+<meta name="description" content="Pay WAYNE LOGS by bank transfer. Get verified transfer instructions and submit your bank receipt for manual review.">
+<title>Pay by Bank Transfer | WAYNE LOGS</title>
+<link rel="icon" type="image/jpeg" href="/assets/wayne-bat-logo.jpg">
+<style>
+:root{color-scheme:light;--ink:#102f4a;--muted:#617a92;--line:#d9e6f0;--blue:#0967c4;--sky:#09aae2;--good:#12764b;--bad:#b0274a}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#d9f0ff,#edf5fc 42%,#f6f9fd);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+a{color:var(--blue);font-weight:700}
+header{background:#fff;border-bottom:1px solid var(--line)}
+.header-inner{max-width:860px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:16px 22px;gap:14px}
+.logo{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink);font-size:18px;font-weight:950}
+.logo img{width:43px;height:43px;border-radius:13px;object-fit:cover}
+nav{display:flex;gap:17px;font-size:14px}
+main{max-width:770px;margin:44px auto;padding:0 18px 70px}
+.hero{text-align:center;margin-bottom:26px}
+.badge{display:inline-block;background:#ddf2ff;color:#0b6fb0;border-radius:100px;padding:6px 14px;font-size:13px;font-weight:850}
+h1{font-size:clamp(30px,6vw,43px);line-height:1.15;letter-spacing:-1px;margin:17px 0 12px}
+.hero p{margin:0;color:var(--muted)}
+.card{background:#fff;border:1px solid var(--line);border-radius:26px;padding:30px;box-shadow:0 17px 55px rgba(20,72,118,.09)}
+h2{font-size:21px;margin:0 0 5px}h3{font-size:17px;margin:0 0 10px}
+.note{color:var(--muted);font-size:14px;margin:5px 0 18px}
+label{display:block;font-size:14px;font-weight:800;margin:17px 0 8px}
+input{width:100%;font:inherit;border-radius:13px;border:1px solid #bbd2e7;background:#fbfdff;padding:14px 15px;color:var(--ink)}
+input:focus{outline:2px solid #79c5f3;outline-offset:1px}
+.btn{background:linear-gradient(120deg,#0b55c4,#07a6e5);padding:14px 19px;color:#fff;border:0;border-radius:14px;text-align:center;cursor:pointer;font:inherit;font-weight:900;display:inline-block;text-decoration:none;width:100%;margin-top:15px}
+.btn:hover{filter:brightness(1.04)}.btn:disabled{opacity:.55;cursor:wait}
+.btn-subtle{background:#eef7ff;color:#095eab;border:1px solid #c5e4f6}
+.button-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.message{display:none;margin-top:18px;padding:14px;border-radius:12px;background:#e9f6ff;color:#135883;font-size:14px}
+.message.show{display:block}.message.error{background:#fff0f3;color:var(--bad)}.message.success{background:#e6f7ee;color:var(--good)}
+.warning{background:#fff8e9;border:1px solid #f6deb0;padding:14px 15px;border-radius:13px;margin-top:22px;color:#76551b;font-size:13px}
+.transfer-box{border:1px solid #bbdff6;background:#f1f9ff;border-radius:18px;margin:22px 0 0;padding:20px}
+.bank-value{display:block;font-size:26px;font-weight:950;letter-spacing:1px;color:#095aaf;overflow-wrap:anywhere}
+.kv{margin-top:12px}.kv small{display:block;color:var(--muted);font-size:12px}.kv strong{overflow-wrap:anywhere}
+.amount-emphasis{font-size:27px;font-weight:950;color:#085fae}
+.divider{height:1px;background:var(--line);margin:24px 0}
+.status{display:inline-flex;align-items:center;gap:8px;border-radius:50px;padding:6px 12px;background:#fff6e7;color:#8b5608;font-size:12px;font-weight:800}
+.small{color:var(--muted);font-size:13px}
+.help{display:flex;justify-content:space-between;gap:12px;margin-top:17px;flex-wrap:wrap}
+[hidden]{display:none!important}
+@media(max-width:550px){main{margin:28px auto;padding:0 12px 40px}.card{padding:20px 17px;border-radius:19px}.header-inner{padding:13px 15px}.button-row{grid-template-columns:1fr}.logo{font-size:15px}.logo img{width:38px;height:38px}nav{gap:9px;font-size:12px}}
+</style>
+</head>
+<body>
+<header><div class="header-inner"><a href="index.html" class="logo"><img src="/assets/wayne-bat-logo.jpg" alt=""><span>WAYNE LOGS</span></a><nav><a href="index.html">Store</a><a href="support.html">Support</a></nav></div></header>
+<main>
+  <div class="hero"><span class="badge">SECURE BANK TRANSFER INSTRUCTIONS</span><h1>Pay WAYNE LOGS</h1><p>Transfer to the merchant's designated receiving bank account. Wallet credit is added only after the payment is independently confirmed.</p></div>
+  <div class="card">
+    <h2>Bank transfer payment link</h2>
+    <p class="note">Your payment goes to one receiving account. This link does <strong>not</strong> create a new personal bank account or instantly verify transfers.</p>
+    <p id="availability" class="small" role="status">Checking bank-transfer availability…</p>
+    <div id="paymentFlow" hidden>
+      <label for="amount">Amount to pay (₦)</label>
+      <input id="amount" type="number" min="100" max="5000000" step="0.01" inputmode="decimal" placeholder="e.g. 5000" autocomplete="off" required>
+      <div class="button-row">
+        <button type="button" id="shareLink" class="btn btn-subtle">Copy payment link</button>
+        <a href="dashboard.html" class="btn btn-subtle">My wallet</a>
+      </div>
+      <div id="guest" hidden>
+        <div class="warning"><strong>Before transferring:</strong> Sign in and create a payment request first. This gives your deposit a reference so the team can match your receipt to your wallet.</div>
+        <a id="signIn" href="login.html?pay=1" class="btn">Sign in to pay by transfer</a>
+        <p class="small">New customer? <a href="register.html">Create your WAYNE LOGS account</a>.</p>
+      </div>
+      <div id="customer" hidden>
+        <button type="button" class="btn" id="startPayment">Generate bank transfer instructions</button>
+        <p class="small">We'll issue a unique payment <em>reference</em>, not a new bank account number.</p>
+      </div>
+      <section id="transfer" hidden aria-label="Bank transfer instructions">
+        <div class="transfer-box">
+          <span class="status">● Awaiting bank transfer</span>
+          <div class="kv"><small>Exact amount</small><span class="amount-emphasis" id="payAmount"></span></div>
+          <div class="kv"><small>Bank</small><strong id="bankName"></strong></div>
+          <div class="kv"><small>Account name</small><strong id="bankAccountName"></strong></div>
+          <div class="kv"><small>Account number</small><strong class="bank-value" id="bankNumber"></strong></div>
+          <div class="kv"><small>Your WAYNE LOGS payment reference</small><strong id="wayneReference"></strong></div>
+          <div class="button-row">
+            <button type="button" id="copyAccount" class="btn btn-subtle">Copy account number</button>
+            <button type="button" id="copyReference" class="btn btn-subtle">Copy reference</button>
+          </div>
+          <p class="small">Use this receiving account from your banking app. Add the WAYNE LOGS reference to the transfer narration if your bank allows it, and keep the bank's receipt.</p>
+        </div>
+        <div class="divider"></div>
+        <h3>I've made the transfer</h3>
+        <p class="note">Upload the payment receipt. Your deposit remains pending until the admin checks the actual incoming bank transaction.</p>
+        <form id="proofForm">
+          <label for="bankReference">Transfer/session reference from your banking app</label>
+          <input id="bankReference" required minlength="4" maxlength="100" autocomplete="off" placeholder="Your bank transfer reference">
+          <label for="receipt">Payment receipt (JPG, PNG, WEBP or PDF, max 3 MB)</label>
+          <input id="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required>
+          <button id="submitProof" class="btn" type="submit">Submit transfer receipt for review</button>
+        </form>
+      </section>
+      <section id="pending" hidden>
+        <div class="transfer-box">
+          <span class="status">● Pending manual review</span>
+          <h3 style="margin-top:14px">Your receipt was submitted</h3>
+          <p>Your wallet has <strong>not</strong> been credited yet. We'll update it only after the incoming transfer has been checked in the receiving bank account.</p>
+          <p class="small">Reference: <strong id="pendingRef"></strong></p>
+          <a href="dashboard.html" class="btn">View wallet and transaction history</a>
+        </div>
+      </section>
+    </div>
+    <div class="message" id="message" role="status" aria-live="polite"></div>
+    <div class="warning"><strong>Payment safety:</strong> A screenshot, customer message or successful transfer claim does not prove the bank received funds. Never pay twice because a page refreshed. If you already transferred, contact Support with your bank reference.</div>
+    <div class="help"><a href="support.html">Need help? Contact support</a><a href="index.html">← Back to store</a></div>
+  </div>
+</main>
+<script src="config.js?v=20261113-payment-link"></script>
+<script>
+(()=>{
+  "use strict";
+  const api=window.WAYNE_API_URL||"https://wayne-logs-master-api.onrender.com";
+  const $=id=>document.getElementById(id);
+  const token=()=>localStorage.getItem("wayneToken")||"";
+  const urlParams=new URLSearchParams(location.search);
+  let minKobo=10000,maxKobo=500000000,pendingReference="",busy=false,configured=false;
+  const money=kobo=>"₦"+(Number(kobo)/100).toLocaleString("en-NG",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const notice=(message,type="info")=>{const box=$("message");box.textContent=message;box.className="message show "+type};
+  const hrefAmount=()=>{
+    const value=String($("amount").value||"").trim(),amount=Number(value);
+    if(!value||!Number.isFinite(amount)||amount<=0)return "";
+    return amount.toFixed(2).replace(/\.00$/,"");
+  };
+  function signinUrl(){
+    const qs=new URLSearchParams({pay:"1"});
+    const amount=hrefAmount();if(amount)qs.set("amount",amount);
+    return "login.html?"+qs.toString();
+  }
+  const makeShareUrl=()=>{
+    const base=new URL("pay.html",location.href);base.search="";
+    const amount=hrefAmount();
+    if(amount)base.searchParams.set("amount",amount);
+    return base.href;
+  };
+  async function copyText(value,label){
+    try{await navigator.clipboard.writeText(String(value));notice(label+" copied.","success")}
+    catch{notice("Your browser blocked copying. Press and hold the displayed text to copy it.","error")}
+  }
+  $("shareLink").onclick=()=>copyText(makeShareUrl(),"Payment link");
+  $("copyAccount").onclick=()=>copyText($("bankNumber").textContent,"Bank account number");
+  $("copyReference").onclick=()=>copyText(pendingReference,"Payment reference");
+  async function request(path,init={}){
+    const response=await fetch(api+path,{cache:"no-store",...init});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw Error(data.message||"Could not complete this request.");
+    return data;
+  }
+  async function initialize(){
+    try{
+      const data=await request("/api/payment-link/bank");
+      if(!data.available||!data.bank)throw Error("Bank-transfer funding is unavailable.");
+      minKobo=data.minimumTopupKobo||10000;maxKobo=data.maximumTopupKobo||500000000;
+      $("amount").min=String(minKobo/100);
+      $("amount").max=String(maxKobo/100);
+      const fromLink=Number(urlParams.get("amount"));
+      if(Number.isFinite(fromLink)&&fromLink*100>=minKobo&&fromLink*100<=maxKobo)$("amount").value=String(fromLink);
+      $("availability").textContent="Manual bank transfers are available. Accepted amounts: "+money(minKobo)+" to "+money(maxKobo)+".";
+      $("paymentFlow").hidden=false;
+      configured=true;
+      const loggedIn=Boolean(token());
+      $("guest").hidden=loggedIn;
+      $("customer").hidden=!loggedIn;
+      $("signIn").href=signinUrl();
+      $("amount").addEventListener("input",()=>{$("signIn").href=signinUrl()});
+    }catch(e){
+      $("availability").textContent=e.message||"Bank transfers are not currently available.";
+      notice("No payment account is available yet. WAYNE LOGS must configure a receiving bank account first.","error");
+    }
+  }
+  $("startPayment").onclick=async()=>{
+    if(busy||!configured||!token())return;
+    const amount=Number($("amount").value);
+    const amountKobo=Math.round(amount*100);
+    if(!Number.isFinite(amount)||!Number.isSafeInteger(amountKobo)||amountKobo<minKobo||amountKobo>maxKobo){
+      notice("Please enter an amount between "+money(minKobo)+" and "+money(maxKobo)+".","error");return;
+    }
+    busy=true;$("startPayment").disabled=true;$("startPayment").textContent="Creating secure transfer reference…";
+    try{
+      const d=await request("/api/wallet/topups/initialize",{
+        method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token()},
+        body:JSON.stringify({amount,paymentMethod:"manual_bank"})
+      });
+      if(d.mode!=="manual_bank"||!d.reference||!d.bank)throw Error("Bank transfer could not be initialized.");
+      pendingReference=String(d.reference);
+      $("payAmount").textContent=money(d.amountKobo);
+      $("bankName").textContent=String(d.bank.name||"");
+      $("bankAccountName").textContent=String(d.bank.accountName||"");
+      $("bankNumber").textContent=String(d.bank.accountNumber||"");
+      $("wayneReference").textContent=pendingReference;
+      $("customer").hidden=true;$("transfer").hidden=false;
+      $("amount").disabled=true;
+      notice("Your bank transfer reference is ready. Transfer the exact amount, then upload your receipt.","info");
+      $("transfer").scrollIntoView({behavior:"smooth",block:"start"});
+    }catch(e){notice(e.message||"Could not create bank transfer request.","error")}
+    finally{busy=false;$("startPayment").disabled=false;$("startPayment").textContent="Generate bank transfer instructions"}
+  };
+  $("proofForm").onsubmit=async e=>{
+    e.preventDefault();if(busy||!pendingReference)return;
+    const file=$("receipt").files?.[0];
+    const allowed=new Set(["image/jpeg","image/png","image/webp","application/pdf"]);
+    if(!file||!allowed.has(file.type)||file.size<=0||file.size>3*1024*1024){
+      notice("Upload a JPG, PNG, WEBP or PDF bank receipt up to 3 MB.","error");return;
+    }
+    const customerReference=String($("bankReference").value||"").trim();
+    if(customerReference.length<4){notice("Enter your bank's transfer reference.","error");return}
+    busy=true;$("submitProof").disabled=true;$("submitProof").textContent="Submitting for manual review…";
+    try{
+      const receiptData=await new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=()=>resolve(String(reader.result||""));
+        reader.onerror=()=>reject(Error("Could not read the receipt file."));
+        reader.readAsDataURL(file);
+      });
+      await request("/api/wallet/topups/"+encodeURIComponent(pendingReference)+"/submit",{
+        method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token()},
+        body:JSON.stringify({customerReference,receipt:{fileName:file.name,mimeType:file.type,data:receiptData}})
+      });
+      $("pendingRef").textContent=pendingReference;
+      $("transfer").hidden=true;$("pending").hidden=false;
+      notice("Receipt submitted. Awaiting bank verification by the WAYNE LOGS team.","success");
+      $("pending").scrollIntoView({behavior:"smooth",block:"start"});
+    }catch(error){notice(error.message||"Could not submit the receipt.","error")}
+    finally{busy=false;$("submitProof").disabled=false;$("submitProof").textContent="Submit transfer receipt for review"}
+  };
+  initialize();
+})();
+</script>
+</body></html>
