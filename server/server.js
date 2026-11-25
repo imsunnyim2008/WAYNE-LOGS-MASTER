@@ -45,6 +45,41 @@ app.use("/api",(req,res,next)=>{
   }
   next();
 });
+// The Ultron Site uses this server-to-server route after its managed sign-in.
+function authorizeUltronAccount(req,res,next){
+  const expected=String(process.env.ULTRON_ACCOUNT_RELAY_SECRET||"");
+  const supplied=String(req.get("authorization")||"");
+  const header=Buffer.from("Bearer "+expected);
+  const provided=Buffer.from(supplied);
+  if(expected.length<48||provided.length!==header.length||!crypto.timingSafeEqual(provided,header)){
+    return res.status(401).json({error:"Unauthorized"});
+  }
+  next();
+}
+app.post("/api/internal/ultron/accounts",authorizeUltronAccount,express.json({limit:"4kb"}),async(req,res)=>{
+  const rawId=req.body?.siteUserId;
+  const rawEmail=req.body?.email;
+  const siteUserId=typeof rawId==="string"?rawId.trim():"";
+  const email=typeof rawEmail==="string"?rawEmail.trim().toLowerCase():"";
+  if(!/^[a-z0-9_.:-]{1,160}$/i.test(siteUserId)||email.length>254||!/^\S+@\S+\.\S+$/.test(email)){
+    return res.status(400).json({error:"Invalid account identity"});
+  }
+  const id=crypto.createHash("sha256").update("chatultron.org:"+siteUserId).digest("hex");
+  const accounts=mongoose.connection.collection("ultron_accounts");
+  try{
+    await accounts.updateOne({_id:id},{$set:{email},$setOnInsert:{createdAt:new Date(),identityProvider:"chatgpt"}},{upsert:true});
+    return res.status(200).json({ok:true});
+  }catch(error){
+    if(error?.code===11000){
+      try{
+        const result=await accounts.updateOne({_id:id},{$set:{email}});
+        if(result.matchedCount===1)return res.status(200).json({ok:true});
+      }catch{}
+    }
+    console.error("Ultron account save failed",{requestId:req.requestId});
+    return res.status(503).json({error:"Account storage unavailable"});
+  }
+});
 app.post("/api/wallet/webhooks/paystack-dva",express.raw({type:"application/json",limit:"1mb"}),virtualAccountWebhook);
 app.post("/api/wallet/webhooks/:provider",express.raw({type:"application/json",limit:"1mb"}),walletWebhook);
 app.use(express.json({limit:"6mb"}));
