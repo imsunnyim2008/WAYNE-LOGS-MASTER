@@ -113,6 +113,10 @@ app.use("/api/ultron/ai/chat",createRateLimiter({windowMs:15*60*1000,max:18,mess
 app.use("/api/ultron/ai/customer-help",createRateLimiter({windowMs:15*60*1000,max:60,message:"Too many account-help lookups. Please try later."}));
 app.use("/api/ultron/ai",ultronAiRoutes);
 app.use("/api/ultron",ultronRoutes);
+app.use("/api/employees",createRateLimiter({windowMs:60*1000,max:60,message:"Too many employee portal requests."}));
+app.use("/api/employees/register",createRateLimiter({windowMs:60*60*1000,max:8,message:"Too many registrations."}));
+app.use("/api/employees/login",createRateLimiter({windowMs:15*60*1000,max:15,message:"Too many login attempts."}));
+app.use("/api/employees",require("./routes/employeePortalRoutes"));
 app.use("/api/auth",authRoutes);
 app.use("/api/products",productRoutes);
 app.use("/api/orders",orderRoutes);
