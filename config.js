@@ -225,7 +225,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     const walletBack=document.querySelector(".wayne-wallet-back");
     if(walletBack){
       const label=walletBack.querySelector("span");if(label)label.textContent="Back";
-      walletBack.onclick=e=>{e.preventDefault();if(history.length>1)history.back();else location.href="index.html"};
+      walletBack.href="index.html";walletBack.setAttribute("aria-label","Back to marketplace");walletBack.onclick=e=>{e.preventDefault();location.assign("index.html")};
       return;
     }
     if(document.querySelector(".wayne-global-back-wrap"))return;
@@ -235,6 +235,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
       back.href="admin.html";
       back.setAttribute("aria-label","Back to previous admin section");
       back.onclick=e=>{e.preventDefault();if(adminSectionHistory.length>1)adminSectionHistory.pop();const target=adminSectionHistory.at(-1)||"overview";adminHistoryNavigating=true;document.querySelector('.admin-menu [data-section="'+target+'"]')?.click();adminHistoryNavigating=false};
+    }else if(/\/(?:dashboard|wallet)\.html$/.test(path)){
+      back.setAttribute("aria-label","Back to marketplace");
+      back.onclick=e=>{e.preventDefault();location.assign("index.html")};
     }else{
       back.onclick=e=>{e.preventDefault();if(history.length>1)history.back();else location.href="index.html"};
     }
