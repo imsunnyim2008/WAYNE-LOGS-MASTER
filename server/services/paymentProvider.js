@@ -26,9 +26,16 @@ async function kora(path,options={}){
   return requestJson(base+path,{...options,headers:{Authorization:"Bearer "+process.env.KORA_SECRET_KEY,"Content-Type":"application/json",...(options.headers||{})}},body=>body.status===true);
 }
 exports.name=providerName;
+exports.paystackEnabled=()=>{
+  const key=String(process.env.PAYSTACK_SECRET_KEY||"");
+  return process.env.PAYSTACK_CHECKOUT_ENABLED==="true" && /^sk_(?:live|test)_[A-Za-z0-9]+$/.test(key) &&
+    (process.env.NODE_ENV!=="production" || key.startsWith("sk_live_"));
+};
 exports.initializeTopup=async({providerName:name,email,firstName,lastName,phone,amountKobo,reference,callbackUrl,userId,webhookUrl})=>{
   if(name==="paystack"){
-    const data=await paystack("/transaction/initialize",{method:"POST",body:JSON.stringify({email,amount:String(amountKobo),currency:"NGN",reference,callback_url:callbackUrl,metadata:{purpose:"wallet_topup",walletReference:reference,userId:String(userId)}})});
+    if(!exports.paystackEnabled())throw new Error("Paystack checkout is not enabled.");
+    const data=await paystack("/transaction/initialize",{method:"POST",body:JSON.stringify({email,amount:String(amountKobo),currency:"NGN",reference,channels:["card","bank_transfer"],callback_url:callbackUrl,metadata:{purpose:"wallet_topup",walletReference:reference,userId:String(userId)}})});
+    if(data.reference!==reference||!/^https:\/\/checkout\.paystack\.com\//.test(String(data.authorization_url||"")))throw new Error("Invalid Paystack checkout response.");
     return {authorizationUrl:data.authorization_url,providerReference:data.reference};
   }
   if(name==="pocketfi"){
@@ -47,7 +54,7 @@ exports.initializeTopup=async({providerName:name,email,firstName,lastName,phone,
 exports.verifyTopup=async(reference,name=providerName())=>{
   if(name==="paystack"){
     const data=await paystack("/transaction/verify/"+encodeURIComponent(reference),{method:"GET"});
-    return {successful:data.status==="success",amountKobo:Number(data.amount),currency:data.currency,reference:data.reference};
+    return {successful:data.status==="success" && data.reference===reference && data.domain===(process.env.PAYSTACK_SECRET_KEY.startsWith("sk_live_")?"live":"test") && String(data.authorization?.channel||data.channel||"")!=="dedicated_nuban",amountKobo:Number(data.amount),currency:data.currency,reference:data.reference};
   }
   if(name==="pocketfi"){
     const body=await pocketfi("/api/v1/checkout/confirm",{method:"POST",body:JSON.stringify({payment_id:reference})}),data=body.data||body;
@@ -60,15 +67,27 @@ exports.verifyTopup=async(reference,name=providerName())=>{
   throw new Error("Online payment verification is unavailable for this provider.");
 };
 exports.verifyWebhook=(name,raw,headers)=>{
-  if(name!=="paystack"||providerName()!=="paystack")return false;
-  const signature=String(headers["x-paystack-signature"]||""),secret=process.env.PAYSTACK_SECRET_KEY||"";
-  if(!signature||!secret)return false;
-  const expected=crypto.createHmac("sha512",secret).update(raw).digest("hex");
-  return signature.length===expected.length&&crypto.timingSafeEqual(Buffer.from(signature),Buffer.from(expected));
+  if(name!=="paystack"||!Buffer.isBuffer(raw))return false;
+  const secret=String(process.env.PAYSTACK_SECRET_KEY||"");
+  if(!/^sk_(?:live|test)_[A-Za-z0-9]+$/.test(secret)||(process.env.NODE_ENV==="production"&&!secret.startsWith("sk_live_")))return false;
+  const equal=(digest,hex)=>/^[0-9a-f]{128}$/.test(hex)&&crypto.timingSafeEqual(digest,Buffer.from(hex,"hex"));
+  const modern=String(headers["paystack-signature"]||"");
+  if(modern){
+    const signingSecret=String(process.env.PAYSTACK_WEBHOOK_SECRET||"");
+    if(!signingSecret.startsWith("whsec_"))return false;
+    const fields=modern.split(",").map(x=>x.trim()),ts=fields.filter(x=>x.startsWith("t="));
+    if(ts.length!==1||!/^t=\d+$/.test(ts[0]))return false;
+    const t=Number(ts[0].slice(2));
+    if(!Number.isSafeInteger(t)||Math.abs(Math.floor(Date.now()/1000)-t)>300)return false;
+    const digest=crypto.createHmac("sha512",signingSecret).update(t+".").update(raw).digest();
+    return fields.filter(x=>x.startsWith("v1=")).some(x=>{const m=/^v1=whk_[^:]+:([0-9a-f]{128})$/.exec(x);return !!m&&equal(digest,m[1]);});
+  }
+  const signature=String(headers["x-paystack-signature"]||"");
+  return equal(crypto.createHmac("sha512",secret).update(raw).digest(),signature);
 };
 exports.parseWebhook=(name,raw)=>{
   if(name!=="paystack")return null;const event=JSON.parse(raw.toString("utf8"));
-  if(event.event!=="charge.success")return null;
+  if(event.event!=="charge.success"||!event.data||String(event.data.authorization?.channel||event.data.channel||"")==="dedicated_nuban")return null;
   return {reference:event.data.reference,successful:event.data.status==="success",amountKobo:Number(event.data.amount),currency:event.data.currency};
 };
 
