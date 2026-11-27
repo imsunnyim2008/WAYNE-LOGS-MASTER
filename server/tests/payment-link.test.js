@@ -57,6 +57,8 @@ function reply(){
   const config=fs.readFileSync(path.join(root,"config.js"),"utf8");
   assert(!config.includes('window.fetch=async function'),"Payment link should not auto-trigger dialogs from network requests.");
   const dashboard=fs.readFileSync(path.join(root,"dashboard.html"),"utf8");
-  assert(dashboard.includes('href="pay.html"'));
+  assert(!dashboard.includes('href="pay.html"'),"Do not advertise manual payment links in the customer wallet.");
+  assert(dashboard.includes('paymentMethod:"paystack"'));
+  assert(!dashboard.includes('id="koraPay"')&&!dashboard.includes('id="manualPay"'));
   console.log("Payment link: configured bank, disabled settings, pending review and safe customer flows passed.");
 })().catch(error=>{console.error(error);process.exitCode=1});
