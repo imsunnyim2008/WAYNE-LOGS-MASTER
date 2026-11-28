@@ -91,6 +91,7 @@ function createRateLimiter({windowMs,max,message}){
 }
 app.use("/api/auth/login",createRateLimiter({windowMs:15*60*1000,max:20,message:"Too many login attempts. Please wait a few minutes and try again."}));
 app.use("/api/auth/2fa/login",createRateLimiter({windowMs:15*60*1000,max:10,message:"Too many verification attempts. Try again in 15 minutes."}));
+app.use("/api/security/customer/2fa",createRateLimiter({windowMs:15*60*1000,max:12,message:"Too many security requests."}));
 app.use("/api/security/admin/2fa",createRateLimiter({windowMs:15*60*1000,max:12,message:"Too many security setup requests. Try again later."}));
 app.use("/api/auth/forgot-password",createRateLimiter({windowMs:15*60*1000,max:5,message:"Too many recovery requests. Please try again in 15 minutes."}));
 app.use("/api/auth/reset-password",createRateLimiter({windowMs:15*60*1000,max:10,message:"Too many reset attempts. Please try again in 15 minutes."}));
