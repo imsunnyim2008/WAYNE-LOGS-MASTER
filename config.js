@@ -338,19 +338,12 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
 
 
-/* ULTRON_STORE_HELP_BOOT_V1 */
-(()=>{
-  const page=location.pathname.split("/").pop().toLowerCase();
-  // Admin pages also get ULTRON; privileged mode is checked on the backend.
-  const load=()=>{
-    if(document.getElementById("ultron-store-root")||document.querySelector('script[data-ultron-store]'))return;
-    const sheet=document.createElement("link");
-    sheet.rel="stylesheet";sheet.href="ultron-store.css?v=20261109-v1";document.head.appendChild(sheet);
-    const s=document.createElement("script");s.src="ultron-store.js?v=20261112-customer-help";s.dataset.ultronStore="true";document.body.appendChild(s);
-  };
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",load,{once:true});
-  else load();
-})();
+/* ULTRON floating assistant disabled site-wide by owner. Backend services remain intact. */
+window.WAYNE_ULTRON_WIDGET_ENABLED=false;
+document.getElementById("ultron-store-root")?.remove();
+const ultronWidgetDisabledStyle=document.createElement("style");
+ultronWidgetDisabledStyle.textContent="#ultron-store-root{display:none!important}";
+document.head.appendChild(ultronWidgetDisabledStyle);
 
 /* WAYNE_ACTION_POPUP_V2 */
 (()=>{

@@ -1,7 +1,7 @@
 (()=>{
 "use strict";
 const api=window.WAYNE_API_URL;
-if(!api||document.getElementById("ultron-store-root"))return;
+if(window.WAYNE_ULTRON_WIDGET_ENABLED!==true||!api||document.getElementById("ultron-store-root"))return;
 const make=(tag,className,text)=>{const e=document.createElement(tag);if(className)e.className=className;if(text!==undefined)e.textContent=text;return e};
 const root=make("aside");root.id="ultron-store-root";
 const launch=make("button");launch.id="ultron-store-launch";launch.type="button";launch.setAttribute("aria-expanded","false");launch.setAttribute("aria-controls","ultron-store-panel");

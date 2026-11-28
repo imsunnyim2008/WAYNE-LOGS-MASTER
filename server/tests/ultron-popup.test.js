@@ -5,6 +5,10 @@ const path=require("node:path");
 const root=path.join(__dirname,"..","..");
 const config=fs.readFileSync(path.join(root,"config.js"),"utf8");
 const feedback=fs.readFileSync(path.join(root,"feedback.js"),"utf8");
+const widget=fs.readFileSync(path.join(root,"ultron-store.js"),"utf8");
+assert(config.includes("window.WAYNE_ULTRON_WIDGET_ENABLED=false"));
+assert(!config.includes("script[data-ultron-store]"),"Floating assistant must not be loaded automatically.");
+assert(widget.includes("window.WAYNE_ULTRON_WIDGET_ENABLED!==true"),"Direct widget loads must also be disabled by default.");
 
 // Past bug: two wrappers treated EVERY POST as a successful purchase,
 // opened overlapping "Successful" dialogs and replayed them after navigation.
