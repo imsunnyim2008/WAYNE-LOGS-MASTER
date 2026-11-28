@@ -1,0 +1,11 @@
+const assert=require("node:assert/strict");
+const {defaults,validateBanners,readBanners}=require("../services/homepageBanners");
+assert.equal(validateBanners(defaults).length,3);
+assert.deepEqual(validateBanners([]),[]);
+assert.equal(readBanners(undefined).length,3);
+assert.deepEqual(readBanners([]),[]);
+const first={...defaults[0],productId:"abcdef0123456789abcdef01"};
+assert.equal(validateBanners([first])[0].productId,first.productId);
+for(const bad of [null,Array(9).fill(first),[{...first,title:""}],[{...first,theme:"javascript:"}],[{...first,productId:"https://bad.test"}],[{...first,enabled:"true"}],[{...first,description:"a".repeat(181)}]])assert.throws(()=>validateBanners(bad));
+assert.equal(Object.hasOwn(validateBanners([{...first,privateDelivery:"secret"}])[0],"privateDelivery"),false);
+console.log("Homepage banner validation checks passed.");

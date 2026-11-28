@@ -1,5 +1,7 @@
 const mongoose=require("mongoose");
+const bannerSchema=new mongoose.Schema({title:{type:String,required:true,maxlength:64},description:{type:String,required:true,maxlength:180},buttonLabel:{type:String,required:true,maxlength:24},productId:{type:String,default:"",match:/^(?:[a-f0-9]{24})?$/i},theme:{type:String,enum:["blue","navy","teal","purple"],default:"blue"},enabled:{type:Boolean,default:true}},{_id:false});
 const schema=new mongoose.Schema({
+  homepageBanners:{type:[bannerSchema],default:undefined,validate:v=>!v||v.length<=8},
   key:{type:String,default:"main",unique:true},
   announcementEnabled:{type:Boolean,default:false},
   announcementTitle:{type:String,default:"Welcome to WAYNE LOGS",maxlength:100},
