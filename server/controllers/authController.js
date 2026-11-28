@@ -14,7 +14,7 @@ const verificationTokens=require("../services/verificationTokens");
 const token=u=>jwt.sign({id:u._id,role:u.role,sv:Number(u.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:["admin","staff"].includes(u.role)?"2h":"7d"});
 const attempts=new Map(),WINDOW=15*60*1000,MAX_ATTEMPTS=5;
 function attemptKey(req,email){return String(req.ip||req.socket?.remoteAddress||"")+"|"+String(email||"").toLowerCase()}
-const safe=u=>({id:u._id,wayneId:u.wayneId||"",username:u.username||"",firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,staffPermissions:u.staffPermissions||[],isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,notificationPreferences:u.notificationPreferences||{orderUpdates:true,walletAlerts:true,productAnnouncements:true,promotions:false},createdAt:u.createdAt});
+const safe=u=>({id:u._id,wayneId:u.wayneId||"",username:u.username||"",firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,staffPermissions:u.staffPermissions||[],isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,notificationPreferences:u.notificationPreferences||{orderUpdates:true,walletAlerts:true,productAnnouncements:true,promotions:false},emailMarketingOptIn:u.emailMarketingOptIn===true,createdAt:u.createdAt});
 exports.register=async(req,res)=>{
   let createdUser=null,emailFailed=false;
   try{
@@ -133,7 +133,7 @@ exports.changePassword=async(req,res)=>{try{
 exports.logoutAll=async(req,res)=>{try{await User.updateOne({_id:req.user._id},{$inc:{sessionVersion:1}});res.json({success:true,message:"All devices have been logged out."})}catch(e){res.status(500).json({message:"Could not end account sessions."})}};
 exports.updatePreferences=async(req,res)=>{try{
   const input=req.body||{},preferences={orderUpdates:input.orderUpdates!==false,walletAlerts:input.walletAlerts!==false,productAnnouncements:input.productAnnouncements!==false,promotions:input.promotions===true};
-  const user=await User.findByIdAndUpdate(req.user._id,{$set:{notificationPreferences:preferences}},{new:true});res.json({success:true,preferences:user.notificationPreferences,message:"Notification preferences saved."});
+  const user=await User.findByIdAndUpdate(req.user._id,{$set:{notificationPreferences:preferences,...(typeof input.emailMarketingOptIn==="boolean"?{emailMarketingOptIn:input.emailMarketingOptIn}:{})}},{new:true});res.json({success:true,preferences:user.notificationPreferences,message:"Notification preferences saved."});
 }catch(e){res.status(500).json({message:"Could not save notification preferences."})}};
 
 exports.verifyTwoFactorLogin=async(req,res)=>{
