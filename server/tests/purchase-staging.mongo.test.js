@@ -27,7 +27,7 @@ function response(){return {statusCode:200,payload:null,
   json(body){this.payload=body;return this},
   sendStatus(code){this.statusCode=code;return this}
 }}
-const req=(user,id,body={})=>({user:{_id:user._id,email:user.email},params:{id:String(id)},body,headers:{}});
+const req=(user,id,body={})=>({user:{_id:user._id,email:user.email,role:user.role},params:{id:String(id)},body,headers:{}});
 const wallet=async(user,id)=>{const res=response();await controller.payWithWallet(req(user,id),res);return res};
 const mine=async user=>{const res=response();await controller.mine(req(user,"unused"),res);return res};
 async function product(name,price=1250,stock=1,managed=true){
@@ -157,6 +157,25 @@ async function execute(){
   assert.equal(await Notification.countDocuments({user:admin._id,key:"admin-purchase:"+externalOrder._id}),1);
   assert.equal(await WalletTransaction.countDocuments({order:externalOrder._id}),0,
     "Paystack payment must not create a wallet debit.");
+  // Loyalty: two purchases on different products must not spend the same points.
+  process.env.LOYALTY_REDEMPTION_ENABLED="true";
+  const loyal=await user("Loyal",500000);
+  const earning=await product("Earned",10000,0,false);
+  await order(loyal,earning,{status:"completed",paymentStatus:"paid"});
+  const rewardA=await product("RewardA",1000,1,true),rewardB=await product("RewardB",1000,1,true);
+  const ra=await order(loyal,rewardA,{unitPrice:900,totalAmount:900,loyaltyPoints:100});
+  const rb=await order(loyal,rewardB,{unitPrice:900,totalAmount:900,loyaltyPoints:100});
+  const results=await Promise.all([wallet(loyal,ra._id),wallet(loyal,rb._id)]);
+  assert.equal(results.filter(x=>x.statusCode===200).length,1,"Concurrent points redemption must be serialized.");
+  assert.equal((await User.findById(loyal._id)).walletBalanceKobo,410000);
+  const won=await Order.findOne({_id:{$in:[ra._id,rb._id]},paymentStatus:"paid"});
+  assert.equal((await require("../services/purchaseChecks").loyaltyBalance(Order,loyal._id)).available,9);
+  assert.equal((await wallet(loyal,won._id)).statusCode,200);
+  assert.equal((await User.findById(loyal._id)).walletBalanceKobo,410000);
+  await Order.updateOne({_id:won._id},{$set:{status:"refunded",paymentStatus:"refunded"}});
+  assert.equal((await require("../services/purchaseChecks").loyaltyBalance(Order,loyal._id)).available,0,"Refund must not recreate spent points.");
+  delete process.env.LOYALTY_REDEMPTION_ENABLED;
+  console.log("PASS: loyalty concurrency, paid replay and refund point accounting.");
   console.log("PASS: disposable MongoDB transactions: wallet, delivery, order lookup, replay, refunds, stock races, rollback and simulated Paystack.");
 }
 (async()=>{
