@@ -73,7 +73,9 @@ function catalogueIcon(platform,fallback){
  return iconMarkup(platform,fallback,"");
 }
 function renderProducts(){
-  const list=products.filter(productMatches);
+  const availability=$("growthAvailability")?.value||"all",category=$("growthCategory")?.value||"all",max=$("growthMaxPrice")?.value||"",sort=$("growthSort")?.value||"default";
+  const list=products.filter(p=>productMatches(p)&&(availability==="all"||(availability==="stock"?Number(p.stock)>0:Number(p.stock)<=0))&&(category==="all"||groupName(p)===category)&&(max===""||Number(p.price)<=Number(max)));
+  if(sort!=="default")list.sort((a,b)=>(Number(a.price)-Number(b.price))*(sort==="asc"?1:-1));
   if(!list.length){productGrid.innerHTML='<div class="market-empty"><strong>No products found.</strong><br><small>Try another category or search term.</small></div>';return}
   const groups=new Map();
   list.forEach(p=>{const name=groupName(p);if(!groups.has(name))groups.set(name,[]);groups.get(name).push(p)});
@@ -83,7 +85,7 @@ function renderProducts(){
       const stock=Number(product.stock||0),available=stock>0;
       return`<div class="market-product-row ${available?"":"is-sold"}" data-product="${esc(product._id)}" role="button" tabindex="0">
         <div class="market-product-thumb">${catalogueIcon(product.platform,product.icon||"★")}</div>
-        <div class="market-product-copy"><h3>${esc(product.name)}</h3><div class="market-stock ${stockClass(stock)}">${available?`${stock} pcs.`:"Out of stock"}</div></div>
+        <div class="market-product-copy"><h3>${esc(product.name)}${["HOT","NEW","PREMIUM","SALE"].includes(product.badge)?`<span class="wayne-product-badge">${product.badge}</span>`:""}</h3><div class="market-stock ${stockClass(stock)}">${available?`${stock} pcs.`:"Out of stock"}</div></div>
         <div class="market-product-buy"><span class="market-product-price">${catalogueMoney(product.price)}</span><button class="market-buy-btn" type="button" data-buy="${esc(product._id)}" ${available?"":"disabled"}>${available?"Buy ›":"Sold"}</button></div>
       </div>`
     }).join("");
@@ -92,10 +94,11 @@ function renderProducts(){
 }
 async function loadProducts(){
   productGrid.innerHTML='<div class="market-empty">Loading products...</div>';
-  try{const response=await fetch(API_URL+"/api/products"),data=await response.json();if(!response.ok)throw new Error(data.message||"Could not load products.");products=Array.isArray(data.products)?data.products:[];renderProducts();renderCart()}catch(error){productGrid.innerHTML=`<div class="market-empty">Could not load the store.<br><small>${esc(error.message)}</small></div>`}
+  try{const response=await fetch(API_URL+"/api/products"),data=await response.json();if(!response.ok)throw new Error(data.message||"Could not load products.");products=Array.isArray(data.products)?data.products:[];const filter=$("growthCategory");if(filter){const old=filter.value;filter.replaceChildren(new Option("All categories","all"));for(const name of [...new Set(products.map(groupName))].sort())filter.add(new Option(name,name));if([...filter.options].some(x=>x.value===old))filter.value=old}renderProducts();renderCart()}catch(error){productGrid.innerHTML=`<div class="market-empty">Could not load the store.<br><small>${esc(error.message)}</small></div>`}
 }
 function choosePlatform(value){activePlatform=String(value||"all").toLowerCase()==="vpn"?"vpn":value||"all";document.querySelectorAll("[data-jump-platform]").forEach(btn=>btn.classList.toggle("selected",platformKey(btn.dataset.jumpPlatform)===platformKey(activePlatform)));renderProducts();document.getElementById("shop")?.scrollIntoView({behavior:"smooth",block:"start"})}
 document.querySelectorAll("[data-jump-platform]").forEach(button=>button.addEventListener("click",()=>choosePlatform(button.dataset.jumpPlatform)));
+for(const id of ["growthAvailability","growthCategory","growthMaxPrice","growthSort"])$(id)?.addEventListener("input",renderProducts);
 searchInput?.addEventListener("input",()=>{activePlatform="all";document.querySelectorAll("[data-jump-platform]").forEach(b=>b.classList.remove("selected"));renderProducts()});
 productGrid?.addEventListener("click",event=>{
   const viewGroup=event.target.closest("[data-view-group]");if(viewGroup){const group=viewGroup.dataset.viewGroup;if(group==="VPN & Proxies")choosePlatform("vpn");else choosePlatform(group);return}
@@ -105,8 +108,8 @@ productGrid?.addEventListener("click",event=>{
 productGrid?.addEventListener("keydown",event=>{if(!["Enter"," "].includes(event.key))return;const row=event.target.closest("[data-product]");if(!row)return;event.preventDefault();openProduct(row.dataset.product)});
 
 function openProduct(id){
-  const product=getProduct(id);if(!product)return;currentProduct=product;
-  modalArt.innerHTML=iconMarkup(product.platform,product.icon||"★");modalPlatform.textContent=product.platform||"Digital";modalTitle.textContent=product.name||"";modalDesc.textContent=product.description||"";modalPrice.textContent=money(product.price);modalDelivery.textContent=product.deliveryType==="instant"?"Instant":"Processed";modalStock.textContent=Number(product.stock)>0?`${product.stock} available`:"Out of stock";modalWhat.textContent=`${product.name}. ${product.description||""} Delivery: ${deliveryText(product)}.`;modalAdd.disabled=Number(product.stock)<1;modalBuy.disabled=Number(product.stock)<1;productModal.classList.add("show");productModal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"
+  const product=getProduct(id);if(!product)return;currentProduct=product;try{const recent=JSON.parse(sessionStorage.getItem('wayneRecentlyViewed')||'[]');sessionStorage.setItem('wayneRecentlyViewed',JSON.stringify([String(id),...recent.filter(x=>x!==String(id))].slice(0,20)))}catch{}
+  modalArt.innerHTML=iconMarkup(product.platform,product.icon||"★");modalPlatform.textContent=product.platform||"Digital";modalTitle.textContent=product.name||"";modalDesc.textContent=product.description||"";modalPrice.textContent=money(product.price);modalDelivery.textContent=product.deliveryType==="instant"?"Instant":"Processed";let hub=document.getElementById("growthProductLink");if(!hub){hub=document.createElement("a");hub.id="growthProductLink";hub.textContent="♡ Save / restock alerts";hub.style.cssText="display:block;margin:8px 0;color:inherit;font-weight:700";modalStock.insertAdjacentElement("afterend",hub)}hub.href="shopping.html?product="+encodeURIComponent(id);let reviewBox=document.getElementById("growthPublicReviews");if(!reviewBox){reviewBox=document.createElement("div");reviewBox.id="growthPublicReviews";reviewBox.style.cssText="font-size:13px;margin:8px 0";hub.insertAdjacentElement("afterend",reviewBox)}reviewBox.textContent="Loading verified reviews…";fetch(API_URL+"/api/growth/reviews/"+encodeURIComponent(id)).then(r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{if(currentProduct!==product)return;reviewBox.replaceChildren();const title=document.createElement("strong");title.textContent="Verified reviews";reviewBox.append(title);for(const x of (d.reviews||[]).slice(0,5)){const p=document.createElement("p");p.textContent=x.rating+"/5 stars — "+x.comment;reviewBox.append(p)}if(!d.reviews?.length){const p=document.createElement("p");p.textContent="No published reviews yet.";reviewBox.append(p)}}).catch(()=>{if(currentProduct===product)reviewBox.textContent=""});modalStock.textContent=Number(product.stock)>0?`${product.stock} available`:"Out of stock";modalWhat.textContent=`${product.name}. ${product.description||""} Delivery: ${deliveryText(product)}.`;modalAdd.disabled=Number(product.stock)<1;modalBuy.disabled=Number(product.stock)<1;productModal.classList.add("show");productModal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"
 }
 function closeProduct(){productModal?.classList.remove("show");productModal?.setAttribute("aria-hidden","true");document.body.style.overflow=""}
 function setCartProduct(id,open=true){const product=getProduct(id);if(!product||Number(product.stock)<1)return;cart=[{id:product._id,qty:1}];saveCart();renderCart();if(open)openCart()}
@@ -126,14 +129,20 @@ function renderCheckoutRelated(product){
   const related=products.filter(item=>String(item._id)!==String(product._id)&&Number(item.stock)>0&&(platformKey(item.platform)===platformKey(product.platform)||String(item.type||"")===String(product.type||""))).slice(0,3);
   checkoutRelated.innerHTML=related.length?related.map(item=>`<button class="checkout-related-card" type="button" data-checkout-related="${esc(item._id)}"><span class="checkout-related-icon">${iconMarkup(item.platform,item.icon||"★","")}</span><span><strong>${esc(item.name)}</strong><small>${money(item.price)} · ${Number(item.stock)} available</small></span><b>›</b></button>`).join(""):'<p class="checkout-no-related">No similar products available right now.</p>';
 }
+let growthQuoteRequest=0;
+async function getGrowthQuote(product,code,points=Number($("growthPoints")?.value||0)){const r=await fetch(API_URL+"/api/growth/quote/"+encodeURIComponent(product._id),{method:"POST",cache:"no-store",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({couponCode:code,loyaltyPoints:points})});const d=await r.json().catch(()=>({}));if(!r.ok||!Number.isSafeInteger(d.quote?.amountKobo))throw Error(d.message||"Could not check the current price.");return d.quote}
+let quoteTimer;function showGrowthQuote(q){clearInterval(quoteTimer);$("loyaltyCheckout").hidden=!q.redemptionEnabled;$("growthPoints").max=String(q.maxPoints||0);$("growthPointsHint").textContent=(q.availablePoints||0)+" available · Up to "+(q.maxPoints||0)+" on this purchase. 1 point = ₦1.";checkoutTotal.textContent=money(q.amountKobo/100);function tick(){const left=q.endsAt?Math.max(0,Math.ceil((Date.parse(q.endsAt)-Date.now())/1000)):0;$("growthQuoteNote").textContent=q.discount?q.discount+"% discount"+(q.endsAt?(left?" · Ends in "+[Math.floor(left/3600),Math.floor(left%3600/60),left%60].map(n=>String(n).padStart(2,"0")).join(":"):" · Offer expired; price will be checked before payment"):""):q.loyaltyPoints?q.loyaltyPoints+" points applied.":"Current price confirmed.";if(!left)clearInterval(quoteTimer)}tick();if(q.endsAt&&Date.parse(q.endsAt)>Date.now())quoteTimer=setInterval(tick,1000)}
+$("growthQuote")?.addEventListener("click",async()=>{const p=checkoutSelection,code=$("growthCoupon").value,seq=++growthQuoteRequest;if(!p||checkoutBusy)return;try{const q=await getGrowthQuote(p,code);if(seq===growthQuoteRequest&&checkoutSelection===p)showGrowthQuote(q)}catch(e){if(seq===growthQuoteRequest)$("growthQuoteNote").textContent=e.message}});
+$("growthPoints")?.addEventListener("input",()=>{growthQuoteRequest++;clearInterval(quoteTimer);$("growthQuoteNote").textContent="Points will be verified before payment."});
+$("growthCoupon")?.addEventListener("input",()=>{$("growthPoints").value="0";growthQuoteRequest++;clearInterval(quoteTimer);$("growthQuoteNote").textContent="Price will be verified before payment.";if(checkoutSelection)checkoutTotal.textContent=money(checkoutSelection.price)});
 function openCheckoutFor(id){
   const product=getProduct(id);if(!product||Number(product.stock)<1)return;if(!token||!currentUser){requireLoginFor(id);return}
-  checkoutSelection=product;checkoutRequestId=(globalThis.crypto?.randomUUID?.()||`buy_${Date.now()}_${Math.random().toString(36).slice(2)}`).replace(/[^A-Za-z0-9_-]/g,"_");setCartProduct(id,false);closeCart();closeProduct();
+  checkoutSelection=product;clearInterval(quoteTimer);growthQuoteRequest++;$("growthCoupon").value="";$("growthPoints").value="0";$("loyaltyCheckout").hidden=true;$("growthQuoteNote").textContent="";checkoutRequestId=(globalThis.crypto?.randomUUID?.()||`buy_${Date.now()}_${Math.random().toString(36).slice(2)}`).replace(/[^A-Za-z0-9_-]/g,"_");setCartProduct(id,false);closeCart();closeProduct();
   checkoutArt.innerHTML=`<div class="checkout-visual-logo">${iconMarkup(product.platform,product.icon||"★","")}</div>`;
   checkoutProduct.innerHTML=`<h2>${esc(product.name)}</h2><div class="checkout-platform">${iconMarkup(product.platform,product.icon||"★","")}<span>${esc(product.platform||"Digital")}</span></div>`;
-  checkoutStock.textContent=`${Number(product.stock)} available`;checkoutDetails.textContent=product.description||`${product.name}. ${deliveryText(product)}.`;checkoutEmail.textContent=currentUser.email||"Your account";checkoutTotal.textContent=money(product.price);checkoutWalletBalance.textContent=walletMoney(walletBalanceKobo);renderCheckoutRelated(product);checkoutMessage.className="simple-message";checkoutMessage.textContent="";payButton.disabled=false;payButton.innerHTML="<span>⚡</span> Buy Now";checkoutModal.classList.add("show");checkoutModal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"
+  checkoutStock.textContent=`${Number(product.stock)} available`;checkoutDetails.textContent=product.description||`${product.name}. ${deliveryText(product)}.`;checkoutEmail.textContent=currentUser.email||"Your account";checkoutTotal.textContent=money(product.price);checkoutWalletBalance.textContent=walletMoney(walletBalanceKobo);renderCheckoutRelated(product);checkoutMessage.className="simple-message";checkoutMessage.textContent="";payButton.disabled=false;payButton.innerHTML="<span>⚡</span> Buy Now";checkoutModal.classList.add("show");checkoutModal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";$("growthQuote")?.click()
 }
-function closeCheckout(){checkoutModal?.classList.remove("show");checkoutModal?.setAttribute("aria-hidden","true");document.body.style.overflow=""}
+function closeCheckout(){clearInterval(quoteTimer);checkoutModal?.classList.remove("show");checkoutModal?.setAttribute("aria-hidden","true");document.body.style.overflow=""}
 function showCheckoutMessage(text,type="error"){checkoutMessage.textContent=text;checkoutMessage.className=`simple-message show ${type}`}
 let checkoutBusy=false;
 async function pay(){
@@ -141,16 +150,17 @@ async function pay(){
   if(!token||!currentUser){requireLoginFor(checkoutSelection._id);return}
   checkoutBusy=true;let orderId="";
   try{
-    const reviewMessage=`Product: ${checkoutSelection.name}\nAmount: ${money(checkoutSelection.price)}\nDelivery: ${deliveryText(checkoutSelection)}\nWallet balance: ${walletMoney(walletBalanceKobo)}\n\nPlease recheck these details before continuing. Completed wallet purchases cannot be reversed.`;
+    const selected=checkoutSelection,code=$("growthCoupon").value,points=Number($("growthPoints").value||0),quote=await getGrowthQuote(selected,code,points);if(checkoutSelection!==selected)throw Error("Checkout changed. Review the item again.");showGrowthQuote(quote);
+    const reviewMessage=`Product: ${checkoutSelection.name}\nAmount: ${money(quote.amountKobo/100)}${points?" (after "+points+" points)":""}\nDelivery: ${deliveryText(checkoutSelection)}\nWallet balance: ${walletMoney(walletBalanceKobo)}\n\nPlease recheck these details before continuing. Completed wallet purchases cannot be reversed.`;
     const approved=typeof window.wayneConfirm==="function"
       ?await window.wayneConfirm(reviewMessage,{title:"Review Purchase",confirmText:"Continue",cancelText:"Recheck"})
       :window.confirm(reviewMessage);
-    if(!approved)return;
+    if(!approved)return;if(checkoutSelection!==selected||$("growthCoupon").value!==code||Number($("growthPoints").value||0)!==points)throw Error("Checkout changed. Review the item again.");
     payButton.disabled=true;payButton.textContent="Processing purchase...";
     showCheckoutMessage("Securely checking your wallet balance...","info");
     const created=await fetch(API_URL+"/api/orders",{
       method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},
-      body:JSON.stringify({productId:checkoutSelection._id,requestId:checkoutRequestId})
+      body:JSON.stringify({productId:checkoutSelection._id,requestId:checkoutRequestId,couponCode:code,loyaltyPoints:points,expectedKobo:quote.amountKobo})
     });
     const details=await created.json().catch(()=>({}));
     if(!created.ok){
@@ -158,7 +168,7 @@ async function pay(){
       throw new Error(details.message||"Could not create your order.");
     }
     orderId=String(details.order?._id||"");
-    if(!orderId)throw new Error("The server did not return an order.");
+    if(!orderId)throw new Error("The server did not return an order.");if((Math.round(Number(details.order.totalAmount)*100)!==quote.amountKobo||Number(details.order.loyaltyPoints||0)!==points))throw Error("The price has changed. Review the order again before paying.");
     localStorage.setItem("wayneLastOrderId",orderId);
     const paid=await fetch(API_URL+"/api/orders/"+encodeURIComponent(orderId)+"/wallet/pay",{
       method:"POST",headers:{Authorization:"Bearer "+token}
@@ -204,7 +214,7 @@ productModal?.addEventListener("click",e=>{if(e.target===productModal)closeProdu
  const fallback=[{"title":"Premium Digital Marketplace","description":"Browse digital services, subscriptions and VPN products. See the price, stock and product details before you buy.","buttonLabel":"Shop Now","productId":"","theme":"blue","enabled":true},{"title":"Discover our catalogue","description":"Explore available products and find the right digital service for you.","buttonLabel":"Explore Products","productId":"","theme":"navy","enabled":true},{"title":"Fast wallet checkout","description":"Add funds securely and shop with your WAYNE LOGS wallet.","buttonLabel":"Shop Now","productId":"","theme":"teal","enabled":true}];
  const reduce=matchMedia("(prefers-reduced-motion: reduce)");
  let slides=fallback,index=0,timer=null,paused=reduce.matches,hovered=false,focused=false,start=null;
- function display(next,animate=true){index=(next+slides.length)%slides.length;const slide=slides[index];title.textContent=slide.title;description.textContent=slide.description;cta.textContent=slide.buttonLabel;root.dataset.theme=["blue","navy","teal","purple"].includes(slide.theme)?slide.theme:"blue";const product=slide.productId&&getProduct(slide.productId);art.innerHTML=originalArt;if(product){const box=document.createElement("div");box.className="market-hero-promo-art";box.innerHTML=iconMarkup(product.platform,product.icon||"★","");art.replaceChildren(box)}cta.href="#shop";syncDots();if(animate&&!reduce.matches){inner.classList.remove("slide-changing");void inner.offsetWidth;inner.classList.add("slide-changing")}}
+ function display(next,animate=true){index=(next+slides.length)%slides.length;const slide=slides[index];title.textContent=slide.title;description.textContent=slide.description;cta.textContent=slide.buttonLabel;root.dataset.theme=["blue","navy","teal","purple"].includes(slide.theme)?slide.theme:"blue";const product=slide.productId&&getProduct(slide.productId);art.innerHTML=originalArt;if(typeof slide.image==="string"&&/^data:image\/(png|jpeg|webp);base64,/.test(slide.image)){const img=document.createElement("img");img.src=slide.image;img.alt="";img.style.cssText="width:100%;max-height:90px;object-fit:contain";art.replaceChildren(img)}else if(product){const box=document.createElement("div");box.className="market-hero-promo-art";box.innerHTML=iconMarkup(product.platform,product.icon||"★","");art.replaceChildren(box)}cta.href="#shop";syncDots();if(animate&&!reduce.matches){inner.classList.remove("slide-changing");void inner.offsetWidth;inner.classList.add("slide-changing")}}
  function schedule(){clearInterval(timer);if(slides.length>1&&!paused&&!hovered&&!focused&&!document.hidden)timer=setInterval(()=>display(index+1),5000)}
  function go(i){display(i);schedule()}
  function syncDots(){controls.querySelectorAll("[data-slide]").forEach((b,i)=>{const active=i===index;b.setAttribute("aria-current",String(active));b.setAttribute("aria-label",active?(paused?"Resume automatic promotions":"Pause automatic promotions"):"Show promotion "+(i+1));b.title=active?(paused?"Resume rotation":"Pause rotation"):"Promotion "+(i+1)})}

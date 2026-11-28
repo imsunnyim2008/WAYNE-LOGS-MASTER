@@ -5,6 +5,8 @@ const schema = new mongoose.Schema({
   type:{type:String,enum:["social","vpn"],required:true},
   description:{type:String,default:"",trim:true},
   price:{type:Number,required:true,min:0},
+  badge:{type:String,enum:["","HOT","NEW","PREMIUM","SALE"],default:""},
+  promotion:{type:new mongoose.Schema({percent:{type:Number,min:1,max:90,required:true},code:{type:String,default:"",maxlength:24},startsAt:{type:Date,required:true},endsAt:{type:Date,required:true}},{_id:false}),default:undefined,select:false},
   currency:{type:String,default:"NGN"},
   stock:{type:Number,default:0,min:0},
   icon:{type:String,default:"★"},

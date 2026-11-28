@@ -14,7 +14,7 @@ const verificationTokens=require("../services/verificationTokens");
 const token=u=>jwt.sign({id:u._id,role:u.role,sv:Number(u.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:["admin","staff"].includes(u.role)?"2h":"7d"});
 const attempts=new Map(),WINDOW=15*60*1000,MAX_ATTEMPTS=5;
 function attemptKey(req,email){return String(req.ip||req.socket?.remoteAddress||"")+"|"+String(email||"").toLowerCase()}
-const safe=u=>({id:u._id,wayneId:u.wayneId||"",username:u.username||"",firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,staffPermissions:u.staffPermissions||[],isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,notificationPreferences:u.notificationPreferences||{orderUpdates:true,walletAlerts:true,productAnnouncements:true,promotions:false},createdAt:u.createdAt});
+const safe=u=>({id:u._id,wayneId:u.wayneId||"",username:u.username||"",firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,staffPermissions:u.staffPermissions||[],isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,notificationPreferences:u.notificationPreferences||{orderUpdates:true,walletAlerts:true,productAnnouncements:true,promotions:false},emailMarketingOptIn:u.emailMarketingOptIn===true,createdAt:u.createdAt});
 exports.register=async(req,res)=>{
   let createdUser=null,emailFailed=false;
   try{
@@ -85,7 +85,7 @@ exports.login=async(req,res)=>{
     try{u.wayneId=await wayneIdService.ensureWayneId(u)}catch(error){console.error("WAYNE ID login error:",error)}
     if(u.mustChangePassword){const consumed=await User.findOneAndUpdate({_id:u._id,mustChangePassword:true,temporaryPasswordUsedAt:null},{$set:{temporaryPasswordUsedAt:new Date()}},{new:true});if(!consumed)return res.status(403).json({message:"This temporary password was already used. Ask the administrator for a new one."});u.temporaryPasswordUsedAt=consumed.temporaryPasswordUsedAt}
     attempts.delete(key);
-    if(["admin","staff"].includes(u.role)&&u.totpEnabled){
+    if(u.totpEnabled){
       const challenge=jwt.sign({id:u._id,sv:Number(u.sessionVersion||0),purpose:"totp-login"},process.env.JWT_SECRET,{expiresIn:"5m"});
       return res.json({success:true,requiresTwoFactor:true,challenge,message:"Enter the code from your authenticator app or a recovery code."});
     }
@@ -133,7 +133,7 @@ exports.changePassword=async(req,res)=>{try{
 exports.logoutAll=async(req,res)=>{try{await User.updateOne({_id:req.user._id},{$inc:{sessionVersion:1}});res.json({success:true,message:"All devices have been logged out."})}catch(e){res.status(500).json({message:"Could not end account sessions."})}};
 exports.updatePreferences=async(req,res)=>{try{
   const input=req.body||{},preferences={orderUpdates:input.orderUpdates!==false,walletAlerts:input.walletAlerts!==false,productAnnouncements:input.productAnnouncements!==false,promotions:input.promotions===true};
-  const user=await User.findByIdAndUpdate(req.user._id,{$set:{notificationPreferences:preferences}},{new:true});res.json({success:true,preferences:user.notificationPreferences,message:"Notification preferences saved."});
+  const user=await User.findByIdAndUpdate(req.user._id,{$set:{notificationPreferences:preferences,...(typeof input.emailMarketingOptIn==="boolean"?{emailMarketingOptIn:input.emailMarketingOptIn}:{})}},{new:true});res.json({success:true,preferences:user.notificationPreferences,message:"Notification preferences saved."});
 }catch(e){res.status(500).json({message:"Could not save notification preferences."})}};
 
 exports.verifyTwoFactorLogin=async(req,res)=>{
@@ -144,12 +144,12 @@ exports.verifyTwoFactorLogin=async(req,res)=>{
     const decoded=jwt.verify(challenge,process.env.JWT_SECRET,{algorithms:["HS256"]});
     if(decoded.purpose!=="totp-login")return res.status(401).json({message:"Invalid verification request."});
     const user=await User.findById(decoded.id).select("+totpSecretEncrypted +totpRecoveryCodeHashes +totpLastUsedStep");
-    if(!user||!user.isActive||!user.totpEnabled||!["admin","staff"].includes(user.role)||Number(decoded.sv)!==Number(user.sessionVersion||0))return res.status(401).json({message:"Your verification session has expired. Sign in again."});
+    if(!user||!user.isActive||!user.totpEnabled||(user.role==="user"&&user.emailVerified===false)||Number(decoded.sv)!==Number(user.sessionVersion||0))return res.status(401).json({message:"Your verification session has expired. Sign in again."});
     if(!await twoFactor.consumeCode(user,code)){
-      AuditLog.create({admin:user._id,action:"auth.2fa_failed",entity:"security",summary:"Incorrect authenticator or recovery code at login.",ipAddress:String(req.ip||"").slice(0,100),userAgent:String(req.get("user-agent")||"").slice(0,300)}).catch(()=>{});
+      if(user.role!=="user")AuditLog.create({admin:user._id,action:"auth.2fa_failed",entity:"security",summary:"Incorrect authenticator or recovery code at login.",ipAddress:String(req.ip||"").slice(0,100),userAgent:String(req.get("user-agent")||"").slice(0,300)}).catch(()=>{});
       return res.status(401).json({message:"Code incorrect, expired or already used."});
     }
-    AuditLog.create({admin:user._id,action:"auth.2fa_login",entity:"security",summary:"Administrator completed two-factor login.",ipAddress:String(req.ip||"").slice(0,100),userAgent:String(req.get("user-agent")||"").slice(0,300)}).catch(()=>{});
+    if(user.role!=="user")AuditLog.create({admin:user._id,action:"auth.2fa_login",entity:"security",summary:"Administrator completed two-factor login.",ipAddress:String(req.ip||"").slice(0,100),userAgent:String(req.get("user-agent")||"").slice(0,300)}).catch(()=>{});
     return res.json({success:true,token:token(user),user:safe(user)});
   }catch(error){return res.status(401).json({message:"Verification session expired. Sign in again."});}
 };
@@ -161,9 +161,10 @@ const googleHash=s=>crypto.createHash("sha256").update(s).digest("hex");
 const googleRandom=()=>crypto.randomBytes(32).toString("hex");
 const googleValidSecret=s=>typeof s==="string"&&/^[a-f0-9]{64}$/.test(s);
 async function googleSession(u,res,status=200){
- if(!u||u.role!=="user"||!u.isActive||u.emailVerified===false||u.mustChangePassword||u.totpEnabled)return res.status(403).json({message:"Use your existing account sign-in method."});
+ if(!u||u.role!=="user"||!u.isActive||u.emailVerified===false||u.mustChangePassword)return res.status(403).json({message:"Use your existing account sign-in method."});
  try{u.referralCode=await referralService.ensureReferralCode(u)}catch{}
  try{u.wayneId=await wayneIdService.ensureWayneId(u)}catch{}
+ if(u.totpEnabled)return res.json({success:true,requiresTwoFactor:true,challenge:jwt.sign({id:u._id,sv:Number(u.sessionVersion||0),purpose:"totp-login"},process.env.JWT_SECRET,{expiresIn:"5m"})});
  return res.status(status).json({success:true,token:token(u),user:safe(u)});
 }
 exports.googleConfig=(req,res)=>{res.set("Cache-Control","no-store");res.json({enabled:!!googleAuth.clientId(),clientId:googleAuth.clientId()})};

@@ -99,5 +99,5 @@ if(d.verificationRequired){
 }
 if(!d.token||!d.user)throw new Error("Could not complete registration.");
 localStorage.setItem("wayneToken",d.token);localStorage.setItem("wayneUser",JSON.stringify(d.user));const buy=localStorage.getItem("wayneBuyAfterLogin");location.href=buy?`index.html?buy=${encodeURIComponent(buy)}`:(d.user.role==="admin"?"admin.html":"index.html")}catch(err){show(err.message)}finally{submit.disabled=false}};
-</script><script src="google-auth.js?v=1"></script></body></html>
+</script><script src="google-auth.js?v=2"></script></body></html>
 

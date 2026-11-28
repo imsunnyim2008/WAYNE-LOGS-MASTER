@@ -4,8 +4,8 @@ const jwt=require("jsonwebtoken");
 const User=require("../models/User");
 const AuditLog=require("../models/AuditLog");
 const totp=require("../services/twoFactorService");
-const adminOnly=(req,res)=>{if(req.user.role!=="admin"){res.status(403).json({message:"Only the owner administrator can manage two-factor authentication."});return false}return true};
-const record=(req,action,summary)=>AuditLog.create({
+const adminOnly=(req,res)=>{if(req.user.role!=="admin"&&!(req.user.role==="user"&&req.originalUrl.startsWith("/api/security/customer/2fa/"))){res.status(403).json({message:"Only the owner administrator can manage two-factor authentication."});return false}return true};
+const record=(req,action,summary)=>req.user.role==="user"?Promise.resolve():AuditLog.create({
  admin:req.user._id,action,entity:"security",summary,ipAddress:String(req.ip||"").slice(0,100),
  userAgent:String(req.get("user-agent")||"").slice(0,300)
 }).catch(()=>{});
@@ -21,7 +21,7 @@ exports.setup=async(req,res)=>{
  try{
   const password=String(req.body?.password||"");
   const u=await User.findById(req.user._id).select("+password");
-  if(!u||!await bcrypt.compare(password,u.password))return res.status(403).json({message:"Incorrect administrator password."});
+  if(!u||!await bcrypt.compare(password,u.password))return res.status(403).json({message:"Incorrect account password."});
   if(u.totpEnabled)return res.status(409).json({message:"Two-factor authentication is already enabled."});
   const secret=totp.newSecret();
   await User.updateOne({_id:u._id,totpEnabled:false},{$set:{totpPendingEncrypted:totp.encrypt(secret),totpPendingExpiresAt:new Date(Date.now()+10*60*1000)}});
@@ -44,7 +44,7 @@ exports.enable=async(req,res)=>{
   {new:true});
   if(!updated)return res.status(409).json({message:"Setup changed. Start again."});
   record(req,"auth.2fa_enabled","Administrator enabled authenticator verification.");
-  const token=jwt.sign({id:updated._id,role:updated.role,sv:Number(updated.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:"2h"});
+  const token=jwt.sign({id:updated._id,role:updated.role,sv:Number(updated.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:req.user.role==="user"?"7d":"2h"});
   return res.json({success:true,token,recoveryCodes:codes,message:"Two-factor authentication enabled. Save your recovery codes offline now; they are displayed only once."});
  }catch(error){console.error("2FA enable failed:",error?.name);return res.status(503).json({message:"Could not enable two-factor authentication."})}
 };
@@ -60,7 +60,7 @@ exports.disable=async(req,res)=>{
   {$set:{totpEnabled:false,totpLastUsedStep:-1},$unset:{totpSecretEncrypted:"",totpPendingEncrypted:"",totpPendingExpiresAt:"",totpRecoveryCodeHashes:""},$inc:{sessionVersion:1}},{new:true});
   if(!changed)return res.status(409).json({message:"Security state changed. Please sign in again."});
   record(req,"auth.2fa_disabled","Administrator disabled authenticator verification.");
-  const token=jwt.sign({id:changed._id,role:changed.role,sv:Number(changed.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:"2h"});
+  const token=jwt.sign({id:changed._id,role:changed.role,sv:Number(changed.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:req.user.role==="user"?"7d":"2h"});
   return res.json({success:true,token,message:"Two-factor authentication disabled. Please enable it again when possible."});
  }catch(error){console.error("2FA disable failed:",error?.name);return res.status(503).json({message:"Could not disable two-factor authentication."});}
 };
