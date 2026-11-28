@@ -120,6 +120,7 @@ app.use("/api/employees",require("./routes/employeePortalRoutes"));
 app.use("/api/auth/google/challenge",createRateLimiter({windowMs:15*60*1000,max:30,message:"Too many Google sign-in attempts."}));
 app.use("/api/auth/google/login",createRateLimiter({windowMs:15*60*1000,max:20,message:"Too many Google sign-in attempts."}));
 app.use("/api/auth/google/register",createRateLimiter({windowMs:15*60*1000,max:10,message:"Too many Google account creation attempts."}));
+app.use("/api/growth",createRateLimiter({windowMs:60*1000,max:60,message:"Too many requests."}),require("./routes/growthRoutes"));
 app.use("/api/auth",authRoutes);
 app.use("/api/products",productRoutes);
 app.use("/api/orders",orderRoutes);
@@ -146,7 +147,7 @@ mongoose.connection.on("reconnected",()=>console.log("MongoDB reconnected"));
 function startMaintenance(){
   if(maintenanceTimer)return;
   maintenance.reconcileInventoryStock().catch(error=>{maintenance.recordError(error);console.error("Initial stock reconciliation failed:",error.message)});
-  maintenanceTimer=setInterval(()=>maintenance.reconcileInventoryStock().catch(error=>{maintenance.recordError(error);console.error("Scheduled stock reconciliation failed:",error.message)}),5*60*1000);
+  maintenanceTimer=setInterval(()=>{maintenance.reconcileInventoryStock().catch(error=>{maintenance.recordError(error);console.error("Scheduled stock reconciliation failed:",error.message)});require("./services/growthJobs").run().catch(()=>console.error("Growth maintenance failed."))},5*60*1000);
   maintenanceTimer.unref?.();
 }
 async function connectDatabase(){

@@ -1,0 +1,17 @@
+{
+  "name": "WAYNE LOGS",
+  "short_name": "WAYNE LOGS",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#eef3f8",
+  "theme_color": "#0879b0",
+  "icons": [
+    {
+      "src": "/wayne-app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
