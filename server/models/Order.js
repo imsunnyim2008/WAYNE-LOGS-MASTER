@@ -8,6 +8,7 @@ const schema = new mongoose.Schema({
   quantity:{type:Number,default:1,min:1},
   unitPrice:{type:Number,required:true,min:0},
   totalAmount:{type:Number,required:true,min:0},
+  loyaltyPoints:{type:Number,min:0,max:10000,default:0},
   couponCode:{type:String,default:"",maxlength:24},
   currency:{type:String,default:"NGN"},
   status:{type:String,enum:["pending","processing","completed","cancelled","refunded"],default:"pending"},

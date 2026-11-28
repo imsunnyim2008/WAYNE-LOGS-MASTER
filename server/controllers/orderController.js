@@ -162,8 +162,11 @@ exports.create=async(req,res)=>{
     if(!p||p.status!=="active"||Number(p.stock)<1)return res.status(400).json({message:"This product is currently unavailable."});
     if(!purchaseChecks.toKobo(p.price))return res.status(409).json({message:"This product does not have a valid purchase price."});
 
-    const quote=purchaseChecks.promotionalPrice(p,req.body.couponCode||"");if(!quote)return res.status(400).json({message:"Coupon is invalid or expired."});
-    if(req.body.expectedKobo!==undefined&&req.body.expectedKobo!==quote.amountKobo||req.body.expectedKobo===undefined&&quote.discount)return res.status(409).json({message:"The price has changed. Refresh the store and review the new price."});
+    const points=req.body.loyaltyPoints===undefined?0:req.body.loyaltyPoints;
+    if(points&&(!purchaseChecks.rewardsEnabled()||req.user.role!=="user"))return res.status(400).json({message:"Points redemption is not available."});
+    const quote=purchaseChecks.rewardQuote(p,req.body.couponCode||"",points);if(!quote)return res.status(400).json({message:"Invalid coupon or reward amount. Points cannot be combined with sale prices."});
+    if(points>(await (points?purchaseChecks.loyaltyBalance(Order,req.user._id):Promise.resolve({available:0}))).available)return res.status(409).json({message:"Not enough available loyalty points."});
+    if(req.body.expectedKobo!==undefined&&req.body.expectedKobo!==quote.amountKobo||req.body.expectedKobo===undefined&&(quote.discount||points))return res.status(409).json({message:"The price has changed. Refresh the store and review the new price."});
     // Reuse an existing unpaid order for the same item so repeated payment attempts
     // do not create a pile of duplicate pending orders.
     const activePurchaseKey=`${req.user._id}:${p._id}`;
@@ -174,7 +177,7 @@ exports.create=async(req,res)=>{
       status:"pending"
     }).sort({createdAt:-1}).select("+purchaseRequestId +activePurchaseKey");
 
-    if(o&&(!purchaseChecks.comparableSnapshot(o,p)||String(o.couponCode||"")!==quote.code)){
+    if(o&&(!purchaseChecks.comparableSnapshot(o,p)||String(o.couponCode||"")!==quote.code||Number(o.loyaltyPoints||0)!==points)){
       // Release a stale, unpaid wallet checkout so a fresh attempt
       // can be created at the new price without silently charging it.
       // Never cancel an order that may have a Paystack payment in progress.
@@ -195,6 +198,7 @@ exports.create=async(req,res)=>{
         unitPrice:quote.amountKobo/100,
         totalAmount:quote.amountKobo/100,
         couponCode:quote.code,
+        loyaltyPoints:points,
         currency:p.currency||"NGN",
         purchaseRequestId:requestId,
         activePurchaseKey
@@ -213,6 +217,7 @@ exports.initialize=async(req,res)=>{
     const o=await Order.findOne({_id:req.params.id,user:req.user._id});
     if(!o)return res.status(404).json({message:"Order not found."});
     if(o.paymentStatus==="paid")return res.status(400).json({message:"This order is already paid."});
+    if(Number(o.loyaltyPoints||0)>0)return res.status(409).json({message:"Orders using loyalty points must be paid using your wallet."});
 
     const product=await Product.findById(o.product);
     if(!product||product.status!=="active"||Number(product.stock)<1){
@@ -325,6 +330,16 @@ exports.payWithWallet=async(req,res)=>{
       const snapshot=await Product.findById(order.product).select("price currency status stock inventoryManaged +promotion").session(session);
       const issue=purchaseChecks.validateWalletCheckout(order,snapshot);
       if(issue)throw Object.assign(new Error(issue),{status:409});
+      const points=Number(order.loyaltyPoints||0);
+      if(points){
+        if(!purchaseChecks.rewardsEnabled()||req.user.role!=="user")throw Object.assign(Error("Points redemption is not available."),{status:409});
+        // Serialize concurrent reward redemptions on the same account. MongoDB
+        // retries write conflicts; all balance, inventory and order writes roll back together.
+        const locked=await User.updateOne({_id:req.user._id,role:"user",isActive:true},{$inc:{loyaltyVersion:1}},{session});
+        if(locked.matchedCount!==1)throw Object.assign(Error("Account unavailable."),{status:409});
+        const balance=await purchaseChecks.loyaltyBalance(Order,req.user._id,session);
+        if(balance.available<points)throw Object.assign(Error("Not enough available loyalty points."),{status:409});
+      }
       const amountKobo=purchaseChecks.toKobo(order.totalAmount);
       const product=await Product.findOneAndUpdate(
         {_id:order.product,status:"active",stock:{$gte:order.quantity},price:snapshot.price,currency:snapshot.currency},
