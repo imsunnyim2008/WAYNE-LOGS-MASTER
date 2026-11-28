@@ -126,12 +126,17 @@ function renderCheckoutRelated(product){
   const related=products.filter(item=>String(item._id)!==String(product._id)&&Number(item.stock)>0&&(platformKey(item.platform)===platformKey(product.platform)||String(item.type||"")===String(product.type||""))).slice(0,3);
   checkoutRelated.innerHTML=related.length?related.map(item=>`<button class="checkout-related-card" type="button" data-checkout-related="${esc(item._id)}"><span class="checkout-related-icon">${iconMarkup(item.platform,item.icon||"★","")}</span><span><strong>${esc(item.name)}</strong><small>${money(item.price)} · ${Number(item.stock)} available</small></span><b>›</b></button>`).join(""):'<p class="checkout-no-related">No similar products available right now.</p>';
 }
+let growthQuoteRequest=0;
+async function getGrowthQuote(product,code){const r=await fetch(API_URL+"/api/growth/quote/"+encodeURIComponent(product._id),{method:"POST",cache:"no-store",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({couponCode:code})});const d=await r.json().catch(()=>({}));if(!r.ok||!Number.isSafeInteger(d.quote?.amountKobo))throw Error(d.message||"Could not check the current price.");return d.quote}
+function showGrowthQuote(q){checkoutTotal.textContent=money(q.amountKobo/100);$("growthQuoteNote").textContent=q.discount?q.discount+"% discount"+(q.endsAt?" · Ends "+new Date(q.endsAt).toLocaleString():""):"Current price confirmed."}
+$("growthQuote")?.addEventListener("click",async()=>{const p=checkoutSelection,code=$("growthCoupon").value,seq=++growthQuoteRequest;if(!p||checkoutBusy)return;try{const q=await getGrowthQuote(p,code);if(seq===growthQuoteRequest&&checkoutSelection===p)showGrowthQuote(q)}catch(e){if(seq===growthQuoteRequest)$("growthQuoteNote").textContent=e.message}});
+$("growthCoupon")?.addEventListener("input",()=>{growthQuoteRequest++;$("growthQuoteNote").textContent="Price will be verified before payment.";if(checkoutSelection)checkoutTotal.textContent=money(checkoutSelection.price)});
 function openCheckoutFor(id){
   const product=getProduct(id);if(!product||Number(product.stock)<1)return;if(!token||!currentUser){requireLoginFor(id);return}
-  checkoutSelection=product;checkoutRequestId=(globalThis.crypto?.randomUUID?.()||`buy_${Date.now()}_${Math.random().toString(36).slice(2)}`).replace(/[^A-Za-z0-9_-]/g,"_");setCartProduct(id,false);closeCart();closeProduct();
+  checkoutSelection=product;growthQuoteRequest++;$("growthCoupon").value="";$("growthQuoteNote").textContent="";checkoutRequestId=(globalThis.crypto?.randomUUID?.()||`buy_${Date.now()}_${Math.random().toString(36).slice(2)}`).replace(/[^A-Za-z0-9_-]/g,"_");setCartProduct(id,false);closeCart();closeProduct();
   checkoutArt.innerHTML=`<div class="checkout-visual-logo">${iconMarkup(product.platform,product.icon||"★","")}</div>`;
   checkoutProduct.innerHTML=`<h2>${esc(product.name)}</h2><div class="checkout-platform">${iconMarkup(product.platform,product.icon||"★","")}<span>${esc(product.platform||"Digital")}</span></div>`;
-  checkoutStock.textContent=`${Number(product.stock)} available`;checkoutDetails.textContent=product.description||`${product.name}. ${deliveryText(product)}.`;checkoutEmail.textContent=currentUser.email||"Your account";checkoutTotal.textContent=money(product.price);checkoutWalletBalance.textContent=walletMoney(walletBalanceKobo);renderCheckoutRelated(product);checkoutMessage.className="simple-message";checkoutMessage.textContent="";payButton.disabled=false;payButton.innerHTML="<span>⚡</span> Buy Now";checkoutModal.classList.add("show");checkoutModal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"
+  checkoutStock.textContent=`${Number(product.stock)} available`;checkoutDetails.textContent=product.description||`${product.name}. ${deliveryText(product)}.`;checkoutEmail.textContent=currentUser.email||"Your account";checkoutTotal.textContent=money(product.price);checkoutWalletBalance.textContent=walletMoney(walletBalanceKobo);renderCheckoutRelated(product);checkoutMessage.className="simple-message";checkoutMessage.textContent="";payButton.disabled=false;payButton.innerHTML="<span>⚡</span> Buy Now";checkoutModal.classList.add("show");checkoutModal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";$("growthQuote")?.click()
 }
 function closeCheckout(){checkoutModal?.classList.remove("show");checkoutModal?.setAttribute("aria-hidden","true");document.body.style.overflow=""}
 function showCheckoutMessage(text,type="error"){checkoutMessage.textContent=text;checkoutMessage.className=`simple-message show ${type}`}
@@ -141,16 +146,17 @@ async function pay(){
   if(!token||!currentUser){requireLoginFor(checkoutSelection._id);return}
   checkoutBusy=true;let orderId="";
   try{
-    const reviewMessage=`Product: ${checkoutSelection.name}\nAmount: ${money(checkoutSelection.price)}\nDelivery: ${deliveryText(checkoutSelection)}\nWallet balance: ${walletMoney(walletBalanceKobo)}\n\nPlease recheck these details before continuing. Completed wallet purchases cannot be reversed.`;
+    const selected=checkoutSelection,code=$("growthCoupon").value,quote=await getGrowthQuote(selected,code);if(checkoutSelection!==selected)throw Error("Checkout changed. Review the item again.");showGrowthQuote(quote);
+    const reviewMessage=`Product: ${checkoutSelection.name}\nAmount: ${money(quote.amountKobo/100)}\nDelivery: ${deliveryText(checkoutSelection)}\nWallet balance: ${walletMoney(walletBalanceKobo)}\n\nPlease recheck these details before continuing. Completed wallet purchases cannot be reversed.`;
     const approved=typeof window.wayneConfirm==="function"
       ?await window.wayneConfirm(reviewMessage,{title:"Review Purchase",confirmText:"Continue",cancelText:"Recheck"})
       :window.confirm(reviewMessage);
-    if(!approved)return;
+    if(!approved)return;if(checkoutSelection!==selected||$("growthCoupon").value!==code)throw Error("Checkout changed. Review the item again.");
     payButton.disabled=true;payButton.textContent="Processing purchase...";
     showCheckoutMessage("Securely checking your wallet balance...","info");
     const created=await fetch(API_URL+"/api/orders",{
       method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},
-      body:JSON.stringify({productId:checkoutSelection._id,requestId:checkoutRequestId})
+      body:JSON.stringify({productId:checkoutSelection._id,requestId:checkoutRequestId,couponCode:code,expectedKobo:quote.amountKobo})
     });
     const details=await created.json().catch(()=>({}));
     if(!created.ok){
@@ -158,7 +164,7 @@ async function pay(){
       throw new Error(details.message||"Could not create your order.");
     }
     orderId=String(details.order?._id||"");
-    if(!orderId)throw new Error("The server did not return an order.");
+    if(!orderId)throw new Error("The server did not return an order.");if(Math.round(Number(details.order.totalAmount)*100)!==quote.amountKobo)throw Error("The price has changed. Review the order again before paying.");
     localStorage.setItem("wayneLastOrderId",orderId);
     const paid=await fetch(API_URL+"/api/orders/"+encodeURIComponent(orderId)+"/wallet/pay",{
       method:"POST",headers:{Authorization:"Bearer "+token}

@@ -157,10 +157,12 @@ exports.create=async(req,res)=>{
     const replay=await Order.findOne({user:req.user._id,purchaseRequestId:requestId});
     if(replay)return res.json({success:true,order:replay,replayed:true});
 
-    const p=await Product.findById(productId);
+    const p=await Product.findById(productId).select("+promotion");
     if(!p||p.status!=="active"||Number(p.stock)<1)return res.status(400).json({message:"This product is currently unavailable."});
     if(!purchaseChecks.toKobo(p.price))return res.status(409).json({message:"This product does not have a valid purchase price."});
 
+    const quote=purchaseChecks.promotionalPrice(p,req.body.couponCode||"");if(!quote)return res.status(400).json({message:"Coupon is invalid or expired."});
+    if(req.body.expectedKobo!==undefined&&req.body.expectedKobo!==quote.amountKobo||req.body.expectedKobo===undefined&&quote.discount)return res.status(409).json({message:"The price has changed. Refresh the store and review the new price."});
     // Reuse an existing unpaid order for the same item so repeated payment attempts
     // do not create a pile of duplicate pending orders.
     const activePurchaseKey=`${req.user._id}:${p._id}`;
@@ -171,7 +173,7 @@ exports.create=async(req,res)=>{
       status:"pending"
     }).sort({createdAt:-1}).select("+purchaseRequestId +activePurchaseKey");
 
-    if(o&&!purchaseChecks.comparableSnapshot(o,p)){
+    if(o&&(!purchaseChecks.comparableSnapshot(o,p)||String(o.couponCode||"")!==quote.code)){
       // Release a stale, unpaid wallet checkout so a fresh attempt
       // can be created at the new price without silently charging it.
       // Never cancel an order that may have a Paystack payment in progress.
@@ -189,8 +191,9 @@ exports.create=async(req,res)=>{
         productIcon:p.icon,
         platform:p.platform,
         quantity:1,
-        unitPrice:p.price,
-        totalAmount:p.price,
+        unitPrice:quote.amountKobo/100,
+        totalAmount:quote.amountKobo/100,
+        couponCode:quote.code,
         currency:p.currency||"NGN",
         purchaseRequestId:requestId,
         activePurchaseKey
@@ -318,7 +321,7 @@ exports.payWithWallet=async(req,res)=>{
       const order=await Order.findOne({_id:req.params.id,user:req.user._id}).select("+deliveryContent +inventoryItem").session(session);
       if(!order)throw Object.assign(new Error("Order not found."),{status:404});
       if(order.paymentStatus==="paid"){result=order;return}
-      const snapshot=await Product.findById(order.product).select("price currency status stock inventoryManaged").session(session);
+      const snapshot=await Product.findById(order.product).select("price currency status stock inventoryManaged +promotion").session(session);
       const issue=purchaseChecks.validateWalletCheckout(order,snapshot);
       if(issue)throw Object.assign(new Error(issue),{status:409});
       const amountKobo=purchaseChecks.toKobo(order.totalAmount);
