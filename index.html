@@ -47,6 +47,35 @@ html.wayne-dark-mode .market-home .market-side-panel{--side-bg:#0b1d2f;--side-in
 @media(max-width:350px){.market-home .market-side-panel{width:72vw!important}.market-home .market-side-head{padding-inline:12px!important}.market-home .market-side-scroll{padding-inline:8px}.market-home .market-side-account{gap:6px;padding-inline:7px!important}}
 @media(prefers-reduced-motion:reduce){.market-home .market-side-panel,.market-home .market-side-overlay{transition:none}}
 </style>
+<style id="wayne-market-dark-cards">
+/* Explicit dark surfaces: the shared theme previously styled the list, not its opaque rows. */
+html.wayne-dark-mode body.market-home .market-product-list{
+  background:#0d2135!important;border-color:#29465f!important;box-shadow:0 12px 30px rgba(0,0,0,.20)!important;
+}
+html.wayne-dark-mode body.market-home .market-product-row{
+  background:#0d2135!important;border-color:#29465f!important;color:#eef7ff!important;
+}
+html.wayne-dark-mode body.market-home .market-product-row:hover,
+html.wayne-dark-mode body.market-home .market-product-row:focus-visible{
+  background:#142e45!important;
+}
+html.wayne-dark-mode body.market-home .market-product-thumb,
+html.wayne-dark-mode body.market-home .market-category-logo{
+  background:#142e45!important;border-color:#36536e!important;color:#d4e9fc!important;box-shadow:none!important;
+}
+html.wayne-dark-mode body.market-home :is(.market-product-thumb,.market-category-logo) img[src*="/000000"]{
+  filter:brightness(0) invert(1);
+}
+html.wayne-dark-mode body.market-home .market-product-copy h3,
+html.wayne-dark-mode body.market-home .market-category-heading h2{color:#eef7ff!important}
+html.wayne-dark-mode body.market-home .market-product-price,
+html.wayne-dark-mode body.market-home .market-view-all{color:#68d0ff!important}
+html.wayne-dark-mode body.market-home .market-stock{color:#aec3d8!important}
+html.wayne-dark-mode body.market-home .market-stock.out{color:#ffa3aa!important}
+html.wayne-dark-mode body.market-home .market-buy-btn:not(:disabled){background:linear-gradient(135deg,#086db4,#087fae)!important;color:#fff!important}
+html.wayne-dark-mode body.market-home .market-buy-btn:disabled{background:#382635!important;color:#f2a4ae!important;opacity:1!important}
+html.wayne-dark-mode body.market-home .market-empty{background:#0d2135!important;border-color:#29465f!important;color:#aec3d8!important}
+</style>
 </head>
 <body class="simple-store premium-store market-home">
 
