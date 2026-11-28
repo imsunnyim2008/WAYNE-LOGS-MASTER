@@ -153,3 +153,61 @@ exports.verifyTwoFactorLogin=async(req,res)=>{
     return res.json({success:true,token:token(user),user:safe(user)});
   }catch(error){return res.status(401).json({message:"Verification session expired. Sign in again."});}
 };
+
+const googleAuth=require("../services/googleIdentity");
+const GoogleAuthChallenge=require("../models/GoogleAuthChallenge");
+const mongoose=require("mongoose");
+const googleHash=s=>crypto.createHash("sha256").update(s).digest("hex");
+const googleRandom=()=>crypto.randomBytes(32).toString("hex");
+const googleValidSecret=s=>typeof s==="string"&&/^[a-f0-9]{64}$/.test(s);
+async function googleSession(u,res,status=200){
+ if(!u||u.role!=="user"||!u.isActive||u.emailVerified===false||u.mustChangePassword||u.totpEnabled)return res.status(403).json({message:"Use your existing account sign-in method."});
+ try{u.referralCode=await referralService.ensureReferralCode(u)}catch{}
+ try{u.wayneId=await wayneIdService.ensureWayneId(u)}catch{}
+ return res.status(status).json({success:true,token:token(u),user:safe(u)});
+}
+exports.googleConfig=(req,res)=>{res.set("Cache-Control","no-store");res.json({enabled:!!googleAuth.clientId(),clientId:googleAuth.clientId()})};
+exports.googleChallenge=async(req,res)=>{
+ res.set("Cache-Control","no-store");if(!googleAuth.clientId())return res.status(503).json({message:"Google sign-in is not configured."});
+ try{const secret=googleRandom(),nonce=googleRandom();await GoogleAuthChallenge.create({_id:googleHash(secret),kind:"challenge",nonce,expiresAt:new Date(Date.now()+10*60*1000)});res.json({challenge:secret,nonce})}catch{res.status(503).json({message:"Google sign-in is temporarily unavailable."})}
+};
+exports.googleLogin=async(req,res)=>{
+ res.set("Cache-Control","no-store");if(!googleAuth.clientId())return res.status(503).json({message:"Google sign-in is not configured."});
+ const secret=req.body?.challenge;if(!googleValidSecret(secret))return res.status(401).json({message:"Restart Google sign-in."});
+ try{
+ const filter={_id:googleHash(secret),kind:"challenge",expiresAt:{$gt:new Date()}};
+ const challenge=await GoogleAuthChallenge.findOne(filter);if(!challenge)return res.status(401).json({message:"Google sign-in expired. Please reload and try again."});
+ let identity;try{identity=await googleAuth.verifyGoogle(req.body?.credential,challenge.nonce)}catch{return res.status(401).json({message:"Google identity could not be verified. Please reload and try again."})}
+ if(!await GoogleAuthChallenge.findOneAndDelete(filter))return res.status(401).json({message:"Google sign-in has already been used. Please reload."});
+ const linked=await User.findOne({googleSubject:identity.sub});if(linked)return googleSession(linked,res);
+ if(await User.exists({email:identity.email}))return res.status(409).json({message:"An account already uses this email. Sign in with your existing password. Google linking is not enabled for existing accounts."});
+ if(!identity.authoritative)return res.status(400).json({message:"Use a Gmail or Google Workspace address, or register with email verification instead."});
+ const signup=googleRandom();await GoogleAuthChallenge.create({_id:googleHash(signup),kind:"signup",identity:{sub:identity.sub,email:identity.email,firstName:identity.firstName,lastName:identity.lastName},expiresAt:new Date(Date.now()+10*60*1000)});
+ res.json({success:true,requiresProfile:true,signup,profile:{email:identity.email,firstName:identity.firstName,lastName:identity.lastName}});
+ }catch{res.status(503).json({message:"Could not complete Google sign-in. Please reload and try again."})}
+};
+exports.googleRegister=async(req,res)=>{
+ res.set("Cache-Control","no-store");if(!googleAuth.clientId())return res.status(503).json({message:"Google sign-in is not configured."});
+ const secret=req.body?.signup;if(!googleValidSecret(secret))return res.status(401).json({message:"Restart Google sign-in."});
+ const username=String(req.body?.username||"").trim().toLowerCase(),phone=String(req.body?.phone||"").trim(),firstName=String(req.body?.firstName||"").trim(),lastName=String(req.body?.lastName||"").trim(),enteredCode=String(req.body?.referralCode||"").trim().toUpperCase();
+ if(!/^[a-z0-9_]{3,24}$/.test(username)||!firstName||firstName.length>60||!lastName||lastName.length>60||phone.length>30||phone.replace(/\D/g,"").length<7||enteredCode.length>20)return res.status(400).json({message:"Enter a valid username, full name and phone number."});
+ let session;
+ try{
+ const filter={_id:googleHash(secret),kind:"signup",expiresAt:{$gt:new Date()}};
+ const hash=await bcrypt.hash(googleRandom(),12);
+ session=await mongoose.startSession();let created;
+ await session.withTransaction(async()=>{
+ const ticket=await GoogleAuthChallenge.findOne(filter).session(session);if(!ticket)throw Object.assign(Error("Google sign-up expired. Please reload."),{status:401});
+ const identity=ticket.identity;
+ if(await User.exists({$or:[{email:identity.email},{googleSubject:identity.sub}]}).session(session))throw Object.assign(Error("Account already registered. Sign in instead."),{status:409});
+ if(await User.exists({username}).session(session))throw Object.assign(Error("Username already taken."),{status:409});
+ const referrer=enteredCode?await User.findOne({referralCode:enteredCode,isActive:true}).session(session):null;
+ if(enteredCode&&!referrer)throw Object.assign(Error("That referral code is not valid."),{status:400});
+ if(referrer&&String(referrer.phone).replace(/\D/g,"")===phone.replace(/\D/g,""))throw Object.assign(Error("A referral cannot use the same phone number."),{status:400});
+ [created]=await User.create([{username,firstName,lastName,email:identity.email,phone,password:hash,googleSubject:identity.sub,role:"user",emailVerified:true,emailVerifiedAt:new Date(),referredBy:referrer?referrer._id:null}],{session});
+ if(referrer)await Referral.create([{referrer:referrer._id,referredUser:created._id,code:enteredCode}],{session});
+ const consumed=await GoogleAuthChallenge.deleteOne(filter,{session});if(consumed.deletedCount!==1)throw Object.assign(Error("Google sign-up expired."),{status:401});
+ });
+ return googleSession(created,res,201);
+ }catch(e){if(e?.code===11000)return res.status(409).json({message:"Username or account already registered."});return res.status(e.status||503).json({message:e.status?e.message:"Could not create your Google account. Please try again."})}finally{if(session)await session.endSession()}
+};

@@ -117,6 +117,9 @@ app.use("/api/employees",createRateLimiter({windowMs:60*1000,max:60,message:"Too
 app.use("/api/employees/register",createRateLimiter({windowMs:60*60*1000,max:8,message:"Too many registrations."}));
 app.use("/api/employees/login",createRateLimiter({windowMs:15*60*1000,max:15,message:"Too many login attempts."}));
 app.use("/api/employees",require("./routes/employeePortalRoutes"));
+app.use("/api/auth/google/challenge",createRateLimiter({windowMs:15*60*1000,max:30,message:"Too many Google sign-in attempts."}));
+app.use("/api/auth/google/login",createRateLimiter({windowMs:15*60*1000,max:20,message:"Too many Google sign-in attempts."}));
+app.use("/api/auth/google/register",createRateLimiter({windowMs:15*60*1000,max:10,message:"Too many Google account creation attempts."}));
 app.use("/api/auth",authRoutes);
 app.use("/api/products",productRoutes);
 app.use("/api/orders",orderRoutes);

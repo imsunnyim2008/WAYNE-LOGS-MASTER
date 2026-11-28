@@ -21,4 +21,8 @@ r.get("/admin",protect,adminOnly,(req,res)=>res.json({success:true,user:req.user
 r.get("/admin/users",protect,adminOnly,c.adminUsers);
 r.get("/admin/password-assistance/search",protect,adminOnly,c.adminPasswordSearch);
 r.post("/admin/password-assistance/reset",protect,adminOnly,c.adminTemporaryPassword);
+r.get("/google/config",c.googleConfig);
+r.post("/google/challenge",c.googleChallenge);
+r.post("/google/login",c.googleLogin);
+r.post("/google/register",c.googleRegister);
 module.exports=r;
