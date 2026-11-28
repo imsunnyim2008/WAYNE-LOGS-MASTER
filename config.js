@@ -233,8 +233,8 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     const back=document.createElement("a");back.className="wayne-global-back";back.href="index.html";back.innerHTML=backSvg+'<span>Back</span>';
     if(path.endsWith("/admin.html")){
       back.href="admin.html";
-      back.setAttribute("aria-label","Back to previous admin section");
-      back.onclick=e=>{e.preventDefault();if(adminSectionHistory.length>1)adminSectionHistory.pop();const target=adminSectionHistory.at(-1)||"overview";adminHistoryNavigating=true;document.querySelector('.admin-menu [data-section="'+target+'"]')?.click();adminHistoryNavigating=false};
+      back.setAttribute("aria-label","Back to previous admin section or marketplace");
+      back.onclick=e=>{e.preventDefault();if(adminSectionHistory.length<=1){location.assign("index.html");return}adminSectionHistory.pop();const target=adminSectionHistory.at(-1)||"overview";adminHistoryNavigating=true;try{document.querySelector('.admin-menu [data-section="'+target+'"]')?.click()}finally{adminHistoryNavigating=false}};
     }else if(/\/(?:dashboard|wallet)\.html$/.test(path)){
       back.setAttribute("aria-label","Back to marketplace");
       back.onclick=e=>{e.preventDefault();location.assign("index.html")};
