@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const schema = new mongoose.Schema({
+  username:{type:String,trim:true,lowercase:true,minlength:3,maxlength:24,match:/^[a-z0-9_]{3,24}$/,unique:true,sparse:true},
   firstName:{type:String,required:true,trim:true},
   lastName:{type:String,required:true,trim:true},
   email:{type:String,required:true,unique:true,lowercase:true,trim:true},

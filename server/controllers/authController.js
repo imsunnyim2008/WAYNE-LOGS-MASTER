@@ -14,11 +14,14 @@ const verificationTokens=require("../services/verificationTokens");
 const token=u=>jwt.sign({id:u._id,role:u.role,sv:Number(u.sessionVersion||0)},process.env.JWT_SECRET,{expiresIn:["admin","staff"].includes(u.role)?"2h":"7d"});
 const attempts=new Map(),WINDOW=15*60*1000,MAX_ATTEMPTS=5;
 function attemptKey(req,email){return String(req.ip||req.socket?.remoteAddress||"")+"|"+String(email||"").toLowerCase()}
-const safe=u=>({id:u._id,wayneId:u.wayneId||"",firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,staffPermissions:u.staffPermissions||[],isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,notificationPreferences:u.notificationPreferences||{orderUpdates:true,walletAlerts:true,productAnnouncements:true,promotions:false},createdAt:u.createdAt});
+const safe=u=>({id:u._id,wayneId:u.wayneId||"",username:u.username||"",firstName:u.firstName,lastName:u.lastName,email:u.email,phone:u.phone,role:u.role,staffPermissions:u.staffPermissions||[],isActive:u.isActive,walletBalanceKobo:u.walletBalanceKobo||0,referralCode:u.referralCode||"",mustChangePassword:!!u.mustChangePassword,notificationPreferences:u.notificationPreferences||{orderUpdates:true,walletAlerts:true,productAnnouncements:true,promotions:false},createdAt:u.createdAt});
 exports.register=async(req,res)=>{
   let createdUser=null,emailFailed=false;
   try{
     const firstName=String(req.body.firstName||"").trim().slice(0,60),lastName=String(req.body.lastName||"").trim().slice(0,60),email=String(req.body.email||"").trim().toLowerCase().slice(0,254),phone=String(req.body.phone||"").trim().slice(0,30),password=String(req.body.password||"");
+    const username=req.body.username===undefined?undefined:String(req.body.username||"").trim().toLowerCase();
+    if(username!==undefined&&!/^[a-z0-9_]{3,24}$/.test(username))return res.status(400).json({message:"Choose a username with 3–24 letters, numbers or underscores."});
+    if(req.body.confirmPassword!==undefined&&req.body.confirmPassword!==password)return res.status(400).json({message:"Passwords do not match."});
     const enteredCode=String(req.body.referralCode||"").trim().toUpperCase();
     if(!firstName||!lastName||!email||!phone||!password) return res.status(400).json({message:"All fields are required."});
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({message:"Enter a valid email address."});
@@ -26,6 +29,7 @@ exports.register=async(req,res)=>{
     if(password.length<8||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/\d/.test(password))return res.status(400).json({message:"Use at least 8 characters with uppercase, lowercase and a number."});
     if(!verification.verificationReady())return res.status(503).json({message:"Email verification is temporarily unavailable. Please try again later."});
     if(await User.findOne({email})) return res.status(409).json({message:"Email already registered."});
+    if(username&&await User.findOne({username}))return res.status(409).json({message:"Username already taken."});
     const referrer=enteredCode?await User.findOne({referralCode:enteredCode,isActive:true}):null;
     if(enteredCode&&!referrer)return res.status(400).json({message:"That referral code is not valid."});
     if(referrer&&String(referrer.phone).replace(/\D/g,"")===String(phone).replace(/\D/g,""))return res.status(400).json({message:"A referral cannot use the same phone number."});
@@ -35,7 +39,7 @@ exports.register=async(req,res)=>{
     const verificationRequired=verification.verificationRequired();
     const verifyToken=verificationRequired?verificationTokens.generate():null;
     const verificationTime=new Date();
-    const u=await User.create({firstName,lastName,email,phone,password:hash,role:"user",referredBy:referrer?referrer._id:null,
+    const u=await User.create({firstName,lastName,email,phone,password:hash,...(username?{username}:{}),role:"user",referredBy:referrer?referrer._id:null,
       emailVerified:!verificationRequired,
       ...(verificationRequired?{
         emailVerificationTokenHash:verificationTokens.hash(verifyToken),
@@ -59,6 +63,7 @@ exports.register=async(req,res)=>{
       await Referral.deleteMany({referredUser:createdUser._id}).catch(()=>{});
       await User.deleteOne({_id:createdUser._id}).catch(()=>{});
     }
+    if(e?.code===11000&&!createdUser)return res.status(409).json({message:e?.keyPattern?.username?"Username already taken.":"Email already registered."});
     if(emailFailed)console.error("Registration verification email failed:",String(e?.code||e?.name||"mail_error").slice(0,100));
     res.status(emailFailed?503:500).json({message:emailFailed?"Could not send your verification email. Please try again shortly.":"Could not register."});
   }

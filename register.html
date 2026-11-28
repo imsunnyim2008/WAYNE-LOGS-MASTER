@@ -1,7 +1,96 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Create Account | WAYNE LOGS</title><link rel="icon" type="image/png" href="/assets/wayne-bat-logo.jpg"><link rel="apple-touch-icon" href="/assets/wayne-bat-logo.jpg"><meta name="theme-color" content="#0f2d53"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="premium-pages.css?v=20260825-optimized2"><link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6"></head><body><main class="auth-page"><section class="auth-card"><a class="brand" href="index.html"><span class="brand-mark">W</span><span>WAYNE LOGS</span></a><h1>Create account</h1><p style="color:var(--muted)">Create an account to buy and track your orders.</p><div id="message" class="message"></div><form id="form"><div class="admin-grid"><div class="field"><label>First name</label><input name="firstName" required></div><div class="field"><label>Last name</label><input name="lastName" required></div></div><div class="field"><label>Email</label><input type="email" name="email" required></div><div class="field"><label>Phone</label><input name="phone" required></div><div class="field"><label>Password</label><input type="password" name="password" minlength="8" required autocomplete="new-password"><small style="color:var(--muted)">Use uppercase, lowercase and at least one number.</small></div><div class="field"><label>Referral code <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input name="referralCode" id="referralCode" maxlength="20" autocomplete="off" placeholder="Enter a friend's code"><small style="color:var(--muted)">Your friend earns ₦1,000 after your first qualifying purchase.</small></div><button class="primary-btn" style="width:100%">Create Account</button></form><p style="color:var(--muted);text-align:center">Already registered? <a href="login.html" style="color:var(--blue)">Login</a></p></section></main><script src="config.js?v=20261113-no-auto-modal"></script><script src="feedback.js?v=20261113-no-auto-modal"></script><script>
-const API_URL=localStorage.getItem("wayneApiUrl")||window.WAYNE_API_URL||"http://localhost:5000",form=document.getElementById("form"),msg=document.getElementById("message");document.getElementById("referralCode").value=(new URLSearchParams(location.search).get("ref")||"").toUpperCase();
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Create Account | WAYNE LOGS</title><link rel="icon" type="image/png" href="/assets/wayne-bat-logo.jpg"><link rel="apple-touch-icon" href="/assets/wayne-bat-logo.jpg"><meta name="theme-color" content="#0f2d53"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="premium-pages.css?v=20260825-optimized2"><link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6">
+<style>
+.login-page{--auth-bg:#eaf3f8;--auth-card:#fff;--auth-ink:#142a42;--auth-muted:#61748c;--auth-line:#d5dfeb;--auth-soft:#f5f8fb;--auth-blue:#0679af;--auth-cyan:#08a6df;min-height:100vh;margin:0;background:var(--auth-bg)!important;color:var(--auth-ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+html.wayne-dark-mode .login-page{--auth-bg:#091725;--auth-card:#102337;--auth-ink:#eef7ff;--auth-muted:#a6b9cf;--auth-line:#36536e;--auth-soft:#142d42;--auth-blue:#76d4ff}
+.login-page .wayne-login-shell{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;width:100%;padding:68px 16px 26px;box-sizing:border-box;background:radial-gradient(ellipse at 50% 12%,#0ba6df1a,transparent 44%),repeating-linear-gradient(0deg,#91bbd210 0 2px,transparent 2px 6px),var(--auth-bg)}
+.login-page .wayne-login-shell *{box-sizing:border-box}
+.login-page .wayne-login-shell [hidden]{display:none!important}
+.login-page .wayne-auth-brand{display:flex;align-items:center;gap:13px;text-decoration:none;color:var(--auth-ink);margin:0 0 26px}
+.wayne-auth-mark{display:grid;place-items:center;width:56px;height:56px;border-radius:15px;background:linear-gradient(140deg,#0676a7,#0ba9e1);box-shadow:0 9px 26px #0a98d338;color:#fff;flex:none}
+.wayne-auth-mark svg{width:34px;height:34px;fill:currentColor}
+.wayne-auth-wordmark{display:flex;flex-direction:column;gap:4px;line-height:1.1}
+.wayne-auth-wordmark strong{font-size:24px;letter-spacing:-.055em;font-weight:850;color:var(--auth-ink)}
+.wayne-auth-wordmark strong span{color:var(--auth-blue)}
+.wayne-auth-wordmark small{font-size:11px;letter-spacing:.23em;color:var(--auth-muted);font-weight:600}
+.wayne-auth-theme{position:absolute;top:16px;right:16px;width:44px;height:44px;display:grid;place-items:center;color:var(--auth-blue);background:var(--auth-soft);border:1px solid var(--auth-line);border-radius:13px;cursor:pointer}
+.wayne-auth-theme svg,.wayne-auth-tabs svg,.wayne-auth-input svg,.wayne-auth-action svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.login-page .wayne-auth-panel{width:min(100%,480px);overflow:hidden;border-radius:24px;border:1px solid var(--auth-line);background:var(--auth-card);box-shadow:0 20px 55px #153f6714}
+.wayne-auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--auth-soft);border-bottom:1px solid var(--auth-line)}
+.wayne-auth-tabs a{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:57px;padding:9px 4px;text-decoration:none;color:var(--auth-muted);font-size:clamp(13px,3.5vw,16px);font-weight:750;white-space:nowrap}
+.wayne-auth-tabs a[aria-current=page]{color:var(--auth-blue)}
+.wayne-auth-tabs a[aria-current=page]:after{content:"";position:absolute;bottom:0;left:12%;right:12%;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--auth-cyan),transparent)}
+.wayne-auth-content{padding:29px 29px 23px}
+.login-page .wayne-auth-content h1{font-size:clamp(25px,6vw,31px);line-height:1.18;margin:0 0 8px;letter-spacing:-.035em;color:var(--auth-ink)}
+.login-page .wayne-auth-content #loginSubtitle{font-size:15px;line-height:1.5;color:var(--auth-muted);margin:0 0 26px}
+.wayne-auth-field{margin:0 0 20px;display:grid;gap:9px}
+.wayne-auth-field label{color:var(--auth-muted);font-size:12px;font-weight:800;letter-spacing:.055em;text-transform:uppercase}
+.wayne-auth-field-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wayne-auth-field-head a,.wayne-auth-links a{color:var(--auth-blue);font-weight:700;text-decoration:none}
+.wayne-auth-field-head a{font-size:13px}
+.wayne-auth-input{position:relative;display:flex;align-items:center;min-width:0;color:var(--auth-muted)}
+.wayne-auth-input>svg{position:absolute;left:14px;pointer-events:none}
+.login-page .wayne-auth-input input{box-sizing:border-box;width:100%;min-width:0;min-height:57px;padding:14px 42px;border:1.5px solid var(--auth-line)!important;border-radius:12px!important;background:var(--auth-card)!important;color:var(--auth-ink)!important;font:inherit;font-size:16px;box-shadow:none!important}
+.login-page .wayne-auth-input input::placeholder{color:var(--auth-muted);opacity:.8}
+.login-page .wayne-auth-input input:focus{outline:2px solid var(--auth-cyan);outline-offset:2px}
+.wayne-auth-eye{position:absolute;right:5px;display:grid;place-items:center;min-width:42px;min-height:44px;padding:0;border:0;background:transparent;color:var(--auth-muted);cursor:pointer}
+.wayne-auth-remember{display:flex;align-items:center;gap:10px;margin:0 0 24px;color:var(--auth-muted);font-size:14px;cursor:pointer}
+.wayne-auth-remember input{width:18px;height:18px;accent-color:#087eaf;margin:0}
+.login-page .wayne-auth-action{width:100%;min-height:58px;display:flex;align-items:center;justify-content:center;gap:10px;border:0!important;border-radius:12px!important;background:linear-gradient(110deg,#076c9e,#08a5db)!important;color:#fff!important;font-size:17px;font-weight:800;box-shadow:0 12px 27px #089fdb35!important;cursor:pointer}
+.wayne-auth-action:disabled{opacity:.65;cursor:wait}
+.wayne-auth-spinner{display:none;width:23px;height:23px;border:3px solid #ffffff60;border-top-color:#fff;border-radius:50%;animation:wayne-auth-spin .8s linear infinite}
+.wayne-auth-action:disabled .wayne-auth-spinner{display:block}
+.wayne-auth-action:disabled .wayne-auth-action-copy,.wayne-auth-action:disabled>svg{display:none}
+@keyframes wayne-auth-spin{to{transform:rotate(360deg)}}
+.login-page .wayne-auth-content .message{margin:0 0 18px;font-size:14px;overflow-wrap:anywhere}
+.login-page .wayne-auth-content .message.success{color:#087d59;background:#e8faf3;border:1px solid #b6e7d4}
+.login-page .wayne-auth-content .message.error{color:#a52640;background:#fff0f3;border:1px solid #f5c5d0}
+.wayne-auth-links{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 14px;margin:23px 0 0;font-size:13px;text-align:center}
+.wayne-auth-footer{color:var(--auth-muted);font-size:11px;text-align:center;margin:22px 0 0;letter-spacing:.035em}
+.wayne-auth-restart{display:block;margin:15px auto 0;background:none;border:0;color:var(--auth-blue);font-size:14px;font-weight:700;cursor:pointer}
+.wayne-auth-theme:focus-visible,.wayne-auth-eye:focus-visible,.wayne-auth-tabs a:focus-visible,.wayne-auth-action:focus-visible,.wayne-auth-restart:focus-visible{outline:2px solid var(--auth-cyan);outline-offset:3px}
+@media(max-width:420px){.login-page .wayne-login-shell{padding:66px 15px 22px;justify-content:flex-start}.wayne-auth-content{padding:27px 23px 24px}.wayne-auth-brand{margin-bottom:24px}}
+@media(prefers-reduced-motion:reduce){.wayne-auth-spinner{animation:none}}
+</style><style>
+.register-page .wayne-login-shell{justify-content:flex-start;padding-top:55px}
+.register-page .wayne-auth-content #loginSubtitle{margin-bottom:30px}
+.wayne-register-names{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.register-page .wayne-register-names input{padding-left:37px;padding-right:8px}
+.register-page .wayne-register-names .wayne-auth-input>svg{left:11px;width:17px;height:17px}
+.register-page .wayne-auth-input input:not([type=password]){padding-right:12px}
+.register-page .wayne-auth-input:has(.wayne-auth-eye) input{padding-right:45px}
+.wayne-register-hint{color:var(--auth-muted);font-size:12px;line-height:1.5}
+.register-page .wayne-auth-action{margin-top:9px}
+.register-page .wayne-auth-theme{position:fixed;z-index:3}
+@media(max-width:420px){.register-page .wayne-login-shell{padding-top:45px}.register-page .wayne-auth-brand{margin-bottom:26px}.register-page .wayne-register-names{gap:10px}.register-page .wayne-register-names input{padding-left:34px;font-size:16px}.register-page .wayne-register-names .wayne-auth-input>svg{left:9px}}
+@media(max-width:345px){.wayne-register-names{grid-template-columns:1fr}.register-page .wayne-auth-wordmark strong{font-size:20px}}
+</style></head><body class="login-page register-page"><main class="wayne-login-shell">
+<button type="button" class="wayne-auth-theme" id="authTheme" aria-label="Switch to dark mode" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/></svg></button>
+<a class="wayne-auth-brand" href="index.html"><span class="wayne-auth-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M5 13h6l4 14 5-12 5 12 4-14h6l-7 19h-6l-2-7-3 7h-6z"/></svg></span><span class="wayne-auth-wordmark"><strong>WAYNE <span>LOGS</span></strong><small>MARKETPLACE</small></span></a>
+<section class="wayne-auth-panel" aria-labelledby="loginHeading">
+<nav class="wayne-auth-tabs" aria-label="Account access"><a href="login.html" id="signinTab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5M3 12h12m-4-4 4 4-4 4"/></svg> Sign In</a><a href="register.html" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M2 20v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2m3-12v6m-3-3h6"/></svg> Create Account</a></nav>
+<div class="wayne-auth-content"><h1 id="loginHeading">Create account</h1><p id="loginSubtitle">Create your account to start shopping.</p><div id="message" class="message" role="status" aria-live="polite"></div>
+<form id="form">
+<div class="wayne-auth-field"><label for="username">Username</label><div class="wayne-auth-input"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20v-2a7 7 0 0 1 14 0v2"/></svg><input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="Choose a username" required></div><small class="wayne-register-hint">3–24 letters, numbers or underscores.</small></div>
+<div class="wayne-register-names"><div class="wayne-auth-field"><label for="firstName">First name</label><div class="wayne-auth-input"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M6 16h6m3-6h3m-3 4h3"/></svg><input id="firstName" name="firstName" autocomplete="given-name" maxlength="60" placeholder="First name" required></div></div><div class="wayne-auth-field"><label for="lastName">Last name</label><div class="wayne-auth-input"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M6 16h6m3-6h3m-3 4h3"/></svg><input id="lastName" name="lastName" autocomplete="family-name" maxlength="60" placeholder="Last name" required></div></div></div>
+<div class="wayne-auth-field"><label for="phone">Phone number</label><div class="wayne-auth-input"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3H4c-1 0-1.5 1-1 3 2 8 7 13 15 15 2 .5 3 0 3-1v-3l-5-2-2 2a12 12 0 0 1-7-7l2-2-2-5Z"/></svg><input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="30" placeholder="e.g. 08012345678" required></div></div>
+<div class="wayne-auth-field"><label for="email">Email address</label><div class="wayne-auth-input"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 7 9-7"/></svg><input id="email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" placeholder="Enter your email" required></div></div>
+<div class="wayne-auth-field"><label for="password">Password</label><div class="wayne-auth-input"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input id="password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" placeholder="Create a password" required><button class="wayne-auth-eye" type="button" data-password="password" aria-label="Show password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><small class="wayne-register-hint">At least 8 characters, including uppercase, lowercase and a number.</small></div>
+<div class="wayne-auth-field"><label for="confirmPassword">Confirm password</label><div class="wayne-auth-input"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" placeholder="Confirm your password" required><button class="wayne-auth-eye" type="button" data-password="confirmPassword" aria-label="Show confirmation password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+<div class="wayne-auth-field"><label for="referralCode">Referral code (optional)</label><div class="wayne-auth-input"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13m0-13C4 8 5 1 9 4l3 4Zm0 0c8 0 7-7 3-4l-3 4Z"/></svg><input id="referralCode" name="referralCode" maxlength="20" autocomplete="off" placeholder="Enter a friend’s code"></div><small class="wayne-register-hint">Your friend earns ₦1,000 after your first qualifying purchase.</small></div>
+<button type="submit" class="primary-btn wayne-auth-action"><span class="wayne-auth-action-copy">Create Account</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg><span class="wayne-auth-spinner" aria-hidden="true"></span></button></form>
+<div class="wayne-auth-links"><a href="login.html">Already registered? Sign in</a><a href="index.html">Back to marketplace</a></div>
+</div></section><footer class="wayne-auth-footer">© 2026 WAYNE LOGS · Digital Marketplace</footer></main><script src="config.js?v=20261113-no-auto-modal"></script><script src="feedback.js?v=20261113-no-auto-modal"></script><script>
+const API_URL=window.WAYNE_API_URL||"http://localhost:5000",form=document.getElementById("form"),msg=document.getElementById("message");document.getElementById("referralCode").value=(new URLSearchParams(location.search).get("ref")||"").toUpperCase();
+const theme=document.getElementById("authTheme");
+function syncTheme(){const dark=document.documentElement.classList.contains("wayne-dark-mode");theme.setAttribute("aria-pressed",String(dark));theme.setAttribute("aria-label",dark?"Switch to light mode":"Switch to dark mode");theme.innerHTML=dark?'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/></svg>'}
+syncTheme();theme.onclick=()=>{if(typeof window.wayneApplyAppearance==="function"){window.wayneApplyAppearance(document.documentElement.classList.contains("wayne-dark-mode")?"light":"dark");syncTheme()}};
+
+document.querySelectorAll("[data-password]").forEach(button=>{button.onclick=()=>{const input=document.getElementById(button.dataset.password);const visible=input.type==="password";input.type=visible?"text":"password";button.setAttribute("aria-pressed",String(visible));button.setAttribute("aria-label",(visible?"Hide ":"Show ")+(input.id==="confirmPassword"?"confirmation ":"")+"password")}});
+const passwordInput=document.getElementById("password"),confirmInput=document.getElementById("confirmPassword");
+function checkPasswordMatch(){confirmInput.setCustomValidity(confirmInput.value&&confirmInput.value!==passwordInput.value?"Passwords do not match.":"")}
+passwordInput.addEventListener("input",checkPasswordMatch);confirmInput.addEventListener("input",checkPasswordMatch);
 function show(t,type="error"){msg.textContent=t;msg.className="message "+type;msg.style.display="block"}
-form.onsubmit=async e=>{e.preventDefault();const fd=new FormData(form);try{const body={firstName:fd.get("firstName"),lastName:fd.get("lastName"),email:fd.get("email"),phone:fd.get("phone"),password:fd.get("password"),referralCode:fd.get("referralCode")};const r=await fetch(API_URL+"/api/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw new Error(d.message||"Registration failed");
+form.onsubmit=async e=>{e.preventDefault();checkPasswordMatch();if(!form.reportValidity())return;const submit=form.querySelector("button[type=submit]");if(submit.disabled)return;submit.disabled=true;msg.style.display="none";const fd=new FormData(form);try{const body={username:fd.get("username"),confirmPassword:fd.get("confirmPassword"),firstName:fd.get("firstName"),lastName:fd.get("lastName"),email:fd.get("email"),phone:fd.get("phone"),password:fd.get("password"),referralCode:fd.get("referralCode")};const r=await fetch(API_URL+"/api/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw new Error(d.message||"Registration failed");
 if(d.verificationRequired){
   form.hidden=true;
   show(d.message||"Check your email for a verification link before signing in.","success");
@@ -9,6 +98,6 @@ if(d.verificationRequired){
   return;
 }
 if(!d.token||!d.user)throw new Error("Could not complete registration.");
-localStorage.setItem("wayneToken",d.token);localStorage.setItem("wayneUser",JSON.stringify(d.user));const buy=localStorage.getItem("wayneBuyAfterLogin");location.href=buy?`index.html?buy=${encodeURIComponent(buy)}`:(d.user.role==="admin"?"admin.html":"index.html")}catch(err){show(err.message)}};
+localStorage.setItem("wayneToken",d.token);localStorage.setItem("wayneUser",JSON.stringify(d.user));const buy=localStorage.getItem("wayneBuyAfterLogin");location.href=buy?`index.html?buy=${encodeURIComponent(buy)}`:(d.user.role==="admin"?"admin.html":"index.html")}catch(err){show(err.message)}finally{submit.disabled=false}};
 </script></body></html>
 
