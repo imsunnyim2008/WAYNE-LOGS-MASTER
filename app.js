@@ -25,13 +25,15 @@ function setNavLoggedOut(){
   if(accountLink){accountLink.textContent="Login";accountLink.href="login.html"}
   if(registerLink){registerLink.hidden=false;registerLink.removeAttribute("hidden")}
   if(adminLink)adminLink.hidden=true;
-  if(sideAccountBox)sideAccountBox.innerHTML='<strong>Customer Account</strong><a href="login.html">Login →</a><a href="register.html">Create Account →</a>';
+  if($("sideLogout"))$("sideLogout").hidden=true;if($("sideAdminLink"))$("sideAdminLink").hidden=true;
+  if(sideAccountBox)sideAccountBox.innerHTML='<div class="market-side-guest"><strong>Customer Account</strong><a href="login.html">Sign In →</a><a href="register.html">Create Account →</a></div>';
 }
 function setNavLoggedIn(user){
   if(accountLink){accountLink.textContent="My Profile";accountLink.href="profile.html"}
   if(registerLink){registerLink.hidden=true;registerLink.setAttribute("hidden","")}
   if(adminLink)adminLink.hidden=user?.role!=="admin";
-  if(sideAccountBox){sideAccountBox.innerHTML=`<strong>Wallet Balance</strong><div id="sideWalletBalance" style="font-size:25px;font-weight:950;margin:8px 0">₦0.00</div><a href="dashboard.html">Top Up →</a>${user?.role==="admin"?'<a href="admin.html" class="market-side-admin">Admin Panel →</a>':""}<a href="#" id="sideLogout" class="market-side-logout">Logout</a>`;sideAccountBox.querySelector("#sideLogout")?.addEventListener("click",e=>{e.preventDefault();clearSession();location.href="index.html"})}
+  if($("sideLogout"))$("sideLogout").hidden=false;if($("sideAdminLink"))$("sideAdminLink").hidden=user?.role!=="admin";
+  if(sideAccountBox){sideAccountBox.innerHTML='<div class="market-side-wallet-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M4 6V4h14v2m-2 5h5v5h-5a2.5 2.5 0 0 1 0-5Z"/></svg></div><div class="market-side-wallet-copy"><small>Wallet Balance</small><strong id="sideWalletBalance" aria-live="polite">—</strong></div><a class="market-side-topup" href="dashboard.html#topupForm">Top Up</a>';if(typeof user.walletBalanceKobo==="number")$("sideWalletBalance").textContent=walletMoney(user.walletBalanceKobo)}
 }
 async function validateSession(){
   if(!token){setNavLoggedOut();return}
@@ -42,8 +44,12 @@ async function loadWalletBalance(){
   try{const r=await fetch(API_URL+"/api/wallet",{headers:{Authorization:"Bearer "+token}}),d=await r.json();if(!r.ok)return;walletBalanceKobo=Number(d.wallet?.balanceKobo||0);const el=document.getElementById("sideWalletBalance");if(el)el.textContent=walletMoney(walletBalanceKobo);if(checkoutWalletBalance)checkoutWalletBalance.textContent=walletMoney(walletBalanceKobo)}catch{}
 }
 
-function openMenu(){marketSidePanel?.classList.add("open");marketSideOverlay?.classList.add("show");document.body.style.overflow="hidden"}
-function closeMenu(){marketSidePanel?.classList.remove("open");marketSideOverlay?.classList.remove("show");document.body.style.overflow=""}
+let menuPreviousOverflow="";
+function openMenu(){if(!marketSidePanel||marketSidePanel.classList.contains("open"))return;menuPreviousOverflow=document.body.style.overflow;marketSidePanel.inert=false;marketSidePanel.setAttribute("aria-hidden","false");marketSidePanel.classList.add("open");marketSideOverlay?.classList.add("show");marketMenuBtn?.setAttribute("aria-expanded","true");document.body.style.overflow="hidden";marketSideClose?.focus()}
+function closeMenu(){if(!marketSidePanel?.classList.contains("open"))return;marketMenuBtn?.focus();marketSidePanel.classList.remove("open");marketSidePanel.inert=true;marketSidePanel.setAttribute("aria-hidden","true");marketSideOverlay?.classList.remove("show");marketMenuBtn?.setAttribute("aria-expanded","false");document.body.style.overflow=menuPreviousOverflow}
+$("sideTheme")?.addEventListener("click",()=>{if(typeof window.wayneApplyAppearance==="function")window.wayneApplyAppearance(document.documentElement.classList.contains("wayne-dark-mode")?"light":"dark")});
+$("sideLogout")?.addEventListener("click",()=>{clearSession();location.href="login.html"});
+marketSidePanel?.addEventListener("keydown",e=>{if(e.key!=="Tab")return;const items=[...marketSidePanel.querySelectorAll("a[href],button:not([disabled])")].filter(el=>!el.hidden&&el.getClientRects().length);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}});
 marketMenuBtn?.addEventListener("click",openMenu);marketSideClose?.addEventListener("click",closeMenu);marketSideOverlay?.addEventListener("click",closeMenu);document.querySelectorAll("[data-close-menu]").forEach(a=>a.addEventListener("click",closeMenu));
 
 function saveCart(){cart=cart.slice(0,1);localStorage.setItem("wayneCart",JSON.stringify(cart));document.querySelectorAll("[data-cart-count]").forEach(el=>el.textContent=cart.length?1:0)}

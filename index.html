@@ -14,12 +14,45 @@
   <link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6">
   <link rel="stylesheet" href="marketplace-pages.css?v=20260827-home1">
   <link rel="stylesheet" href="marketplace-compact.css?v=20260827-side-nav2">
+<style id="wayne-sidebar-design">
+.market-home .market-side-overlay{background:rgba(12,19,28,.60);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.market-home .market-side-panel{--side-bg:#fff;--side-ink:#15243b;--side-muted:#61748c;--side-line:#d9e2ed;--side-soft:#edf8fe;--side-blue:#087bad;display:flex;flex-direction:column;overflow:hidden!important;box-sizing:border-box;padding:0!important;width:min(65vw,340px)!important;max-width:none!important;visibility:hidden;transition:transform .23s ease,visibility .23s;background:var(--side-bg)!important;box-shadow:8px 0 32px #0c24301c}
+.market-home .market-side-panel.open{visibility:visible}
+html.wayne-dark-mode .market-home .market-side-panel{--side-bg:#0b1d2f;--side-ink:#eef7ff;--side-muted:#a9bdd1;--side-line:#31506c;--side-soft:#10283e;--side-blue:#78d3ff}
+.market-home .market-side-panel [hidden]{display:none!important}
+.market-home .market-side-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px!important;padding:24px 19px 20px!important;border-bottom:1px solid var(--side-line)}
+.market-home .market-side-wordmark{display:flex;flex-direction:column;gap:7px;min-width:0;text-decoration:none;line-height:1.12}
+.market-home .market-side-head .market-side-wordmark strong{color:var(--side-ink);font-size:clamp(17px,5vw,25px)!important;font-weight:900;letter-spacing:-.05em}
+.market-home .market-side-wordmark strong span{color:var(--side-blue)}
+.market-home .market-side-wordmark small{font-size:10px;letter-spacing:.19em;color:var(--side-muted);font-weight:500}
+.market-home .market-side-close{width:35px;height:40px;flex:none;display:grid;place-items:center;margin:0;padding:0!important;font-size:29px!important;color:var(--side-muted);line-height:1;background:none;border:0}
+.market-home .market-side-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:1px 13px 14px;scrollbar-width:thin}
+.market-home .market-side-label{margin:18px 7px 8px!important;color:var(--side-muted);font-size:11px!important;font-weight:800;letter-spacing:.10em!important}
+.market-home .market-side-label:not(:first-child){margin-top:26px!important}
+.market-home .market-side-links{display:grid;gap:0!important}
+.market-home .market-side-links a,.market-home .market-side-links button{display:flex;align-items:center;gap:12px!important;min-height:46px;padding:10px 7px!important;width:100%;border:0;border-radius:9px!important;background:transparent;color:var(--side-muted);font:inherit;font-size:clamp(13px,3.8vw,16px)!important;font-weight:600;text-align:left;line-height:1.3;cursor:pointer;text-decoration:none}
+.market-home .market-side-links a:hover,.market-home .market-side-links button:hover{background:var(--side-soft);color:var(--side-blue)}
+.market-home .market-side-icon{width:24px;height:24px;flex:0 0 24px;display:grid;place-items:center;color:inherit}
+.market-home .market-side-icon .market-svg,.market-side-wallet-icon .market-svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.market-home .market-side-footer{flex:none;background:var(--side-bg);border-top:1px solid var(--side-line);padding:15px 12px calc(17px + env(safe-area-inset-bottom));}
+.market-home .market-side-account{display:flex;align-items:center;gap:9px;margin:0!important;padding:12px 10px!important;border-radius:12px!important;border:1px solid #aee0f9;background:var(--side-soft);color:var(--side-ink)}
+.market-side-wallet-icon{display:grid;place-items:center;color:#079ed9;flex:0 0 23px}
+.market-side-wallet-copy{flex:1;min-width:0}
+.market-side-wallet-copy small{display:block;color:var(--side-muted);font-size:11px;line-height:1.4}
+.market-home .market-side-account #sideWalletBalance{display:block;font-size:clamp(15px,4.6vw,21px)!important;margin:3px 0 0!important;font-weight:850;color:var(--side-blue);overflow-wrap:anywhere;line-height:1.2}
+.market-home .market-side-account .market-side-topup{white-space:nowrap;font-size:12px!important;margin:0!important;color:var(--side-blue);font-weight:800}
+.market-side-guest{display:grid;gap:7px;width:100%}
+.market-side-guest a{color:var(--side-blue);font-size:13px!important;margin:0!important}
+.market-home .market-side-panel :is(a,button):focus-visible{outline:2px solid #0aa5df;outline-offset:2px}
+@media(max-width:350px){.market-home .market-side-panel{width:72vw!important}.market-home .market-side-head{padding-inline:12px!important}.market-home .market-side-scroll{padding-inline:8px}.market-home .market-side-account{gap:6px;padding-inline:7px!important}}
+@media(prefers-reduced-motion:reduce){.market-home .market-side-panel,.market-home .market-side-overlay{transition:none}}
+</style>
 </head>
 <body class="simple-store premium-store market-home">
 
   <header class="market-page-header">
     <div class="market-page-header-inner">
-      <button class="market-menu-btn" id="marketMenuBtn" type="button" aria-label="Open menu">
+      <button class="market-menu-btn" id="marketMenuBtn" type="button" aria-label="Open menu" aria-controls="marketSidePanel" aria-expanded="false">
         <svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
 
@@ -46,61 +79,27 @@
     </div>
   </header>
 
-  <div class="market-side-overlay" id="marketSideOverlay"></div>
-  <aside class="market-side-panel" id="marketSidePanel" aria-label="Customer menu">
-    <div class="market-side-head">
-      <span class="market-logo-frame"><img src="assets/wayne-bat-logo.jpg" decoding="async" alt="WAYNE LOGS logo"></span>
-      <strong>WAYNE LOGS</strong>
-      <button class="market-side-close" id="marketSideClose" type="button" aria-label="Close menu">×</button>
-    </div>
-
-    <div class="market-side-label">MAIN</div>
-    <nav class="market-side-links">
-      <a class="active" href="index.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></svg></span> Home
-      </a>
-      <a href="profile.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span> Profile
-      </a>
-      <a href="notifications.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span> Notifications
-      </a>
-      <a href="settings.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg></span> Account Settings
-      </a>
-    </nav>
-
-    <div class="market-side-label">SHOP</div>
-    <nav class="market-side-links">
-      <a href="#shop" data-close-menu>
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M4 10h16l-1-5H5l-1 5Z"/><path d="M5 10v9h14v-9M9 14h6"/></svg></span> All Products
-      </a>
-      <a href="orders.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></span> My Orders
-      </a>
-      <a href="wallet.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H19a1 1 0 0 1 1 1v3"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 11h5v5h-5a2.5 2.5 0 0 1 0-5Z"/></svg></span> Wallet
-      </a>
-      <a href="dashboard.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 11h5M12 9v7M8.5 12.5h7"/></svg></span> Fund Wallet
-      </a>
-      <a href="dashboard.html#transactions">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></span> Transactions
-      </a>
-      <a href="#categories" data-close-menu>
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span> Categories
-      </a>
-      <a href="support.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.5 2.5 0 1 1 4.6 1.3c-.8 1.1-2.3 1.3-2.3 3M12 17h.01"/></svg></span> Support
-      </a>
-    </nav>
-
-    <div class="market-side-account" id="sideAccountBox">
-      <strong>Wallet Balance</strong>
-      <div id="sideWalletBalance" style="font-size:21px;font-weight:950;margin:5px 0">₦0.00</div>
-      <a href="dashboard.html">Top Up →</a>
-    </div>
-  </aside>
+  <div class="market-side-overlay" id="marketSideOverlay" aria-hidden="true"></div>
+<aside class="market-side-panel" id="marketSidePanel" role="dialog" aria-modal="true" aria-label="Customer menu" aria-hidden="true" inert>
+  <div class="market-side-head"><a href="index.html" class="market-side-wordmark"><strong>WAYNE <span>LOGS</span></strong><small>MARKETPLACE</small></a><button class="market-side-close" id="marketSideClose" type="button" aria-label="Close menu">×</button></div>
+  <div class="market-side-scroll" id="marketSideScroll">
+  <div class="market-side-label">MAIN</div><nav class="market-side-links" aria-label="MAIN"><a href="index.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg></span><span>Home</span></a>
+<a href="profile.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span>Profile</span></a></nav>
+  <div class="market-side-label">SHOP</div><nav class="market-side-links" aria-label="SHOP"><a href="#shop" data-close-menu><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1-5H5l-1 5ZM5 10v9h14v-9M9 14h6"/></svg></span><span>All Products</span></a>
+<a href="orders.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7ZM9 7a3 3 0 0 1 6 0"/></svg></span><span>My Orders</span></a>
+<a href="dashboard.html#topupForm" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8m-4-4h8"/></svg></span><span>Add Funds</span></a>
+<a href="profile.html#referralCode" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3"/><path d="M6 20v-2a6 6 0 0 1 12 0v2M3 4a3 3 0 0 0 0 6m18-6a3 3 0 0 1 0 6M2 17v-2a4 4 0 0 1 4-4m16 6v-2a4 4 0 0 0-4-4"/></svg></span><span>Referrals</span></a>
+<a href="dashboard.html#transactions" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg></span><span>Transactions</span></a>
+<a href="#categories" data-close-menu><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/></svg></span><span>Categories</span></a></nav>
+  <div class="market-side-label">HELP &amp; SUPPORT</div><nav class="market-side-links" aria-label="HELP &amp; SUPPORT"><a href="support.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13v-2a9 9 0 0 1 18 0v2m-18 0h4v5H5a2 2 0 0 1-2-2Zm18 0h-4v5h2a2 2 0 0 0 2-2Zm0 4v2l-5 2h-4"/></svg></span><span>Support</span></a>
+<a href="notifications.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><span>Notifications</span></a></nav>
+  <div class="market-side-label">ACCOUNT</div><nav class="market-side-links" aria-label="ACCOUNT"><a href="settings.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/><circle cx="12" cy="12" r="7"/></svg></span><span>Account Settings</span></a>
+<a href="admin.html" id="sideAdminLink" hidden><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 4 8 8 10 4-2 8-5 8-10V6l-8-3Zm-3 9 2 2 4-4"/></svg></span><span>Admin Panel</span></a>
+<button type="button" id="sideTheme" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15a8.5 8.5 0 0 1-11-11 8.5 8.5 0 1 0 11 11Z"/></svg></span><span>Toggle Theme</span></button>
+<button type="button" id="sideLogout" hidden><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5m3-12 4 4-4 4m-4-4h12"/></svg></span><span>Sign Out</span></button></nav>
+  </div>
+  <div class="market-side-footer"><div class="market-side-account" id="sideAccountBox"><div class="market-side-wallet-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M4 6V4h14v2m-2 5h5v5h-5a2.5 2.5 0 0 1 0-5Z"/></svg></div><div class="market-side-wallet-copy"><small>Wallet Balance</small><strong id="sideWalletBalance" aria-live="polite">—</strong></div><a class="market-side-topup" href="dashboard.html#topupForm">Top Up</a></div></div>
+</aside>
 
   <div class="market-hidden-actions" id="accountActions">
     <a id="accountLink" href="login.html">Login</a>
@@ -228,6 +227,6 @@
   </div>
 
   <script src="config.js?v=20261113-no-auto-modal"></script><script src="feedback.js?v=20261113-no-auto-modal"></script>
-  <script src="app.js?v=20261112-phase2-checkout"></script>
+  <script src="app.js?v=20261112-phase2-checkout-sidebar3"></script>
 </body>
 </html>
