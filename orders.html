@@ -12,11 +12,88 @@
   <link rel="stylesheet" href="wayne-rebuild.css?v=20260826-rebuild6">
   <link rel="stylesheet" href="marketplace-pages.css?v=20260827-detailcopy1">
   <link rel="stylesheet" href="marketplace-compact.css?v=20260827-compact2">
-</head>
+<style id="wayne-sidebar-design">
+.market-orders .market-side-overlay{background:rgba(12,19,28,.60);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.market-orders .market-side-panel{--side-bg:#fff;--side-ink:#15243b;--side-muted:#61748c;--side-line:#d9e2ed;--side-soft:#edf8fe;--side-blue:#087bad;display:flex;flex-direction:column;overflow:hidden!important;box-sizing:border-box;padding:0!important;width:min(65vw,340px)!important;max-width:none!important;visibility:hidden;transition:transform .23s ease,visibility .23s;background:var(--side-bg)!important;box-shadow:8px 0 32px #0c24301c}
+.market-orders .market-side-panel.open{visibility:visible}
+html.wayne-dark-mode .market-orders .market-side-panel{--side-bg:#0b1d2f;--side-ink:#eef7ff;--side-muted:#a9bdd1;--side-line:#31506c;--side-soft:#10283e;--side-blue:#78d3ff}
+.market-orders .market-side-panel [hidden]{display:none!important}
+.market-orders .market-side-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px!important;padding:24px 19px 20px!important;border-bottom:1px solid var(--side-line)}
+.market-orders .market-side-wordmark{display:flex;flex-direction:column;gap:7px;min-width:0;text-decoration:none;line-height:1.12}
+.market-orders .market-side-head .market-side-wordmark strong{color:var(--side-ink);font-size:clamp(17px,5vw,25px)!important;font-weight:900;letter-spacing:-.05em}
+.market-orders .market-side-wordmark strong span{color:var(--side-blue)}
+.market-orders .market-side-wordmark small{font-size:10px;letter-spacing:.19em;color:var(--side-muted);font-weight:500}
+.market-orders .market-side-close{width:35px;height:40px;flex:none;display:grid;place-items:center;margin:0;padding:0!important;font-size:29px!important;color:var(--side-muted);line-height:1;background:none;border:0}
+.market-orders .market-side-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:1px 13px 14px;scrollbar-width:thin}
+.market-orders .market-side-label{margin:18px 7px 8px!important;color:var(--side-muted);font-size:11px!important;font-weight:800;letter-spacing:.10em!important}
+.market-orders .market-side-label:not(:first-child){margin-top:26px!important}
+.market-orders .market-side-links{display:grid;gap:0!important}
+.market-orders .market-side-links a,.market-orders .market-side-links button{display:flex;align-items:center;gap:12px!important;min-height:46px;padding:10px 7px!important;width:100%;border:0;border-radius:9px!important;background:transparent;color:var(--side-muted);font:inherit;font-size:clamp(13px,3.8vw,16px)!important;font-weight:600;text-align:left;line-height:1.3;cursor:pointer;text-decoration:none}
+.market-orders .market-side-links a:hover,.market-orders .market-side-links button:hover{background:var(--side-soft);color:var(--side-blue)}
+.market-orders .market-side-icon{width:24px;height:24px;flex:0 0 24px;display:grid;place-items:center;color:inherit}
+.market-orders .market-side-icon .market-svg,.market-side-wallet-icon .market-svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.market-orders .market-side-footer{flex:none;background:var(--side-bg);border-top:1px solid var(--side-line);padding:15px 12px calc(17px + env(safe-area-inset-bottom));}
+.market-orders .market-side-account{display:flex;align-items:center;gap:9px;margin:0!important;padding:12px 10px!important;border-radius:12px!important;border:1px solid #aee0f9;background:var(--side-soft);color:var(--side-ink)}
+.market-side-wallet-icon{display:grid;place-items:center;color:#079ed9;flex:0 0 23px}
+.market-side-wallet-copy{flex:1;min-width:0}
+.market-side-wallet-copy small{display:block;color:var(--side-muted);font-size:11px;line-height:1.4}
+.market-orders .market-side-account #sideWalletBalance{display:block;font-size:clamp(15px,4.6vw,21px)!important;margin:3px 0 0!important;font-weight:850;color:var(--side-blue);overflow-wrap:anywhere;line-height:1.2}
+.market-orders .market-side-account .market-side-topup{white-space:nowrap;font-size:12px!important;margin:0!important;color:var(--side-blue);font-weight:800}
+.market-side-guest{display:grid;gap:7px;width:100%}
+.market-side-guest a{color:var(--side-blue);font-size:13px!important;margin:0!important}
+.market-orders .market-side-panel :is(a,button):focus-visible{outline:2px solid #0aa5df;outline-offset:2px}
+@media(max-width:350px){.market-orders .market-side-panel{width:72vw!important}.market-orders .market-side-head{padding-inline:12px!important}.market-orders .market-side-scroll{padding-inline:8px}.market-orders .market-side-account{gap:6px;padding-inline:7px!important}}
+@media(prefers-reduced-motion:reduce){.market-orders .market-side-panel,.market-orders .market-side-overlay{transition:none}}
+</style><style>
+body.market-orders{--ord-bg:#eef3f8;--ord-card:#fff;--ord-ink:#121d32;--ord-muted:#61748c;--ord-line:#d5dfeb;--ord-soft:#eef3f8;--ord-blue:#0879b0;background:var(--ord-bg)!important;color:var(--ord-ink)}
+html.wayne-dark-mode body.market-orders{--ord-bg:#091725;--ord-card:#102337;--ord-ink:#eef7ff;--ord-muted:#a6b9cf;--ord-line:#36536e;--ord-soft:#142d42;--ord-blue:#76d4ff}
+.market-orders .market-orders-main{width:min(900px,calc(100% - 24px))!important;margin:22px auto 55px!important}
+.market-orders .market-orders-title h1{font-size:clamp(22px,5vw,32px)!important;letter-spacing:-.04em;color:var(--ord-ink)!important;margin:0 0 7px!important;font-weight:850}
+.market-orders .market-orders-title p{font-size:14px!important;color:var(--ord-muted)!important;margin:0 0 23px!important}
+.market-orders .market-orders-card,.market-orders .market-order-detail{border:1px solid var(--ord-line)!important;background:var(--ord-card)!important;border-radius:16px!important;box-shadow:0 4px 14px #18324d0d!important}
+.market-orders .market-order-list-item{border-color:var(--ord-line)}
+.market-orders .market-order-row{min-height:82px!important;padding:13px 15px!important;grid-template-columns:43px minmax(0,1fr) minmax(75px,auto) 12px!important;gap:12px!important;box-sizing:border-box}
+.market-orders .market-order-row:hover{background:var(--ord-soft)}
+.market-orders .market-order-icon{width:43px!important;height:43px!important;border:0;border-radius:10px!important;background:#101e35;color:#0798cf}
+.market-orders .market-order-icon .market-svg{width:22px;height:22px;fill:currentColor;stroke:none}
+.market-orders .market-order-copy strong{font-size:14px!important;color:var(--ord-ink)!important;margin-bottom:6px!important;font-weight:750}
+.market-orders .market-order-copy small{font-size:11.5px!important;color:var(--ord-muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.market-orders .market-order-right b{font-size:15px!important;color:var(--ord-blue);font-weight:850;white-space:nowrap}
+.market-orders .market-status{font-size:10px!important;line-height:1.1;padding:6px 8px!important;white-space:nowrap;font-weight:800}
+.market-orders .market-order-row .market-status.completed{background:#e2f4fc;color:#526e85}
+.market-orders .market-order-arrow{font-size:24px!important;color:var(--ord-muted)}
+.market-orders .market-back-link{color:var(--ord-blue);font-size:14px!important;margin:4px 0 18px!important}
+.market-orders .market-order-detail-head{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;padding:16px 17px!important;gap:10px!important;border-color:var(--ord-line)}
+.market-orders .market-receipt-icon{width:40px;height:40px;border-radius:9px;background:#e4f5fd;color:#079bd7}
+.market-orders .market-order-detail-head h2{font-size:16px!important;color:var(--ord-ink);overflow-wrap:anywhere}
+.market-orders .market-order-detail-head small{font-size:11px!important;color:var(--ord-muted)}
+.market-orders .market-order-detail-head .market-status.completed{background:#d9f8ef;color:#087e60;border:1px solid #9ae9d5}
+.market-orders .market-order-detail-body{padding:18px!important}
+.market-orders .market-detail-product,.market-orders .market-price-box{background:var(--ord-soft);border:1px solid var(--ord-line);border-radius:11px!important}
+.market-orders .market-detail-product{grid-template-columns:43px minmax(0,1fr)!important;padding:13px!important;gap:12px!important}
+.market-orders .market-detail-product strong{font-size:15px!important;color:var(--ord-ink);overflow-wrap:anywhere}
+.market-orders .market-detail-product small{color:var(--ord-muted);line-height:1.5}
+.market-orders .market-price-box{padding:14px!important;margin-top:15px!important}
+.market-orders .market-price-line{color:var(--ord-muted);font-size:14px!important}
+.market-orders .market-price-line>span:last-child{color:var(--ord-ink)}
+.market-orders .market-price-line.total{border-color:var(--ord-line);color:var(--ord-ink)}
+.market-orders .market-price-line.total strong{color:var(--ord-blue);font-weight:850}
+.market-orders .market-delivery-title{font-size:12px!important;letter-spacing:.07em;color:var(--ord-muted)}
+.market-orders .market-order-detail .market-delivery-box{background:var(--ord-soft);border-color:var(--ord-line);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;min-height:0!important;padding:13px!important}
+.market-orders .market-order-detail .market-delivery-box pre{font:400 13px/1.65 ui-monospace,monospace!important;color:var(--ord-ink)!important;min-width:0}
+.market-orders .market-order-detail .market-detail-copy-btn{width:auto!important;min-height:35px!important;padding:7px 10px!important;margin:0!important;border:1px solid #9cd9f3!important;border-radius:8px!important;background:#e1f4fd!important;color:#067ab0!important;font-size:12px!important;font-weight:650!important;box-shadow:none!important;white-space:nowrap}
+.market-orders .market-order-detail .market-detail-copy-btn span{color:inherit!important;font-size:13px!important}
+.market-orders .market-order-detail .market-detail-copy-btn.copied{background:#d9f8ef!important;color:#087e60!important}
+.market-orders .market-detail-actions{display:grid;grid-template-columns:1fr;gap:9px!important;margin-top:15px!important}
+.market-orders .market-detail-actions a,.market-orders .market-detail-actions button{min-height:46px!important;font-size:15px!important}
+.market-orders .market-all-orders-btn{background:#e3f4fc;border-color:#a6dff6;color:#067bad}
+.market-orders .market-order-row:focus-visible{outline:2px solid #0a9edb;outline-offset:-3px}
+@media(max-width:360px){.market-orders .market-order-row{padding:11px 9px!important;gap:8px!important;grid-template-columns:36px minmax(0,1fr) auto 9px!important}.market-orders .market-order-icon{width:36px!important;height:36px!important}.market-orders .market-order-right b{font-size:13px!important}.market-orders .market-order-copy strong{font-size:13px!important}.market-orders .market-order-detail-body{padding:13px!important}}
+</style></head>
 <body class="market-orders">
   <header class="market-page-header">
     <div class="market-page-header-inner">
-      <button class="market-menu-btn" id="marketMenuBtn" type="button" aria-label="Open menu">
+      <button class="market-menu-btn" id="marketMenuBtn" type="button" aria-label="Open menu" aria-controls="marketSidePanel" aria-expanded="false">
         <svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
       <a class="market-brand" href="index.html">
@@ -24,7 +101,7 @@
         <span>WAYNE LOGS</span>
       </a>
       <div class="market-header-actions">
-        <button class="market-icon-btn" type="button" aria-label="Appearance" title="Appearance">
+        <button class="market-icon-btn" id="marketThemeBtn" type="button" aria-label="Appearance" title="Appearance">
           <svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 15.3A9 9 0 0 1 8.7 3.7a9 9 0 1 0 11.6 11.6Z"/></svg>
         </button>
         <a class="market-icon-btn" href="notifications.html" aria-label="Notifications" title="Notifications">
@@ -38,52 +115,27 @@
     </div>
   </header>
 
-  <div class="market-side-overlay" id="marketSideOverlay"></div>
-  <aside class="market-side-panel" id="marketSidePanel" aria-label="Customer menu">
-    <div class="market-side-head">
-      <span class="market-logo-frame"><img src="assets/wayne-bat-logo.jpg" decoding="async" alt="WAYNE LOGS logo"></span>
-      <strong>WAYNE LOGS</strong>
-      <button class="market-side-close" id="marketSideClose" type="button" aria-label="Close menu">×</button>
-    </div>
-
-    <div class="market-side-label">MAIN</div>
-    <nav class="market-side-links">
-      <a href="index.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></svg></span> Home
-      </a>
-      <a href="profile.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span> Profile
-      </a>
-    </nav>
-
-    <div class="market-side-label">SHOP</div>
-    <nav class="market-side-links">
-      <a href="index.html#shop">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M4 10h16l-1-5H5l-1 5Z"/><path d="M5 10v9h14v-9M9 14h6"/></svg></span> All Products
-      </a>
-      <a class="active" href="orders.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></span> My Orders
-      </a>
-      <a href="dashboard.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 11h5M12 9v7M8.5 12.5h7"/></svg></span> Add Funds
-      </a>
-      <a href="dashboard.html#transactions">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></span> Transactions
-      </a>
-      <a href="index.html#categories">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span> Categories
-      </a>
-      <a href="support.html">
-        <span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.5 2.5 0 1 1 4.6 1.3c-.8 1.1-2.3 1.3-2.3 3M12 17h.01"/></svg></span> Support
-      </a>
-    </nav>
-
-    <div class="market-side-account">
-      <strong id="menuUser">Customer Account</strong>
-      <a href="dashboard.html">Wallet / Top Up →</a>
-      <a href="#" id="logout">Logout</a>
-    </div>
-  </aside>
+  <div class="market-side-overlay" id="marketSideOverlay" aria-hidden="true"></div>
+<aside class="market-side-panel" id="marketSidePanel" role="dialog" aria-modal="true" aria-label="Customer menu" aria-hidden="true" inert>
+  <div class="market-side-head"><a href="index.html" class="market-side-wordmark"><strong>WAYNE <span>LOGS</span></strong><small>MARKETPLACE</small></a><button class="market-side-close" id="marketSideClose" type="button" aria-label="Close menu">×</button></div>
+  <div class="market-side-scroll" id="marketSideScroll">
+  <div class="market-side-label">MAIN</div><nav class="market-side-links" aria-label="MAIN"><a href="index.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg></span><span>Home</span></a>
+<a href="profile.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span>Profile</span></a></nav>
+  <div class="market-side-label">SHOP</div><nav class="market-side-links" aria-label="SHOP"><a href="index.html#shop"><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1-5H5l-1 5ZM5 10v9h14v-9M9 14h6"/></svg></span><span>All Products</span></a>
+<a href="orders.html" aria-current="page" data-close-menu ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7ZM9 7a3 3 0 0 1 6 0"/></svg></span><span>My Orders</span></a>
+<a href="dashboard.html#topupForm" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8m-4-4h8"/></svg></span><span>Add Funds</span></a>
+<a href="profile.html#referralCode" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3"/><path d="M6 20v-2a6 6 0 0 1 12 0v2M3 4a3 3 0 0 0 0 6m18-6a3 3 0 0 1 0 6M2 17v-2a4 4 0 0 1 4-4m16 6v-2a4 4 0 0 0-4-4"/></svg></span><span>Referrals</span></a>
+<a href="dashboard.html#transactions" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg></span><span>Transactions</span></a>
+<a href="index.html#categories"><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/></svg></span><span>Categories</span></a></nav>
+  <div class="market-side-label">HELP &amp; SUPPORT</div><nav class="market-side-links" aria-label="HELP &amp; SUPPORT"><a href="support.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13v-2a9 9 0 0 1 18 0v2m-18 0h4v5H5a2 2 0 0 1-2-2Zm18 0h-4v5h2a2 2 0 0 0 2-2Zm0 4v2l-5 2h-4"/></svg></span><span>Support</span></a>
+<a href="notifications.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><span>Notifications</span></a></nav>
+  <div class="market-side-label">ACCOUNT</div><nav class="market-side-links" aria-label="ACCOUNT"><a href="settings.html" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/><circle cx="12" cy="12" r="7"/></svg></span><span>Account Settings</span></a>
+<a href="admin.html" id="sideAdminLink" hidden><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 4 8 8 10 4-2 8-5 8-10V6l-8-3Zm-3 9 2 2 4-4"/></svg></span><span>Admin Panel</span></a>
+<button type="button" id="sideTheme" ><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15a8.5 8.5 0 0 1-11-11 8.5 8.5 0 1 0 11 11Z"/></svg></span><span>Toggle Theme</span></button>
+<button type="button" id="sideLogout" hidden><span class="market-side-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5m3-12 4 4-4 4m-4-4h12"/></svg></span><span>Sign Out</span></button></nav>
+  </div>
+  <div class="market-side-footer"><div class="market-side-account" id="sideAccountBox"><div class="market-side-wallet-icon"><svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M4 6V4h14v2m-2 5h5v5h-5a2.5 2.5 0 0 1 0-5Z"/></svg></div><div class="market-side-wallet-copy"><small>Wallet Balance</small><strong id="sideWalletBalance" aria-live="polite">—</strong></div><a class="market-side-topup" href="dashboard.html#topupForm">Top Up</a></div></div>
+</aside>
 
   <main class="market-orders-main">
     <div id="message" class="message"></div>
@@ -107,21 +159,28 @@
   function statusClass(o){return statusText(o).toLowerCase()}
   let orders=[];
 
-  function openMenu(){document.getElementById("marketSidePanel").classList.add("open");document.getElementById("marketSideOverlay").classList.add("show");document.body.style.overflow="hidden"}
-  function closeMenu(){document.getElementById("marketSidePanel").classList.remove("open");document.getElementById("marketSideOverlay").classList.remove("show");document.body.style.overflow=""}
-  document.getElementById("marketMenuBtn").onclick=openMenu;document.getElementById("marketSideClose").onclick=closeMenu;document.getElementById("marketSideOverlay").onclick=closeMenu;
-  document.getElementById("logout").onclick=e=>{e.preventDefault();localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.href="login.html"};
-  try{const u=JSON.parse(localStorage.getItem("wayneUser")||"null");if(u?.firstName)document.getElementById("menuUser").textContent=u.firstName+(u.lastName?" "+u.lastName:"")}catch{}
-
+  const menu=document.getElementById("marketSidePanel"),menuButton=document.getElementById("marketMenuBtn"),menuClose=document.getElementById("marketSideClose"),menuOverlay=document.getElementById("marketSideOverlay");let priorOverflow="";
+  function openMenu(){if(menu.classList.contains("open"))return;priorOverflow=document.body.style.overflow;menu.inert=false;menu.setAttribute("aria-hidden","false");menu.classList.add("open");menuOverlay.classList.add("show");menuButton.setAttribute("aria-expanded","true");document.body.style.overflow="hidden";menuClose.focus()}
+  function closeMenu(){if(!menu.classList.contains("open"))return;menuButton.focus();menu.classList.remove("open");menu.inert=true;menu.setAttribute("aria-hidden","true");menuOverlay.classList.remove("show");menuButton.setAttribute("aria-expanded","false");document.body.style.overflow=priorOverflow}
+  menuButton.onclick=openMenu;menuClose.onclick=closeMenu;menuOverlay.onclick=closeMenu;
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMenu();if(e.key==="Tab"&&menu.classList.contains("open")){const items=[...menu.querySelectorAll("a[href],button:not([disabled])")].filter(el=>!el.hidden&&el.getClientRects().length);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
+  menu.querySelectorAll("[data-close-menu]").forEach(el=>el.addEventListener("click",closeMenu));
+  document.getElementById("sideTheme").onclick=()=>window.wayneApplyAppearance?.(document.documentElement.classList.contains("wayne-dark-mode")?"light":"dark");
+  document.getElementById("sideLogout").hidden=false;
+  document.getElementById("sideLogout").onclick=()=>{localStorage.removeItem("wayneToken");localStorage.removeItem("wayneUser");location.href="login.html"};
+  async function loadMenuBalance(){if(!token)return;try{const r=await fetch(API_URL+"/api/wallet",{cache:"no-store",headers:{Authorization:"Bearer "+token}}),d=await r.json();if(r.ok&&typeof d.wallet?.balanceKobo==="number")document.getElementById("sideWalletBalance").textContent=money(d.wallet.balanceKobo/100)}catch{}}
+  loadMenuBalance();
+  function orderHeading(){return `<div class="market-orders-title"><h1>My Orders</h1><p>${orders.length} order${orders.length===1?"":"s"} total</p></div>`}
+  const orderTag='<svg class="market-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5a2 2 0 0 1 2-2h7l9 9a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0L3 12V5zm5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z" fill-rule="evenodd"/></svg>';
   function renderList(){
     history.replaceState({},"","orders.html");
-    view.innerHTML=`<div class="market-orders-title"><h1>My Orders</h1><p>${orders.length} order${orders.length===1?"":"s"} total</p></div>`+(orders.length?`<div class="market-orders-card">${orders.map(o=>`<article class="market-order-list-item"><div class="market-order-row" data-order="${esc(o._id)}" role="button" tabindex="0"><div class="market-order-icon">${icon(o.platform,o.productIcon||"★")}</div><div class="market-order-copy"><strong>${esc(o.productName)}</strong><small>${shortId(o)} · ${relative(o.createdAt)}${Number(o.quantity)>1?` · Qty: ${Number(o.quantity)}`:""}</small></div><div class="market-order-right"><b>${money(o.totalAmount)}</b><span class="market-status ${statusClass(o)}">${esc(statusText(o))}</span></div><span class="market-order-arrow">›</span></div>${o.deliveryContent?`<div class="market-order-list-delivery"><div><span>YOUR PURCHASE</span><pre>${esc(o.deliveryContent)}</pre></div><button class="market-list-copy-btn" type="button" data-copy-delivery="${esc(o._id)}"><span>⧉</span> Copy</button></div>`:`<div class="market-order-list-waiting">${o.paymentStatus==="paid"?"Your purchase is being prepared. It will appear here when ready.":"Complete payment to receive your purchase."}</div>`}</article>`).join("")}</div>`:'<div class="market-orders-card"><div class="market-orders-empty">No orders yet.<br><a href="index.html#shop" style="color:#0893d0;font-weight:900">Go to the shop →</a></div></div>');
+    view.innerHTML=`${orderHeading()}`+(orders.length?`<div class="market-orders-card">${orders.map(o=>`<article class="market-order-list-item"><div class="market-order-row" data-order="${esc(o._id)}" role="button" tabindex="0"><div class="market-order-icon">${orderTag}</div><div class="market-order-copy"><strong>${esc(o.productName)}</strong><small>${shortId(o)} · ${relative(o.createdAt)}${Number(o.quantity)>1?` · Qty: ${Number(o.quantity)}`:""}</small></div><div class="market-order-right"><b>${money(o.totalAmount)}</b><span class="market-status ${statusClass(o)}">${esc(statusText(o))}</span></div><span class="market-order-arrow">›</span></div></article>`).join("")}</div>`:'<div class="market-orders-card"><div class="market-orders-empty">No orders yet.<br><a href="index.html#shop" style="color:#0893d0;font-weight:900">Go to the shop →</a></div></div>');
   }
   function renderDetail(o,pushHistory=true){
     if(!o){renderList();return}
     if(pushHistory&&new URLSearchParams(location.search).get("order")!==String(o._id))history.pushState({order:o._id},"",`orders.html?order=${encodeURIComponent(o._id)}`);
     const ref=o.paymentReference||("ORD_"+String(o._id).slice(-10).toUpperCase());
-    view.innerHTML=`<a class="market-back-link" href="orders.html" id="backOrders">← Back to Orders</a><div class="market-order-detail"><div class="market-order-detail-head"><div class="market-receipt-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg></div><div><h2>Order ${shortId(o)}</h2><small>${new Date(o.createdAt).toLocaleString()}</small></div><span class="market-status ${statusClass(o)}">${esc(statusText(o))}</span></div><div class="market-order-detail-body"><div class="market-detail-product"><div class="market-order-icon">${icon(o.platform,o.productIcon||"★")}</div><div><strong>${esc(o.productName)}</strong><small>Qty: ${Number(o.quantity||1)} · Ref: ${esc(ref)}</small></div></div><div class="market-price-box"><div class="market-price-line"><span>Subtotal</span><span>${money(o.totalAmount)}</span></div><div class="market-price-line total"><span>Total Paid</span><strong>${o.paymentStatus==="paid"?money(o.totalAmount):"—"}</strong></div></div>${o.deliveryContent?`<div class="market-delivery-title">DELIVERY DETAILS</div><div class="market-delivery-box"><pre>${esc(o.deliveryContent)}</pre></div><button class="market-copy-btn market-detail-copy-btn" id="copyDelivery" type="button"><span>⧉</span> Copy Purchase</button>`:`<div class="market-delivery-title">DELIVERY DETAILS</div><div class="market-locked">${o.paymentStatus==="paid"?"Your order is being processed. Delivery details will appear here when ready.":"Delivery details appear here after successful payment and completion."}</div>`}<div class="market-detail-actions">${o.paymentStatus==="pending"?`<button class="market-pay-btn" id="retryWallet" type="button">Pay from Wallet</button>`:""}<a class="market-all-orders-btn" href="orders.html" id="allOrders">All Orders</a><a class="market-all-orders-btn" href="support.html?order=${esc(o._id)}">Get Support</a></div></div></div>`;
+    view.innerHTML=`${orderHeading()}<a class="market-back-link" href="orders.html" id="backOrders">← Back to Orders</a><div class="market-order-detail"><div class="market-order-detail-head"><div class="market-receipt-icon"><svg class="market-svg" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg></div><div><h2>Order ${shortId(o)}</h2><small>${new Date(o.createdAt).toLocaleString()}</small></div><span class="market-status ${statusClass(o)}">${esc(statusText(o))}</span></div><div class="market-order-detail-body"><div class="market-detail-product"><div class="market-order-icon">${orderTag}</div><div><strong>${esc(o.productName)}</strong><small>Qty: ${Number(o.quantity||1)} · Ref: ${esc(ref)}</small></div></div><div class="market-price-box"><div class="market-price-line"><span>Subtotal</span><span>${money(o.totalAmount)}</span></div><div class="market-price-line total"><span>Total Paid</span><strong>${o.paymentStatus==="paid"?money(o.totalAmount):"—"}</strong></div></div>${o.paymentStatus==="paid"&&o.status==="completed"&&o.deliveryContent?`<div class="market-delivery-title">DELIVERY DETAILS</div><div class="market-delivery-box"><pre>${esc(o.deliveryContent)}</pre><button class="market-copy-btn market-detail-copy-btn" id="copyDelivery" type="button">Copy</button></div>`:`<div class="market-delivery-title">DELIVERY DETAILS</div><div class="market-locked">${o.paymentStatus==="paid"?"Your order is being processed. Delivery details will appear here when ready.":"Delivery details appear here after successful payment and completion."}</div>`}<div class="market-detail-actions">${o.paymentStatus==="pending"?`<button class="market-pay-btn" id="retryWallet" type="button">Pay from Wallet</button>`:""}<a class="market-all-orders-btn" href="orders.html" id="allOrders">All Orders</a><a class="market-all-orders-btn" href="support.html?order=${esc(o._id)}">Get Support</a></div></div></div>`;
     document.getElementById("backOrders").onclick=e=>{e.preventDefault();renderList()};document.getElementById("allOrders").onclick=e=>{e.preventDefault();renderList()};
     document.getElementById("copyDelivery")?.addEventListener("click",e=>copyOrderDelivery(o._id,e.currentTarget));
     document.getElementById("retryWallet")?.addEventListener("click",e=>retryPayment(o._id,e.currentTarget));
@@ -154,7 +213,7 @@
   }
   async function copyOrderDelivery(orderId,button){
     const order=orders.find(item=>String(item._id)===String(orderId));
-    const text=String(order?.deliveryContent||"");
+    const text=order?.paymentStatus==="paid"&&order?.status==="completed"?String(order.deliveryContent||""):"";
     if(!text)return;
     let copied=false;
     try{
@@ -187,7 +246,7 @@
     show("Purchase details copied.","success");
     setTimeout(()=>{
       if(!button.isConnected)return;
-      button.innerHTML=button.id==="copyDelivery"?"<span>⧉</span> Copy Purchase":"<span>⧉</span> Copy";
+      button.textContent="Copy";
       button.classList.remove("copied");
     },1600);
   }
