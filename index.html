@@ -103,7 +103,75 @@ html.wayne-dark-mode body.market-home .market-empty{background:#0d2135!important
 @media(max-width:760px){.market-home-hero#homeCarousel .market-home-hero-inner{min-height:137px!important;padding:15px 27px 1px!important;grid-template-columns:minmax(0,1fr) 50px!important;gap:9px!important}.market-home-hero#homeCarousel h1{font-size:clamp(17px,4.8vw,21px)!important}.market-home-hero#homeCarousel p{font-size:12px!important;margin-bottom:12px!important}.market-home-hero#homeCarousel .market-shop-now{font-size:13px!important}.market-hero-promo-art{width:46px;height:46px;font-size:28px}.market-hero-promo-art img{width:34px;height:34px}.market-home-hero#homeCarousel .market-hero-phone{width:42px;height:55px}}
 @media(max-width:340px){.market-home-hero#homeCarousel .market-home-hero-inner{padding-inline:17px!important;grid-template-columns:minmax(0,1fr) 40px!important;gap:7px!important}}
 @media(prefers-reduced-motion:reduce){.market-home-hero-inner.slide-changing{animation:none}.market-hero-dots button:before{transition:none}}
-</style></head>
+</style><style id="wayne-catalogue-proportions">
+/* Mobile catalogue proportions, with the existing WAYNE LOGS navigation and data. */
+body.market-home{background:#eef2f6!important}
+body.market-home .market-page-header{background:#fff;border-color:#d9e2eb;box-shadow:0 2px 8px #172d4910}
+body.market-home .market-page-header-inner{min-height:62px!important}
+body.market-home .market-home-main{margin-bottom:36px!important}
+body.market-home .market-search-wrap{height:48px!important;border-radius:13px!important;border-color:#d6dfeb;box-shadow:none!important;gap:11px}
+body.market-home .market-search-wrap>.market-svg{width:20px;height:20px;flex:0 0 20px;color:#65758a}
+body.market-home .market-search-wrap input{font-size:15px!important;min-width:0;font-weight:400}
+body.market-home .market-popular{gap:8px!important;margin:15px 0 23px!important;font-size:12px!important}
+body.market-home .market-popular>span{font-weight:500;margin-right:0}
+body.market-home .market-popular button{min-height:29px!important;padding:5px 12px!important;font-size:12px!important;font-weight:500;line-height:1.35;border-color:#d7e0eb;background:#fff}
+body.market-home .market-popular button.selected{border-color:#55bde8;background:#eaf8fe;color:#087eb8}
+body.market-home .market-category-section{margin:0 0 25px!important}
+body.market-home .market-category-heading{gap:10px!important;margin:0 2px 11px!important;min-width:0}
+body.market-home .market-category-logo{width:30px!important;height:30px!important;flex:0 0 30px!important;border-radius:7px!important}
+body.market-home .market-category-heading h2{font-size:18px!important;line-height:1.2!important;font-weight:850;letter-spacing:-.035em;min-width:0;overflow-wrap:anywhere}
+body.market-home .market-view-all{font-size:12px!important;font-weight:700;color:#0799d2;padding:4px 0 4px 5px;white-space:nowrap;flex:none}
+body.market-home .market-product-list{border:1px solid #d7e0eb!important;border-radius:14px!important;box-shadow:0 3px 10px #152c4810!important;background:#fff}
+body.market-home .market-product-row{min-height:82px!important;padding:13px 16px!important;grid-template-columns:44px minmax(0,1fr) auto!important;gap:12px!important;border-color:#dce4ec;box-sizing:border-box;transform:none}
+body.market-home .market-product-thumb{width:44px!important;height:44px!important;border-radius:10px!important}
+body.market-home :is(.market-product-thumb,.market-category-logo){background:transparent;border:0;box-shadow:none}
+body.market-home .market-product-thumb img{width:100%!important;height:100%!important;object-fit:contain}
+body.market-home .market-category-logo img{width:100%!important;height:100%!important;object-fit:contain}
+body.market-home .catalogue-brand-icon{display:block;width:100%;height:100%;border-radius:inherit;overflow:hidden}
+body.market-home .catalogue-brand-icon svg{display:block;width:100%;height:100%}
+body.market-home .catalogue-brand-icon.facebook{background:#0866ff}
+body.market-home .catalogue-brand-icon.instagram{background:radial-gradient(circle at 23% 100%,#ffdc80 0%,#fcaf45 20%,#f77737 34%,#e1306c 52%,#833ab4 76%,#405de6 100%)}
+body.market-home .market-product-copy h3{font-size:14px!important;font-weight:700!important;line-height:1.32!important;margin:0 0 5px!important;letter-spacing:-.018em;color:#111d30}
+body.market-home .market-stock{font-size:12px!important;font-weight:500!important;line-height:1.35;gap:4px!important;color:#65768c}
+body.market-home .market-stock:before{width:6px!important;height:6px!important;flex:0 0 6px;background:#00956d}
+body.market-home .market-stock.low{color:#ad6300}
+body.market-home .market-stock.low:before{background:#f5a01c}
+body.market-home .market-stock.out{color:#d06569}
+body.market-home .market-stock.out:before{background:#db7479}
+body.market-home .market-product-buy{min-width:0!important;display:grid;justify-items:end;align-content:center;gap:6px}
+body.market-home .market-product-price{font-size:15px!important;line-height:1.2!important;font-weight:850!important;letter-spacing:-.025em;color:#086b9f;margin:0!important}
+body.market-home .market-buy-btn{min-width:50px!important;min-height:27px!important;padding:5px 10px!important;font-size:12px!important;line-height:1.3!important;font-weight:700!important;border-radius:999px!important;box-shadow:none!important;background:linear-gradient(125deg,#076b9e,#0b9fd3);color:#fff}
+body.market-home .market-buy-btn:disabled{background:#f9e9eb;color:#b95c64;opacity:1!important}
+body.market-home .market-product-row.is-sold .market-product-copy h3{color:#697383}
+body.market-home .market-product-row.is-sold .market-product-price{color:#6489a0}
+body.market-home .market-product-row.is-sold .market-product-thumb{opacity:.65}
+body.market-home .market-product-row:focus-visible{outline:2px solid #079bd7;outline-offset:-2px}
+html.wayne-dark-mode body.market-home{background:#091725!important}
+html.wayne-dark-mode body.market-home .market-product-list{border-color:#29465f!important;box-shadow:none!important}
+html.wayne-dark-mode body.market-home :is(.market-category-logo,.market-product-thumb){background:transparent!important;border-color:transparent!important}
+html.wayne-dark-mode body.market-home .market-stock.low{color:#ffc477!important}
+html.wayne-dark-mode body.market-home .market-stock.out{color:#ffa3aa!important}
+html.wayne-dark-mode body.market-home .market-product-row.is-sold .market-product-copy h3{color:#a6b9cf!important}
+html.wayne-dark-mode body.market-home .market-product-row.is-sold .market-product-price{color:#a0c6de!important}
+html.wayne-dark-mode body.market-home .market-search-wrap input{color:#eef7ff!important}
+html.wayne-dark-mode body.market-home .market-search-wrap>.market-svg{color:#a7bbd0}
+html.wayne-dark-mode body.market-home .market-popular button{background:#102438!important;border-color:#36536e!important;color:#b9ccdd!important}
+html.wayne-dark-mode body.market-home .market-popular button.selected{background:#143c57!important;border-color:#4db9e9!important;color:#8bdeff!important}
+@media(min-width:761px){body.market-home .market-category-heading h2{font-size:21px!important}body.market-home .market-product-copy h3{font-size:16px!important}body.market-home .market-product-price{font-size:17px!important}body.market-home .market-product-row{min-height:88px!important;grid-template-columns:50px minmax(0,1fr) auto!important;gap:15px!important}body.market-home .market-product-thumb{width:50px!important;height:50px!important}}
+@media(max-width:760px){
+body.market-home .market-page-header-inner{min-height:59px!important;padding:0 12px!important;gap:6px!important}
+body.market-home .market-page-header .market-menu-btn{width:31px!important;height:35px!important;flex-basis:31px!important}
+body.market-home .market-page-header .market-icon-btn{width:35px!important;height:35px!important;flex-basis:35px!important;border-radius:9px!important}
+body.market-home .market-brand{gap:5px!important;flex:0 1 auto}
+body.market-home .market-brand>span:last-child{font-size:clamp(14px,4.1vw,18px)!important;font-weight:900}
+body.market-home .market-brand>.market-logo-frame{width:26px!important;height:26px!important;flex-basis:26px!important}
+body.market-home .market-header-actions{gap:5px!important;flex:none}
+body.market-home .market-home-main{width:calc(100% - 24px)!important}
+}
+@media(max-width:380px){body.market-home .market-page-header-inner{padding:0 8px!important;gap:4px!important}body.market-home .market-brand>.market-logo-frame{display:none!important}body.market-home .market-header-actions{gap:4px!important}body.market-home .market-page-header .market-icon-btn{width:32px!important;height:34px!important;flex-basis:32px!important}body.market-home .market-product-row{padding:12px 12px!important;grid-template-columns:39px minmax(0,1fr) auto!important;gap:9px!important}body.market-home .market-product-thumb{width:39px!important;height:39px!important}body.market-home .market-product-price{font-size:14px!important}}
+@media(max-width:340px){body.market-home .market-product-row{padding-inline:9px!important;gap:8px!important;grid-template-columns:34px minmax(0,1fr) auto!important}body.market-home .market-product-thumb{width:34px!important;height:34px!important}body.market-home .market-product-copy h3{font-size:13px!important}body.market-home .market-product-price{font-size:13px!important}}
+</style>
+</head>
 <body class="simple-store premium-store market-home">
 
   <header class="market-page-header">
@@ -283,6 +351,6 @@ html.wayne-dark-mode body.market-home .market-empty{background:#0d2135!important
   </div>
 
   <script src="config.js?v=20261113-no-auto-modal"></script><script src="feedback.js?v=20261113-no-auto-modal"></script>
-  <script src="app.js?v=20261128-home-carousel2"></script>
+  <script src="app.js?v=20261128-catalogue3"></script>
 </body>
 </html>

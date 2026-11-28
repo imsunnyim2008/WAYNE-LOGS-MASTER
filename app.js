@@ -64,7 +64,14 @@ function productMatches(product){
   if(activePlatform==="vpn")return String(product.type||"").toLowerCase()==="vpn";
   return platformKey(product.platform)===platformKey(activePlatform);
 }
-function stockClass(stock){if(Number(stock)<1)return"out";if(Number(stock)<=5)return"low";return""}
+function stockClass(stock){if(Number(stock)<1)return"out";if(Number(stock)<10)return"low";return""}
+function catalogueMoney(value){return "₦"+Number(value||0).toLocaleString("en-NG",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function catalogueIcon(platform,fallback){
+ const key=platformKey(platform);
+ if(key==="facebook")return '<span class="catalogue-brand-icon facebook" aria-hidden="true"><svg viewBox="0 0 48 48" focusable="false"><path fill="#fff" d="M28 48V30h6l1-7h-7v-5c0-3 1-5 5-5h4V7c-2-.4-4-.7-6-.7-7 0-12 4.5-12 12.2V23h-6v7h6v18z"/></svg></span>';
+ if(key==="instagram")return '<span class="catalogue-brand-icon instagram" aria-hidden="true"><svg viewBox="0 0 48 48" focusable="false" fill="none" stroke="#fff" stroke-width="3.2"><rect x="8" y="8" width="32" height="32" rx="9"/><circle cx="24" cy="24" r="8"/><circle cx="34" cy="14" r="1.8" fill="#fff" stroke="none"/></svg></span>';
+ return iconMarkup(platform,fallback,"");
+}
 function renderProducts(){
   const list=products.filter(productMatches);
   if(!list.length){productGrid.innerHTML='<div class="market-empty"><strong>No products found.</strong><br><small>Try another category or search term.</small></div>';return}
@@ -74,13 +81,13 @@ function renderProducts(){
     const iconPlatform=groupIconPlatform(name,items);
     const rows=items.map(product=>{
       const stock=Number(product.stock||0),available=stock>0;
-      return`<div class="market-product-row" data-product="${esc(product._id)}" role="button" tabindex="0">
-        <div class="market-product-thumb">${iconMarkup(product.platform,product.icon||"★","")}</div>
+      return`<div class="market-product-row ${available?"":"is-sold"}" data-product="${esc(product._id)}" role="button" tabindex="0">
+        <div class="market-product-thumb">${catalogueIcon(product.platform,product.icon||"★")}</div>
         <div class="market-product-copy"><h3>${esc(product.name)}</h3><div class="market-stock ${stockClass(stock)}">${available?`${stock} pcs.`:"Out of stock"}</div></div>
-        <div class="market-product-buy"><span class="market-product-price">${money(product.price)}</span><button class="market-buy-btn" type="button" data-buy="${esc(product._id)}" ${available?"":"disabled"}>${available?"Buy ›":"Sold"}</button></div>
+        <div class="market-product-buy"><span class="market-product-price">${catalogueMoney(product.price)}</span><button class="market-buy-btn" type="button" data-buy="${esc(product._id)}" ${available?"":"disabled"}>${available?"Buy ›":"Sold"}</button></div>
       </div>`
     }).join("");
-    return`<section class="market-category-section" data-group="${esc(name)}"><div class="market-category-heading"><div class="market-category-logo">${iconMarkup(iconPlatform,String(name).charAt(0),"")}</div><h2>${esc(name)}</h2><button class="market-view-all" type="button" data-view-group="${esc(name)}">View All →</button></div><div class="market-product-list">${rows}</div></section>`
+    return`<section class="market-category-section" data-group="${esc(name)}"><div class="market-category-heading"><div class="market-category-logo">${catalogueIcon(iconPlatform,String(name).charAt(0))}</div><h2>${esc(name)}</h2><button class="market-view-all" type="button" data-view-group="${esc(name)}">View All →</button></div><div class="market-product-list">${rows}</div></section>`
   }).join("");
 }
 async function loadProducts(){
