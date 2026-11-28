@@ -37,6 +37,22 @@ html.wayne-dark-mode body.wayne-admin-page :is(.message.success,.guided-inventor
 html.wayne-dark-mode body.wayne-admin-page :is(.overview-hero,.reports-hero,.refund-hero,.security-hero,.announcement-hero,.manual-payment-hero,.customer-control-head){background:linear-gradient(135deg,#0c2741,#12456b)!important;border-color:#36536e!important;box-shadow:0 10px 28px #0003!important}
 html.wayne-dark-mode body.wayne-admin-page :is(.overview-hero,.reports-hero,.refund-hero,.security-hero,.announcement-hero,.manual-payment-hero,.customer-control-head) p{color:#c1d6e9!important}
 html.wayne-dark-mode body.wayne-admin-page :is(button,a,input,select,textarea):focus-visible{outline:2px solid #70d6ff;outline-offset:2px}
+
+/* Platform picker and its surrounding surfaces must follow the admin theme. */
+html.wayne-dark-mode body.wayne-admin-page .platform-picker-wrap{background:transparent!important;color:#eef7ff!important}
+html.wayne-dark-mode body.wayne-admin-page .platform-picker-wrap>label{color:#b9ccdd!important}
+html.wayne-dark-mode body.wayne-admin-page .admin-platform-grid{background:#0b1e31!important;border-color:#2b455e!important;box-shadow:none!important}
+html.wayne-dark-mode body.wayne-admin-page .admin-platform-option{background:#172e44!important;border-color:#36536e!important;color:#eef7ff!important;box-shadow:none!important}
+html.wayne-dark-mode body.wayne-admin-page .admin-platform-option b{color:#eef7ff!important}
+html.wayne-dark-mode body.wayne-admin-page .admin-platform-option small{color:#a7bbd0!important}
+html.wayne-dark-mode body.wayne-admin-page .admin-platform-option:hover{background:#1b3953!important;border-color:#4b83a7!important}
+html.wayne-dark-mode body.wayne-admin-page .admin-platform-option.selected{background:#143c57!important;border-color:#4db9e9!important;box-shadow:0 0 0 2px #4db9e933!important}
+html.wayne-dark-mode body.wayne-admin-page .admin-platform-option img:is([src$="/000000"],[src$="/181717"]){filter:brightness(0) invert(1)}
+html.wayne-dark-mode body.wayne-admin-page .admin-platform-option[data-platform-choice="MeetMe"]>span{color:#82d8ff!important;font-variant-emoji:text}
+html.wayne-dark-mode body.wayne-admin-page .brand-color-preview{background:#0b1e31!important;border-color:#36536e!important;color:#eef7ff!important}
+html.wayne-dark-mode body.wayne-admin-page .brand-color-preview span{color:#b9ccdd!important}
+html.wayne-dark-mode body.wayne-admin-page .brand-color-preview input[type="color"]{background:transparent!important;border:0!important}
+html.wayne-dark-mode body.wayne-admin-page .auto-field{background:#172e44!important;color:#b9ccdd!important;border-color:#36536e!important}
 </style></head><body class="wayne-admin-page"><div class="admin-shell">
 <aside class="admin-sidebar" id="adminSidebar"><div class="admin-brand"><a class="brand" href="index.html"><span class="brand-mark">W</span><span>WAYNE LOGS</span></a><p style="color:var(--muted);font-size:12px;margin:8px 0 0 54px">ADMIN PANEL</p></div><div class="admin-menu"><button class="active" data-section="overview">🏠 Overview</button><button data-section="products">📦 Products</button><button data-section="inventory">🗃 Inventory</button><button data-section="orders">🛒 Orders</button><button data-section="sales-reports">📈 Sales Reports</button><button data-section="refund-centre">↩ Refund Centre</button><button data-section="security-centre">🔒 Security Centre</button><button data-section="support">💬 Support</button><button data-section="manual-payments">✅ Manual Payments</button><button data-section="wallet-credit">💸 Credit Wallet</button><button data-section="wallets">💳 Wallets</button><button data-section="users">👥 Users</button><button data-section="customer-details">👤 Customer Details</button><button data-section="password-help">🔑 Password Help</button><button data-section="audit">🛡 Audit Log</button><button data-section="announcement-manager">📣 Announcements</button><button data-section="settings">⚙ Settings</button><a href="employee-admin.html">Employee Portal</a><a href="index.html">← View Store</a><button id="logoutButton">⏻ Logout</button></div></aside>
 <main class="admin-main"><header class="admin-top"><div style="display:flex;align-items:center;gap:12px"><button class="icon-btn menu-btn" id="adminMenuBtn">☰</button><div><small style="color:var(--muted)">WAYNE LOGS</small><h2 id="adminTitle" style="margin:2px 0 0">Overview</h2></div></div><span id="adminName" style="font-weight:850"></span></header><div class="admin-content"><div id="message" class="message"></div>
