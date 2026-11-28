@@ -2,7 +2,7 @@ const mongoose=require("mongoose");
 const Product=require("../models/Product"),SiteSetting=require("../models/SiteSetting");
 const InventoryItem=require("../models/InventoryItem");
 const inventoryCrypto=require("../services/inventoryCrypto");
-const PUB="name platform type description price currency stock icon color1 color2 status deliveryType createdAt updatedAt";
+const PUB="name platform type description price currency stock icon color1 color2 status deliveryType badge createdAt updatedAt";
 exports.publicList=async(req,res)=>{try{const products=await Product.find({status:"active"}).select(PUB).sort({createdAt:-1}).lean();res.set("Cache-Control","public, max-age=10, stale-while-revalidate=20");res.json({success:true,products});}catch(e){res.status(500).json({message:"Could not load products."});}};
 exports.publicOne=async(req,res)=>{try{if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({message:"Invalid product ID."});const product=await Product.findById(req.params.id).select(PUB).lean();if(!product)return res.status(404).json({message:"Product not found."});res.set("Cache-Control","public, max-age=10, stale-while-revalidate=20");res.json({success:true,product});}catch(e){res.status(500).json({message:"Could not load product."});}};
 exports.adminList=async(req,res)=>{try{const products=await Product.find().select("+privateDelivery").sort({createdAt:-1});res.json({success:true,products});}catch(e){res.status(500).json({message:"Could not load products."});}};

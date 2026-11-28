@@ -73,7 +73,9 @@ function catalogueIcon(platform,fallback){
  return iconMarkup(platform,fallback,"");
 }
 function renderProducts(){
-  const list=products.filter(productMatches);
+  const availability=$("growthAvailability")?.value||"all",category=$("growthCategory")?.value||"all",max=$("growthMaxPrice")?.value||"",sort=$("growthSort")?.value||"default";
+  const list=products.filter(p=>productMatches(p)&&(availability==="all"||(availability==="stock"?Number(p.stock)>0:Number(p.stock)<=0))&&(category==="all"||groupName(p)===category)&&(max===""||Number(p.price)<=Number(max)));
+  if(sort!=="default")list.sort((a,b)=>(Number(a.price)-Number(b.price))*(sort==="asc"?1:-1));
   if(!list.length){productGrid.innerHTML='<div class="market-empty"><strong>No products found.</strong><br><small>Try another category or search term.</small></div>';return}
   const groups=new Map();
   list.forEach(p=>{const name=groupName(p);if(!groups.has(name))groups.set(name,[]);groups.get(name).push(p)});
@@ -83,7 +85,7 @@ function renderProducts(){
       const stock=Number(product.stock||0),available=stock>0;
       return`<div class="market-product-row ${available?"":"is-sold"}" data-product="${esc(product._id)}" role="button" tabindex="0">
         <div class="market-product-thumb">${catalogueIcon(product.platform,product.icon||"★")}</div>
-        <div class="market-product-copy"><h3>${esc(product.name)}</h3><div class="market-stock ${stockClass(stock)}">${available?`${stock} pcs.`:"Out of stock"}</div></div>
+        <div class="market-product-copy"><h3>${esc(product.name)}${["HOT","NEW","PREMIUM","SALE"].includes(product.badge)?`<span class="wayne-product-badge">${product.badge}</span>`:""}</h3><div class="market-stock ${stockClass(stock)}">${available?`${stock} pcs.`:"Out of stock"}</div></div>
         <div class="market-product-buy"><span class="market-product-price">${catalogueMoney(product.price)}</span><button class="market-buy-btn" type="button" data-buy="${esc(product._id)}" ${available?"":"disabled"}>${available?"Buy ›":"Sold"}</button></div>
       </div>`
     }).join("");
@@ -92,10 +94,11 @@ function renderProducts(){
 }
 async function loadProducts(){
   productGrid.innerHTML='<div class="market-empty">Loading products...</div>';
-  try{const response=await fetch(API_URL+"/api/products"),data=await response.json();if(!response.ok)throw new Error(data.message||"Could not load products.");products=Array.isArray(data.products)?data.products:[];renderProducts();renderCart()}catch(error){productGrid.innerHTML=`<div class="market-empty">Could not load the store.<br><small>${esc(error.message)}</small></div>`}
+  try{const response=await fetch(API_URL+"/api/products"),data=await response.json();if(!response.ok)throw new Error(data.message||"Could not load products.");products=Array.isArray(data.products)?data.products:[];const filter=$("growthCategory");if(filter){const old=filter.value;filter.replaceChildren(new Option("All categories","all"));for(const name of [...new Set(products.map(groupName))].sort())filter.add(new Option(name,name));if([...filter.options].some(x=>x.value===old))filter.value=old}renderProducts();renderCart()}catch(error){productGrid.innerHTML=`<div class="market-empty">Could not load the store.<br><small>${esc(error.message)}</small></div>`}
 }
 function choosePlatform(value){activePlatform=String(value||"all").toLowerCase()==="vpn"?"vpn":value||"all";document.querySelectorAll("[data-jump-platform]").forEach(btn=>btn.classList.toggle("selected",platformKey(btn.dataset.jumpPlatform)===platformKey(activePlatform)));renderProducts();document.getElementById("shop")?.scrollIntoView({behavior:"smooth",block:"start"})}
 document.querySelectorAll("[data-jump-platform]").forEach(button=>button.addEventListener("click",()=>choosePlatform(button.dataset.jumpPlatform)));
+for(const id of ["growthAvailability","growthCategory","growthMaxPrice","growthSort"])$(id)?.addEventListener("input",renderProducts);
 searchInput?.addEventListener("input",()=>{activePlatform="all";document.querySelectorAll("[data-jump-platform]").forEach(b=>b.classList.remove("selected"));renderProducts()});
 productGrid?.addEventListener("click",event=>{
   const viewGroup=event.target.closest("[data-view-group]");if(viewGroup){const group=viewGroup.dataset.viewGroup;if(group==="VPN & Proxies")choosePlatform("vpn");else choosePlatform(group);return}
@@ -128,17 +131,17 @@ function renderCheckoutRelated(product){
 }
 let growthQuoteRequest=0;
 async function getGrowthQuote(product,code){const r=await fetch(API_URL+"/api/growth/quote/"+encodeURIComponent(product._id),{method:"POST",cache:"no-store",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({couponCode:code})});const d=await r.json().catch(()=>({}));if(!r.ok||!Number.isSafeInteger(d.quote?.amountKobo))throw Error(d.message||"Could not check the current price.");return d.quote}
-function showGrowthQuote(q){checkoutTotal.textContent=money(q.amountKobo/100);$("growthQuoteNote").textContent=q.discount?q.discount+"% discount"+(q.endsAt?" · Ends "+new Date(q.endsAt).toLocaleString():""):"Current price confirmed."}
+let quoteTimer;function showGrowthQuote(q){clearInterval(quoteTimer);checkoutTotal.textContent=money(q.amountKobo/100);function tick(){const left=q.endsAt?Math.max(0,Math.ceil((Date.parse(q.endsAt)-Date.now())/1000)):0;$("growthQuoteNote").textContent=q.discount?q.discount+"% discount"+(q.endsAt?(left?" · Ends in "+[Math.floor(left/3600),Math.floor(left%3600/60),left%60].map(n=>String(n).padStart(2,"0")).join(":"):" · Offer expired; price will be checked before payment"):""):"Current price confirmed.";if(!left)clearInterval(quoteTimer)}tick();if(q.endsAt&&Date.parse(q.endsAt)>Date.now())quoteTimer=setInterval(tick,1000)}
 $("growthQuote")?.addEventListener("click",async()=>{const p=checkoutSelection,code=$("growthCoupon").value,seq=++growthQuoteRequest;if(!p||checkoutBusy)return;try{const q=await getGrowthQuote(p,code);if(seq===growthQuoteRequest&&checkoutSelection===p)showGrowthQuote(q)}catch(e){if(seq===growthQuoteRequest)$("growthQuoteNote").textContent=e.message}});
-$("growthCoupon")?.addEventListener("input",()=>{growthQuoteRequest++;$("growthQuoteNote").textContent="Price will be verified before payment.";if(checkoutSelection)checkoutTotal.textContent=money(checkoutSelection.price)});
+$("growthCoupon")?.addEventListener("input",()=>{growthQuoteRequest++;clearInterval(quoteTimer);$("growthQuoteNote").textContent="Price will be verified before payment.";if(checkoutSelection)checkoutTotal.textContent=money(checkoutSelection.price)});
 function openCheckoutFor(id){
   const product=getProduct(id);if(!product||Number(product.stock)<1)return;if(!token||!currentUser){requireLoginFor(id);return}
-  checkoutSelection=product;growthQuoteRequest++;$("growthCoupon").value="";$("growthQuoteNote").textContent="";checkoutRequestId=(globalThis.crypto?.randomUUID?.()||`buy_${Date.now()}_${Math.random().toString(36).slice(2)}`).replace(/[^A-Za-z0-9_-]/g,"_");setCartProduct(id,false);closeCart();closeProduct();
+  checkoutSelection=product;clearInterval(quoteTimer);growthQuoteRequest++;$("growthCoupon").value="";$("growthQuoteNote").textContent="";checkoutRequestId=(globalThis.crypto?.randomUUID?.()||`buy_${Date.now()}_${Math.random().toString(36).slice(2)}`).replace(/[^A-Za-z0-9_-]/g,"_");setCartProduct(id,false);closeCart();closeProduct();
   checkoutArt.innerHTML=`<div class="checkout-visual-logo">${iconMarkup(product.platform,product.icon||"★","")}</div>`;
   checkoutProduct.innerHTML=`<h2>${esc(product.name)}</h2><div class="checkout-platform">${iconMarkup(product.platform,product.icon||"★","")}<span>${esc(product.platform||"Digital")}</span></div>`;
   checkoutStock.textContent=`${Number(product.stock)} available`;checkoutDetails.textContent=product.description||`${product.name}. ${deliveryText(product)}.`;checkoutEmail.textContent=currentUser.email||"Your account";checkoutTotal.textContent=money(product.price);checkoutWalletBalance.textContent=walletMoney(walletBalanceKobo);renderCheckoutRelated(product);checkoutMessage.className="simple-message";checkoutMessage.textContent="";payButton.disabled=false;payButton.innerHTML="<span>⚡</span> Buy Now";checkoutModal.classList.add("show");checkoutModal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";$("growthQuote")?.click()
 }
-function closeCheckout(){checkoutModal?.classList.remove("show");checkoutModal?.setAttribute("aria-hidden","true");document.body.style.overflow=""}
+function closeCheckout(){clearInterval(quoteTimer);checkoutModal?.classList.remove("show");checkoutModal?.setAttribute("aria-hidden","true");document.body.style.overflow=""}
 function showCheckoutMessage(text,type="error"){checkoutMessage.textContent=text;checkoutMessage.className=`simple-message show ${type}`}
 let checkoutBusy=false;
 async function pay(){

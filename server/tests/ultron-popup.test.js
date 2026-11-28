@@ -30,7 +30,7 @@ const pages=["admin","dashboard","force-change-password","forgot-password","inde
 const version="20261113-no-auto-modal";
 for(const page of pages){
  const html=fs.readFileSync(path.join(root,page+".html"),"utf8");
- assert(html.includes("config.js?v="+(page==="dashboard"?"20261127-wallet-back":version)),page+" must load fresh site-wide config.");
+ assert(html.includes("config.js?v="+(page==="dashboard"?"20261127-wallet-back":page==="admin"?"20261128-admin-navigation2":version)),page+" must load fresh site-wide config.");
  if(!["pay","verify-email"].includes(page)){
    assert(html.includes("feedback.js?v="+version),page+" must load fresh site-wide feedback.");
  }

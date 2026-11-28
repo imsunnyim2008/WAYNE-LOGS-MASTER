@@ -171,7 +171,7 @@ body.market-home .market-home-main{width:calc(100% - 24px)!important}
 @media(max-width:380px){body.market-home .market-page-header-inner{padding:0 8px!important;gap:4px!important}body.market-home .market-brand>.market-logo-frame{display:none!important}body.market-home .market-header-actions{gap:4px!important}body.market-home .market-page-header .market-icon-btn{width:32px!important;height:34px!important;flex-basis:32px!important}body.market-home .market-product-row{padding:12px 12px!important;grid-template-columns:39px minmax(0,1fr) auto!important;gap:9px!important}body.market-home .market-product-thumb{width:39px!important;height:39px!important}body.market-home .market-product-price{font-size:14px!important}}
 @media(max-width:340px){body.market-home .market-product-row{padding-inline:9px!important;gap:8px!important;grid-template-columns:34px minmax(0,1fr) auto!important}body.market-home .market-product-thumb{width:34px!important;height:34px!important}body.market-home .market-product-copy h3{font-size:13px!important}body.market-home .market-product-price{font-size:13px!important}}
 </style>
-<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0879b0"></head>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0879b0"><style>.wayne-advanced-filter{margin:0 0 18px;padding:10px 13px;border:1px solid #d6dfeb;border-radius:12px;background:#fff;color:#132139;font-size:13px}.wayne-advanced-filter summary{cursor:pointer;font-weight:750}.wayne-advanced-filter>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}.wayne-advanced-filter :is(select,input){display:block;width:100%;min-width:0;padding:8px;border:1px solid #d6dfeb;border-radius:7px;background:transparent;color:inherit;font:inherit}.wayne-product-badge{display:inline-block;background:#e1f4fc;color:#096b9d;font-size:10px;font-weight:800;border-radius:5px;padding:2px 5px;margin-left:5px;vertical-align:middle}html.wayne-dark-mode .wayne-advanced-filter{background:#102438;color:#eef7ff;border-color:#36536e}html.wayne-dark-mode .wayne-product-badge{background:#17445f;color:#a4e5ff}</style></head>
 <body class="simple-store premium-store market-home">
 
   <header class="market-page-header">
@@ -273,7 +273,7 @@ body.market-home .market-home-main{width:calc(100% - 24px)!important}
       <button type="button" data-jump-platform="VPN">VPN</button>
     </div>
 
-    <div id="categories"></div>
+    <details class="wayne-advanced-filter"><summary>Filter &amp; sort products</summary><div><label>Availability<select id="growthAvailability"><option value="all">All products</option><option value="stock">In stock</option><option value="sold">Sold out</option></select></label><label>Category<select id="growthCategory"><option value="all">All categories</option></select></label><label>Max price (₦)<input id="growthMaxPrice" type="number" min="0" placeholder="Any price"></label><label>Sort<select id="growthSort"><option value="default">Default</option><option value="asc">Lowest price</option><option value="desc">Highest price</option></select></label></div></details><div id="categories"></div>
     <div id="productGrid"><div class="market-empty">Loading products...</div></div>
 
     <div class="market-filter-engine" aria-hidden="true">
@@ -351,6 +351,6 @@ body.market-home .market-home-main{width:calc(100% - 24px)!important}
   </div>
 
   <script src="config.js?v=20261113-no-auto-modal"></script><script src="feedback.js?v=20261113-no-auto-modal"></script>
-  <script src="app.js?v=20261112-phase2-checkout-growth2"></script>
-<script src="install-app.js?v=1"></script></body>
+  <script src="app.js?v=20261112-phase2-checkout-growth3"></script>
+<script src="install-app.js?v=2"></script></body>
 </html>

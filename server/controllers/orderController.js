@@ -152,6 +152,7 @@ async function finalize(orderId,ref){
 exports.create=async(req,res)=>{
   try{
     const {productId}=req.body,requestId=String(req.body.requestId||"").trim();
+    if(typeof req.body.couponCode!=="undefined"&&(typeof req.body.couponCode!=="string"||req.body.couponCode.length>24))return res.status(400).json({message:"Invalid coupon."});
     if(!mongoose.isValidObjectId(productId))return res.status(400).json({message:"Invalid product."});
     if(!/^[A-Za-z0-9_-]{16,100}$/.test(requestId))return res.status(400).json({message:"This checkout request is invalid. Refresh the store and try again."});
     const replay=await Order.findOne({user:req.user._id,purchaseRequestId:requestId});
